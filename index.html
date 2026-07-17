@@ -199,6 +199,65 @@
     display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; font-family: 'Fredoka';
   }
   .member-chip .m-name { font-size: 10px; color: rgba(255,255,255,0.65); text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%; font-weight: 500; }
+
+  /* ---- Home / Harvest Panel ---- */
+  .home-content { flex: 1; overflow-y: auto; padding: 18px 16px 30px; }
+  .wallet-row { display: flex; gap: 10px; margin-bottom: 20px; }
+  .wallet-chip {
+    flex: 1; display: flex; align-items: center; gap: 8px;
+    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 16px; padding: 12px 14px;
+  }
+  .wallet-chip .w-icon { font-size: 20px; }
+  .wallet-chip .w-val { font-family: 'Fredoka'; font-weight: 700; font-size: 15px; }
+  .wallet-chip .w-label { font-size: 10px; color: rgba(255,255,255,0.45); font-weight: 600; }
+
+  .harvest-card {
+    position: relative; overflow: hidden;
+    background: linear-gradient(160deg, rgba(78,205,196,0.18), rgba(58,123,213,0.1));
+    border: 1px solid rgba(78,205,196,0.3);
+    border-radius: 26px; padding: 24px 20px; text-align: center; margin-bottom: 20px;
+  }
+  .harvest-card .field-emoji { font-size: 40px; margin-bottom: 6px; }
+  .harvest-card .lv-tag {
+    display: inline-block; font-family: 'Fredoka'; font-weight: 700; font-size: 12px;
+    color: #ffd76a; background: rgba(255,215,106,0.12); border: 1px solid rgba(255,215,106,0.3);
+    padding: 3px 12px; border-radius: 14px; margin-bottom: 14px;
+  }
+  .harvest-card .prod-label { font-size: 11.5px; color: rgba(255,255,255,0.5); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+  .harvest-card .prod-value { font-family: 'Fredoka'; font-weight: 700; font-size: 26px; color: #ffd76a; margin-bottom: 18px; }
+  .harvest-card .timer-label { font-size: 11.5px; color: rgba(255,255,255,0.5); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+  .timer-digits {
+    font-family: 'Fredoka'; font-weight: 700; font-size: 30px; letter-spacing: 2px;
+    color: #fff; margin-bottom: 18px;
+  }
+  .harvest-btn {
+    width: 100%; padding: 16px; border: none; border-radius: 18px; font-size: 16px; font-weight: 700;
+    font-family: 'Fredoka'; cursor: pointer; letter-spacing: 0.3px;
+    background: linear-gradient(90deg, #4ecdc4, #3a7bd5);
+    color: #fff; box-shadow: 0 10px 26px rgba(78,205,196,0.35);
+  }
+  .harvest-btn:disabled {
+    background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.35); box-shadow: none; cursor: default;
+  }
+  .harvest-btn.ready { animation: pulseGlow 1.4s ease-in-out infinite; }
+  @keyframes pulseGlow {
+    0%, 100% { box-shadow: 0 10px 26px rgba(78,205,196,0.35); }
+    50% { box-shadow: 0 10px 36px rgba(78,205,196,0.65); }
+  }
+
+  .upgrade-card {
+    display: flex; align-items: center; gap: 14px;
+    background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 18px; padding: 16px; margin-bottom: 14px;
+  }
+  .upgrade-card .u-icon {
+    width: 46px; height: 46px; border-radius: 14px; background: linear-gradient(135deg,#ffd76a,#ff9d5c);
+    display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0;
+  }
+  .upgrade-card .u-info { flex: 1; }
+  .upgrade-card .u-title { font-family: 'Fredoka'; font-weight: 700; font-size: 14.5px; }
+  .upgrade-card .u-sub { font-size: 11.5px; color: rgba(255,255,255,0.45); margin-top: 2px; font-weight: 500; }
 </style>
 </head>
 <body>
@@ -233,8 +292,48 @@
     <button class="logout-btn" onclick="handleLogout()">Logout</button>
   </div>
 
+  <!-- ===== HOME / HARVEST PANEL ===== -->
+  <div class="panel active" id="homePanel">
+    <div class="home-content">
+      <div class="wallet-row">
+        <div class="wallet-chip">
+          <div class="w-icon">🪙</div>
+          <div>
+            <div class="w-val" id="coinsDisplay">0</div>
+            <div class="w-label">COINS</div>
+          </div>
+        </div>
+        <div class="wallet-chip">
+          <div class="w-icon">💎</div>
+          <div>
+            <div class="w-val" id="gemsDisplay">0</div>
+            <div class="w-label">GEMS</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="harvest-card">
+        <div class="field-emoji">🌾</div>
+        <div class="lv-tag" id="homeLevelTag">Lv. 1</div>
+        <div class="prod-label">Production</div>
+        <div class="prod-value" id="prodValue">🪙 0</div>
+        <div class="timer-label">Harvest In</div>
+        <div class="timer-digits" id="harvestTimer">00:00:00</div>
+        <button class="harvest-btn" id="harvestBtn" onclick="doHarvest()" disabled>Harvest</button>
+      </div>
+
+      <div class="upgrade-card">
+        <div class="u-icon">📈</div>
+        <div class="u-info">
+          <div class="u-title">Level Up</div>
+          <div class="u-sub">Chat to earn XP and boost your production</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- ===== CHAT PANEL ===== -->
-  <div class="panel active" id="chatPanel">
+  <div class="panel" id="chatPanel">
     <div class="chat-area" id="chatArea">
       <div class="loading">Loading messages...</div>
     </div>
@@ -288,7 +387,8 @@
   </div>
 
   <div class="bottom-nav">
-    <div class="nav-item active" id="navChat" onclick="switchTab('chat')"><span class="nav-icon">💬</span>Chat</div>
+    <div class="nav-item active" id="navHome" onclick="switchTab('home')"><span class="nav-icon">🌾</span>Home</div>
+    <div class="nav-item" id="navChat" onclick="switchTab('chat')"><span class="nav-icon">💬</span>Chat</div>
     <div class="nav-item" id="navFamily" onclick="switchTab('family')"><span class="nav-icon">👨‍👩‍👧</span>Family</div>
   </div>
 </div>
@@ -317,6 +417,9 @@
   const LEVEL_REQUIRED_TO_CREATE = 5;
   const XP_PER_LEVEL = 20;
   const XP_PER_MESSAGE = 5;
+  const HARVEST_CYCLE_MS = 30 * 60 * 1000; // 30 minutes
+  const BASE_PRODUCTION = 50; // coins per harvest at level 1
+  const PRODUCTION_PER_LEVEL = 25; // extra coins per level
 
   let isSignupMode = false;
   let currentUser = null;
@@ -352,9 +455,11 @@
             email: email,
             vip: 1,
             coins: 0,
+            gems: 0,
             xp: 0,
             level: 1,
             familyId: null,
+            lastHarvestAt: Date.now(),
             createdAt: Date.now()
           });
         })
@@ -374,9 +479,10 @@
     if (user) {
       currentUser = user;
       db.ref('users/' + user.uid).on('value', (snap) => {
-        currentUserData = snap.val() || { name: "User", level: 1, xp: 0, familyId: null };
+        currentUserData = snap.val() || { name: "User", level: 1, xp: 0, familyId: null, coins: 0, gems: 0, lastHarvestAt: Date.now() };
         renderUserHeader();
         renderLevelCard();
+        renderHome();
         if (currentUserData.familyId) {
           currentFamilyId = currentUserData.familyId;
           showInsideFamily(currentFamilyId);
@@ -433,10 +539,77 @@
 
   // ---------- TAB SWITCHING ----------
   function switchTab(tab) {
+    document.getElementById('homePanel').classList.toggle('active', tab === 'home');
     document.getElementById('chatPanel').classList.toggle('active', tab === 'chat');
     document.getElementById('familyPanel').classList.toggle('active', tab === 'family');
+    document.getElementById('navHome').classList.toggle('active', tab === 'home');
     document.getElementById('navChat').classList.toggle('active', tab === 'chat');
     document.getElementById('navFamily').classList.toggle('active', tab === 'family');
+  }
+
+  // ---------- HOME / HARVEST ----------
+  let harvestIntervalStarted = false;
+
+  function getProductionAmount() {
+    const level = (currentUserData && currentUserData.level) || 1;
+    return BASE_PRODUCTION + (level - 1) * PRODUCTION_PER_LEVEL;
+  }
+
+  function renderHome() {
+    if (!currentUserData) return;
+    document.getElementById('coinsDisplay').textContent = formatNum(currentUserData.coins || 0);
+    document.getElementById('gemsDisplay').textContent = formatNum(currentUserData.gems || 0);
+    document.getElementById('homeLevelTag').textContent = "Lv. " + (currentUserData.level || 1);
+    document.getElementById('prodValue').textContent = "🪙 " + formatNum(getProductionAmount());
+
+    if (!harvestIntervalStarted) {
+      harvestIntervalStarted = true;
+      setInterval(updateHarvestTimer, 1000);
+    }
+    updateHarvestTimer();
+  }
+
+  function updateHarvestTimer() {
+    if (!currentUserData) return;
+    const lastHarvest = currentUserData.lastHarvestAt || Date.now();
+    const elapsed = Date.now() - lastHarvest;
+    const remaining = HARVEST_CYCLE_MS - elapsed;
+    const timerEl = document.getElementById('harvestTimer');
+    const btnEl = document.getElementById('harvestBtn');
+
+    if (remaining <= 0) {
+      timerEl.textContent = "Ready!";
+      btnEl.disabled = false;
+      btnEl.classList.add('ready');
+      btnEl.textContent = "🌾 Harvest Now";
+    } else {
+      const h = Math.floor(remaining / 3600000);
+      const m = Math.floor((remaining % 3600000) / 60000);
+      const s = Math.floor((remaining % 60000) / 1000);
+      timerEl.textContent = String(h).padStart(2,'0') + ":" + String(m).padStart(2,'0') + ":" + String(s).padStart(2,'0');
+      btnEl.disabled = true;
+      btnEl.classList.remove('ready');
+      btnEl.textContent = "Harvest";
+    }
+  }
+
+  function doHarvest() {
+    if (!currentUser || !currentUserData) return;
+    const lastHarvest = currentUserData.lastHarvestAt || Date.now();
+    if (Date.now() - lastHarvest < HARVEST_CYCLE_MS) return;
+
+    const reward = getProductionAmount();
+    const newCoins = (currentUserData.coins || 0) + reward;
+    db.ref('users/' + currentUser.uid).update({
+      coins: newCoins,
+      lastHarvestAt: Date.now()
+    });
+  }
+
+  function formatNum(n) {
+    if (n >= 1000000) return (n / 1000000).toFixed(2) + "M";
+    if (n >= 1000) return (n / 1000).toFixed(1) + "K";
+    return String(n);
   }
 
   // ---------- GLOBAL CHAT ----------
