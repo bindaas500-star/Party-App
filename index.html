@@ -258,6 +258,49 @@
   .upgrade-card .u-info { flex: 1; }
   .upgrade-card .u-title { font-family: 'Fredoka'; font-weight: 700; font-size: 14.5px; }
   .upgrade-card .u-sub { font-size: 11.5px; color: rgba(255,255,255,0.45); margin-top: 2px; font-weight: 500; }
+
+  /* ---- Floating Family Bubble ---- */
+  .family-bubble {
+    position: fixed; right: 16px; bottom: 84px; z-index: 50;
+    width: 58px; height: 58px; border-radius: 50%;
+    background: linear-gradient(135deg, #4ecdc4, #3a7bd5);
+    display: none; align-items: center; justify-content: center;
+    font-family: 'Fredoka'; font-weight: 700; font-size: 20px; color: #fff;
+    box-shadow: 0 10px 28px rgba(0,0,0,0.4), 0 0 0 3px rgba(255,255,255,0.15);
+    cursor: pointer; animation: bubbleFloat 2.6s ease-in-out infinite;
+  }
+  .family-bubble.show { display: flex; }
+  .family-bubble .bubble-tag {
+    position: absolute; bottom: -4px; right: -4px; font-size: 15px;
+    background: #241539; border-radius: 50%; width: 22px; height: 22px;
+    display: flex; align-items: center; justify-content: center;
+    border: 2px solid #1a1030;
+  }
+  @keyframes bubbleFloat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-6px); }
+  }
+
+  /* ---- Farm Plots Grid ---- */
+  .plots-title { font-size: 12.5px; color: rgba(255,255,255,0.4); margin: 20px 0 12px; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; }
+  .plots-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 9px; }
+  .plot-cell {
+    aspect-ratio: 1; border-radius: 14px; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 3px; text-align: center;
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+  .plot-cell.unlocked {
+    background: linear-gradient(160deg, rgba(78,205,196,0.16), rgba(58,123,213,0.08));
+    border-color: rgba(78,205,196,0.3);
+  }
+  .plot-cell.unlocked .plot-emoji { font-size: 22px; }
+  .plot-cell.unlocked .plot-bonus { font-size: 9.5px; color: #ffd76a; font-weight: 700; font-family: 'Fredoka'; }
+  .plot-cell.locked {
+    background: rgba(255,255,255,0.03);
+  }
+  .plot-cell.locked .plot-emoji { font-size: 18px; opacity: 0.35; }
+  .plot-cell.locked .plot-vip { font-size: 10px; font-weight: 700; font-family: 'Fredoka'; color: #ffb4b4; }
+  .plot-cell.locked .plot-need { font-size: 8.5px; color: rgba(255,255,255,0.35); font-weight: 600; }
 </style>
 </head>
 <body>
@@ -287,7 +330,7 @@
     <div class="avatar-ring"><div class="avatar" id="userAvatar">?</div></div>
     <div>
       <div class="name" id="userName">User</div>
-      <div class="level-badge">👑 <span id="userLevelLabel">Level 1</span></div>
+      <div class="level-badge">🆔 <span id="userLevelLabel">ID Lv. 1</span></div>
     </div>
     <button class="logout-btn" onclick="handleLogout()">Logout</button>
   </div>
@@ -314,7 +357,7 @@
 
       <div class="harvest-card">
         <div class="field-emoji">🌾</div>
-        <div class="lv-tag" id="homeLevelTag">Farm Lv. 1</div>
+        <div class="lv-tag" id="homeLevelTag">VIP Lv. 1</div>
         <div class="prod-label">Production</div>
         <div class="prod-value" id="prodValue">🪙 0</div>
         <div class="timer-label">Harvest In</div>
@@ -325,10 +368,13 @@
       <div class="upgrade-card" id="upgradeCard" onclick="upgradeFarm()" style="cursor:pointer;">
         <div class="u-icon">📈</div>
         <div class="u-info">
-          <div class="u-title">Upgrade Farm — <span id="upgradeLevelText">Lv. 1 → 2</span></div>
+          <div class="u-title">Upgrade VIP — <span id="upgradeLevelText">Lv. 1 → 2</span></div>
           <div class="u-sub" id="upgradeCostText">Costs 🪙 100</div>
         </div>
       </div>
+
+      <div class="plots-title">Farm Land</div>
+      <div class="plots-grid" id="plotsGrid"></div>
     </div>
   </div>
 
@@ -386,6 +432,11 @@
     </div>
   </div>
 
+  <div class="family-bubble" id="familyBubble" onclick="switchTab('family')">
+    <span id="familyBubbleAvatar">F</span>
+    <span class="bubble-tag">👨‍👩‍👧</span>
+  </div>
+
   <div class="bottom-nav">
     <div class="nav-item active" id="navHome" onclick="switchTab('home')"><span class="nav-icon">🌾</span>Home</div>
     <div class="nav-item" id="navChat" onclick="switchTab('chat')"><span class="nav-icon">💬</span>Chat</div>
@@ -418,10 +469,15 @@
   const XP_PER_LEVEL = 20;
   const XP_PER_MESSAGE = 5;
   const HARVEST_CYCLE_MS = 30 * 60 * 1000; // 30 minutes
-  const BASE_PRODUCTION = 50; // coins per harvest at farm level 1
-  const PRODUCTION_PER_LEVEL = 25; // extra coins per farm level
-  const UPGRADE_BASE_COST = 100; // coins to go from farm level 1 to 2
-  const UPGRADE_COST_MULTIPLIER = 1.6; // cost grows each level
+  const BASE_PRODUCTION = 50; // coins per harvest at farm/VIP level 1
+  const PRODUCTION_PER_LEVEL = 25; // extra coins per VIP level
+  const UPGRADE_INCREMENT = 1000000; // levels 1-14: cost = level * 1,000,000
+  const MILESTONE_PLOTS = [
+    { label: 'VIP1', requiredLevel: 5, bonus: 200 },
+    { label: 'VIP5', requiredLevel: 10, bonus: 400 },
+    { label: 'VIP8', requiredLevel: 13, bonus: 600 },
+    { label: 'VIP10', requiredLevel: 15, bonus: 1000 }
+  ];
 
   let isSignupMode = false;
   let currentUser = null;
@@ -493,6 +549,7 @@
           currentFamilyId = null;
           showBrowseFamilies();
         }
+        updateFamilyBubble(getActiveTab());
       });
 
       document.getElementById('authScreen').classList.remove('active');
@@ -510,14 +567,14 @@
   function renderUserHeader() {
     document.getElementById('userName').textContent = currentUserData.name;
     document.getElementById('userAvatar').textContent = currentUserData.name.charAt(0).toUpperCase();
-    document.getElementById('userLevelLabel').textContent = "Level " + (currentUserData.level || 1);
+    document.getElementById('userLevelLabel').textContent = "ID Lv. " + (currentUserData.level || 1);
   }
 
   function renderLevelCard() {
     const level = currentUserData.level || 1;
     const xp = currentUserData.xp || 0;
     const xpIntoLevel = xp % XP_PER_LEVEL;
-    document.getElementById('famLevelLabel').textContent = "Level " + level;
+    document.getElementById('famLevelLabel').textContent = "ID Level " + level;
     document.getElementById('famXpLabel').textContent = xpIntoLevel + " / " + XP_PER_LEVEL + " XP";
     document.getElementById('xpBarFill').style.width = ((xpIntoLevel / XP_PER_LEVEL) * 100) + "%";
 
@@ -548,6 +605,22 @@
     document.getElementById('navHome').classList.toggle('active', tab === 'home');
     document.getElementById('navChat').classList.toggle('active', tab === 'chat');
     document.getElementById('navFamily').classList.toggle('active', tab === 'family');
+    updateFamilyBubble(tab);
+  }
+
+  function getActiveTab() {
+    if (document.getElementById('homePanel').classList.contains('active')) return 'home';
+    if (document.getElementById('familyPanel').classList.contains('active')) return 'family';
+    return 'chat';
+  }
+
+  function updateFamilyBubble(activeTab) {
+    const bubble = document.getElementById('familyBubble');
+    if (currentFamilyId && activeTab !== 'family') {
+      bubble.classList.add('show');
+    } else {
+      bubble.classList.remove('show');
+    }
   }
 
   // ---------- HOME / HARVEST ----------
@@ -559,12 +632,17 @@
 
   function getProductionAmount() {
     const farmLevel = getFarmLevel();
-    return BASE_PRODUCTION + (farmLevel - 1) * PRODUCTION_PER_LEVEL;
+    let total = BASE_PRODUCTION + (farmLevel - 1) * PRODUCTION_PER_LEVEL;
+    MILESTONE_PLOTS.forEach((plot) => {
+      if (farmLevel >= plot.requiredLevel) total += plot.bonus;
+    });
+    return total;
   }
 
   function getUpgradeCost() {
     const farmLevel = getFarmLevel();
-    return Math.round(UPGRADE_BASE_COST * Math.pow(UPGRADE_COST_MULTIPLIER, farmLevel - 1));
+    if (farmLevel < 15) return farmLevel * UPGRADE_INCREMENT;
+    return 15000000 + (farmLevel - 14) * 5000000;
   }
 
   function renderHome() {
@@ -572,7 +650,7 @@
     document.getElementById('coinsDisplay').textContent = formatNum(currentUserData.coins || 0);
     document.getElementById('gemsDisplay').textContent = formatNum(currentUserData.gems || 0);
     const farmLevel = getFarmLevel();
-    document.getElementById('homeLevelTag').textContent = "Farm Lv. " + farmLevel;
+    document.getElementById('homeLevelTag').textContent = "VIP Lv. " + farmLevel;
     document.getElementById('prodValue').textContent = "🪙 " + formatNum(getProductionAmount());
 
     const cost = getUpgradeCost();
@@ -585,6 +663,35 @@
       setInterval(updateHarvestTimer, 1000);
     }
     updateHarvestTimer();
+    renderPlots();
+  }
+
+  function renderPlots() {
+    const farmLevel = getFarmLevel();
+    const gridEl = document.getElementById('plotsGrid');
+    gridEl.innerHTML = '';
+
+    // 4 always-unlocked base plots
+    for (let i = 0; i < 4; i++) {
+      const cell = document.createElement('div');
+      cell.className = 'plot-cell unlocked';
+      cell.innerHTML = `<div class="plot-emoji">🌱</div><div class="plot-bonus">Active</div>`;
+      gridEl.appendChild(cell);
+    }
+
+    // 4 milestone VIP plots
+    MILESTONE_PLOTS.forEach((plot) => {
+      const cell = document.createElement('div');
+      const isUnlocked = farmLevel >= plot.requiredLevel;
+      if (isUnlocked) {
+        cell.className = 'plot-cell unlocked';
+        cell.innerHTML = `<div class="plot-emoji">🌾</div><div class="plot-bonus">+${plot.bonus}</div>`;
+      } else {
+        cell.className = 'plot-cell locked';
+        cell.innerHTML = `<div class="plot-emoji">🔒</div><div class="plot-vip">${plot.label}</div><div class="plot-need">Lv.${plot.requiredLevel}</div>`;
+      }
+      gridEl.appendChild(cell);
+    });
   }
 
   function upgradeFarm() {
@@ -760,6 +867,7 @@
       if (!fam) return;
       document.getElementById('insideFamName').textContent = fam.name;
       document.getElementById('insideFamAvatar').textContent = fam.name.charAt(0).toUpperCase();
+      document.getElementById('familyBubbleAvatar').textContent = fam.name.charAt(0).toUpperCase();
     });
 
     // Members strip
