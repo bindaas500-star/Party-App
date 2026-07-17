@@ -3,167 +3,232 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PartyApp</title>
+<title>Party App</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; }
   body {
-    font-family: -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-    background: linear-gradient(180deg, #1a1a2e, #16213e);
-    color: #fff;
+    font-family: 'Inter', -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    background:
+      radial-gradient(circle at 15% 0%, rgba(255,77,141,0.25), transparent 45%),
+      radial-gradient(circle at 90% 15%, rgba(78,205,196,0.18), transparent 40%),
+      radial-gradient(circle at 50% 100%, rgba(255,201,60,0.12), transparent 50%),
+      #1a1030;
+    color: #fdf8ff;
     min-height: 100vh;
   }
+  h1, h2, h3, .display { font-family: 'Fredoka', 'Inter', sans-serif; }
   .screen { display: none; min-height: 100vh; flex-direction: column; }
   .screen.active { display: flex; }
 
   /* ---- Auth Screen ---- */
-  #authScreen { justify-content: center; align-items: center; padding: 20px; }
-  .auth-box { width: 100%; max-width: 360px; background: rgba(255,255,255,0.06); padding: 24px; border-radius: 16px; }
-  .auth-box h1 { text-align: center; margin-bottom: 20px; font-size: 24px; }
+  #authScreen { justify-content: center; align-items: center; padding: 24px; }
+  .auth-logo {
+    text-align: center; margin-bottom: 22px;
+  }
+  .auth-logo .emoji { font-size: 46px; display: block; margin-bottom: 6px; filter: drop-shadow(0 4px 12px rgba(255,201,60,0.5)); }
+  .auth-logo .brand { font-family: 'Fredoka'; font-weight: 700; font-size: 26px; letter-spacing: 0.5px;
+    background: linear-gradient(90deg, #ffd76a, #ff9dcb, #a78bfa);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .auth-box {
+    width: 100%; max-width: 380px;
+    background: linear-gradient(160deg, rgba(255,255,255,0.09), rgba(255,255,255,0.03));
+    border: 1px solid rgba(255,255,255,0.12);
+    padding: 26px 22px; border-radius: 26px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+    backdrop-filter: blur(6px);
+  }
+  .auth-box h1 { text-align: center; margin-bottom: 22px; font-size: 21px; font-weight: 600; color: #fff; }
   .auth-box input {
-    width: 100%; padding: 12px; margin-bottom: 12px; border-radius: 8px;
-    border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.08); color: #fff; font-size: 15px;
+    width: 100%; padding: 14px 16px; margin-bottom: 12px; border-radius: 14px;
+    border: 1.5px solid rgba(255,255,255,0.14); background: rgba(0,0,0,0.22); color: #fff; font-size: 15px;
+    font-family: 'Inter';
   }
-  .auth-box input::placeholder { color: rgba(255,255,255,0.5); }
+  .auth-box input:focus { outline: none; border-color: #ff9dcb; }
+  .auth-box input::placeholder { color: rgba(255,255,255,0.4); }
   .btn {
-    width: 100%; padding: 13px; border: none; border-radius: 8px; font-size: 15px; font-weight: 600;
-    background: linear-gradient(90deg, #ff6b9d, #c44dff); color: #fff; cursor: pointer; margin-top: 4px;
+    width: 100%; padding: 15px; border: none; border-radius: 16px; font-size: 15px; font-weight: 700;
+    font-family: 'Fredoka';
+    background: linear-gradient(90deg, #ff6b9d, #c44dff);
+    color: #fff; cursor: pointer; margin-top: 4px;
+    box-shadow: 0 8px 22px rgba(255,77,157,0.35);
+    letter-spacing: 0.3px;
   }
-  .btn:active { opacity: 0.8; }
-  .btn:disabled { opacity: 0.4; }
-  .btn-small { width: auto; padding: 8px 16px; font-size: 13px; margin-top: 0; }
-  .toggle-link { text-align: center; margin-top: 14px; color: #a0a0ff; font-size: 14px; cursor: pointer; }
-  .error-msg { color: #ff6b6b; font-size: 13px; margin-bottom: 10px; min-height: 16px; }
+  .btn:active { transform: scale(0.98); }
+  .btn:disabled { opacity: 0.35; box-shadow: none; }
+  .toggle-link { text-align: center; margin-top: 16px; color: #c9b8ff; font-size: 13.5px; cursor: pointer; font-weight: 500; }
+  .error-msg { color: #ff8a8a; font-size: 13px; margin-bottom: 10px; min-height: 16px; text-align: center; font-weight: 500; }
 
   /* ---- Main App ---- */
   #mainScreen { display: none; flex-direction: column; height: 100vh; }
   .topbar {
-    display: flex; align-items: center; padding: 14px 16px; background: rgba(0,0,0,0.25);
-    gap: 10px; border-bottom: 1px solid rgba(255,255,255,0.08); flex-shrink: 0;
+    display: flex; align-items: center; padding: 14px 16px; gap: 12px; flex-shrink: 0;
+    background: rgba(0,0,0,0.28); border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+  .avatar-ring {
+    width: 46px; height: 46px; border-radius: 50%; padding: 2.5px; flex-shrink: 0;
+    background: linear-gradient(135deg, #ffd76a, #ff6b9d, #a78bfa);
   }
   .avatar {
-    width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg,#ff6b9d,#c44dff);
-    display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 16px; flex-shrink: 0;
+    width: 100%; height: 100%; border-radius: 50%; background: #241539;
+    display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 16px;
+    font-family: 'Fredoka'; color: #fff;
   }
-  .topbar .name { font-weight: 600; font-size: 15px; }
-  .topbar .vip { font-size: 11px; color: #ffd76a; }
-  .logout-btn { margin-left: auto; background: none; border: 1px solid rgba(255,255,255,0.3); color: #fff; padding: 6px 12px; border-radius: 20px; font-size: 12px; }
+  .topbar .name { font-weight: 700; font-size: 15px; font-family: 'Fredoka'; }
+  .level-badge {
+    display: inline-flex; align-items: center; gap: 3px; font-size: 10.5px; font-weight: 700;
+    color: #2a1a05; background: linear-gradient(90deg, #ffd76a, #ffb347);
+    padding: 2px 8px 2px 6px; border-radius: 20px; margin-top: 2px;
+  }
+  .logout-btn {
+    margin-left: auto; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.16);
+    color: #fff; padding: 7px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; font-family: 'Inter';
+  }
 
   /* ---- Bottom Nav ---- */
   .bottom-nav {
-    display: flex; background: rgba(0,0,0,0.35); border-top: 1px solid rgba(255,255,255,0.08); flex-shrink: 0;
+    display: flex; background: rgba(10,5,20,0.55); border-top: 1px solid rgba(255,255,255,0.08); flex-shrink: 0;
+    padding: 6px 10px calc(6px + env(safe-area-inset-bottom, 0px));
+    backdrop-filter: blur(10px);
   }
   .nav-item {
-    flex: 1; text-align: center; padding: 10px 0; font-size: 12px; color: rgba(255,255,255,0.5); cursor: pointer;
+    flex: 1; text-align: center; padding: 8px 0; font-size: 11px; color: rgba(255,255,255,0.45); cursor: pointer;
+    font-weight: 600; border-radius: 14px; transition: color .15s;
   }
-  .nav-item.active { color: #ff6b9d; font-weight: 700; }
+  .nav-item .nav-icon { display: block; font-size: 20px; margin-bottom: 2px; }
+  .nav-item.active { color: #ffd76a; background: rgba(255,215,106,0.08); }
 
   /* ---- Content Panels ---- */
   .panel { display: none; flex-direction: column; flex: 1; overflow: hidden; }
   .panel.active { display: flex; }
 
-  .chat-area { flex: 1; overflow-y: auto; padding: 14px; display: flex; flex-direction: column; gap: 10px; }
-  .msg { max-width: 78%; padding: 9px 13px; border-radius: 14px; font-size: 14px; line-height: 1.4; }
-  .msg .sender { font-size: 11px; color: #ffd76a; margin-bottom: 3px; font-weight: 600; }
-  .msg.other { background: rgba(255,255,255,0.1); align-self: flex-start; border-bottom-left-radius: 4px; }
-  .msg.me { background: linear-gradient(135deg,#ff6b9d,#c44dff); align-self: flex-end; border-bottom-right-radius: 4px; }
+  .chat-area { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+  .msg { max-width: 78%; padding: 10px 14px; border-radius: 16px; font-size: 14px; line-height: 1.45; }
+  .msg .sender { font-size: 11px; color: #ffd76a; margin-bottom: 3px; font-weight: 700; }
+  .msg.other { background: rgba(255,255,255,0.08); align-self: flex-start; border-bottom-left-radius: 4px; }
+  .msg.me {
+    background: linear-gradient(135deg,#ff6b9d,#c44dff); align-self: flex-end; border-bottom-right-radius: 4px;
+    box-shadow: 0 4px 14px rgba(255,77,157,0.25);
+  }
 
-  .input-bar { display: flex; padding: 10px; gap: 8px; background: rgba(0,0,0,0.25); border-top: 1px solid rgba(255,255,255,0.08); }
+  .input-bar { display: flex; padding: 12px; gap: 10px; background: rgba(0,0,0,0.25); border-top: 1px solid rgba(255,255,255,0.08); flex-shrink: 0; }
   .input-bar input {
-    flex: 1; padding: 11px 14px; border-radius: 22px; border: none; background: rgba(255,255,255,0.1); color: #fff; font-size: 14px;
+    flex: 1; padding: 12px 16px; border-radius: 24px; border: 1px solid rgba(255,255,255,0.1);
+    background: rgba(255,255,255,0.08); color: #fff; font-size: 14px; font-family: 'Inter';
   }
-  .input-bar input::placeholder { color: rgba(255,255,255,0.5); }
+  .input-bar input::placeholder { color: rgba(255,255,255,0.4); }
   .send-btn {
-    width: 42px; height: 42px; border-radius: 50%; border: none; background: linear-gradient(135deg,#ff6b9d,#c44dff);
-    color: #fff; font-size: 18px; cursor: pointer; flex-shrink: 0;
+    width: 44px; height: 44px; border-radius: 50%; border: none; background: linear-gradient(135deg,#ff6b9d,#c44dff);
+    color: #fff; font-size: 18px; cursor: pointer; flex-shrink: 0; box-shadow: 0 6px 16px rgba(255,77,157,0.35);
   }
-  .loading { text-align: center; padding: 20px; color: rgba(255,255,255,0.5); font-size: 13px; }
+  .loading { text-align: center; padding: 30px 20px; color: rgba(255,255,255,0.4); font-size: 13px; }
 
   /* ---- Family Panel ---- */
-  .family-content { flex: 1; overflow-y: auto; padding: 16px; }
+  .family-content { flex: 1; overflow-y: auto; padding: 18px 16px; }
   .level-card {
-    background: rgba(255,255,255,0.06); border-radius: 14px; padding: 16px; margin-bottom: 16px;
+    background: linear-gradient(155deg, rgba(255,215,106,0.14), rgba(196,77,255,0.08));
+    border: 1px solid rgba(255,215,106,0.25);
+    border-radius: 20px; padding: 18px; margin-bottom: 18px;
   }
-  .level-card .row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-  .level-card .lv-label { font-size: 15px; font-weight: 700; color: #ffd76a; }
-  .level-card .xp-label { font-size: 12px; color: rgba(255,255,255,0.6); }
-  .xp-bar-bg { height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden; }
-  .xp-bar-fill { height: 100%; background: linear-gradient(90deg,#ff6b9d,#c44dff); border-radius: 4px; }
+  .level-card .row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .level-card .lv-label { font-size: 17px; font-weight: 700; color: #ffd76a; font-family: 'Fredoka'; }
+  .level-card .xp-label { font-size: 12px; color: rgba(255,255,255,0.55); font-weight: 600; }
+  .xp-bar-bg { height: 9px; background: rgba(0,0,0,0.3); border-radius: 5px; overflow: hidden; }
+  .xp-bar-fill { height: 100%; background: linear-gradient(90deg,#ffd76a,#ff6b9d); border-radius: 5px; transition: width .3s; }
 
   .create-family-box {
-    background: rgba(255,255,255,0.06); border-radius: 14px; padding: 16px; margin-bottom: 20px;
+    background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 20px; padding: 18px; margin-bottom: 22px;
   }
-  .create-family-box h3 { font-size: 15px; margin-bottom: 10px; }
+  .create-family-box h3 { font-size: 16px; margin-bottom: 12px; font-family: 'Fredoka'; font-weight: 600; }
   .create-family-box input {
-    width: 100%; padding: 11px; margin-bottom: 10px; border-radius: 8px;
-    border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.08); color: #fff; font-size: 14px;
+    width: 100%; padding: 12px 14px; margin-bottom: 12px; border-radius: 12px;
+    border: 1.5px solid rgba(255,255,255,0.12); background: rgba(0,0,0,0.2); color: #fff; font-size: 14px; font-family: 'Inter';
   }
-  .lock-msg { font-size: 12px; color: #ff9d9d; margin-top: 6px; }
+  .lock-msg {
+    font-size: 12px; color: #ffb4b4; margin-top: 8px; text-align: center; font-weight: 600;
+    background: rgba(255,107,107,0.1); padding: 8px; border-radius: 10px;
+  }
 
-  .section-title { font-size: 13px; color: rgba(255,255,255,0.5); margin: 16px 0 10px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .section-title { font-size: 12.5px; color: rgba(255,255,255,0.4); margin: 18px 0 12px; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; }
 
   .family-item {
-    display: flex; align-items: center; gap: 12px; background: rgba(255,255,255,0.06);
-    padding: 12px; border-radius: 12px; margin-bottom: 10px;
+    display: flex; align-items: center; gap: 13px; background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    padding: 13px; border-radius: 16px; margin-bottom: 10px;
   }
   .family-item .f-avatar {
-    width: 44px; height: 44px; border-radius: 12px; background: linear-gradient(135deg,#4ecdc4,#556270);
+    width: 46px; height: 46px; border-radius: 14px; background: linear-gradient(135deg,#4ecdc4,#3a7bd5);
     display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 18px; flex-shrink: 0;
+    font-family: 'Fredoka';
   }
-  .family-item .f-info { flex: 1; }
-  .family-item .f-name { font-weight: 600; font-size: 14px; }
-  .family-item .f-members { font-size: 11px; color: rgba(255,255,255,0.5); }
+  .family-item .f-info { flex: 1; min-width: 0; }
+  .family-item .f-name { font-weight: 700; font-size: 14.5px; font-family: 'Fredoka'; }
+  .family-item .f-members { font-size: 11.5px; color: rgba(255,255,255,0.45); margin-top: 2px; font-weight: 500; }
   .join-btn {
-    background: linear-gradient(135deg,#ff6b9d,#c44dff); border: none; color: #fff;
-    padding: 7px 14px; border-radius: 16px; font-size: 12px; font-weight: 600;
+    background: linear-gradient(135deg,#ffd76a,#ff9d5c); border: none; color: #2a1a05;
+    padding: 8px 16px; border-radius: 18px; font-size: 12.5px; font-weight: 700; font-family: 'Fredoka';
+    box-shadow: 0 4px 12px rgba(255,215,106,0.3);
   }
 
   /* Inside a family view */
   .family-header {
-    padding: 16px; background: rgba(255,255,255,0.06); display: flex; align-items: center; gap: 12px; flex-shrink: 0;
+    padding: 16px; background: rgba(0,0,0,0.2); display: flex; align-items: center; gap: 13px; flex-shrink: 0;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
   }
   .family-header .f-avatar-lg {
-    width: 52px; height: 52px; border-radius: 14px; background: linear-gradient(135deg,#4ecdc4,#556270);
+    width: 54px; height: 54px; border-radius: 16px; background: linear-gradient(135deg,#4ecdc4,#3a7bd5);
     display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 22px; flex-shrink: 0;
+    font-family: 'Fredoka';
   }
-  .family-header .f-title { font-size: 17px; font-weight: 700; }
-  .family-header .f-sub { font-size: 12px; color: rgba(255,255,255,0.5); }
+  .family-header .f-title { font-size: 17px; font-weight: 700; font-family: 'Fredoka'; }
+  .family-header .f-sub { font-size: 12px; color: rgba(255,255,255,0.5); margin-top: 2px; font-weight: 500; }
   .leave-btn {
-    margin-left: auto; background: none; border: 1px solid rgba(255,107,107,0.5); color: #ff6b6b;
-    padding: 6px 12px; border-radius: 16px; font-size: 12px;
+    margin-left: auto; background: rgba(255,107,107,0.1); border: 1px solid rgba(255,107,107,0.4); color: #ff8a8a;
+    padding: 7px 14px; border-radius: 18px; font-size: 12px; font-weight: 700; font-family: 'Fredoka';
   }
-  .members-strip { display: flex; gap: 8px; padding: 10px 16px; overflow-x: auto; flex-shrink: 0; background: rgba(0,0,0,0.15); }
+  .members-strip { display: flex; gap: 10px; padding: 12px 16px; overflow-x: auto; flex-shrink: 0; background: rgba(0,0,0,0.12); }
   .member-chip {
-    display: flex; flex-direction: column; align-items: center; gap: 4px; flex-shrink: 0; width: 54px;
+    display: flex; flex-direction: column; align-items: center; gap: 5px; flex-shrink: 0; width: 56px;
   }
   .member-chip .m-avatar {
-    width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(135deg,#ff6b9d,#c44dff);
-    display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px;
+    width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg,#ff6b9d,#c44dff);
+    display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; font-family: 'Fredoka';
   }
-  .member-chip .m-name { font-size: 10px; color: rgba(255,255,255,0.7); text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%; }
+  .member-chip .m-name { font-size: 10px; color: rgba(255,255,255,0.65); text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%; font-weight: 500; }
 </style>
 </head>
 <body>
 
 <!-- ===== AUTH SCREEN ===== -->
 <div id="authScreen" class="screen active">
-  <div class="auth-box">
-    <h1 id="authTitle">Welcome Back</h1>
-    <div class="error-msg" id="authError"></div>
-    <input type="text" id="nameInput" placeholder="Your name" style="display:none;">
-    <input type="email" id="emailInput" placeholder="Email">
-    <input type="password" id="passInput" placeholder="Password">
-    <button class="btn" id="authSubmitBtn" onclick="handleAuth()">Login</button>
-    <div class="toggle-link" id="toggleAuthMode" onclick="toggleAuthMode()">New here? Create an account</div>
+  <div>
+    <div class="auth-logo">
+      <span class="emoji">🎉</span>
+      <span class="brand">Party App</span>
+    </div>
+    <div class="auth-box">
+      <h1 id="authTitle">Welcome Back</h1>
+      <div class="error-msg" id="authError"></div>
+      <input type="text" id="nameInput" placeholder="Your name" style="display:none;">
+      <input type="email" id="emailInput" placeholder="Email">
+      <input type="password" id="passInput" placeholder="Password">
+      <button class="btn" id="authSubmitBtn" onclick="handleAuth()">Login</button>
+      <div class="toggle-link" id="toggleAuthMode" onclick="toggleAuthMode()">New here? Create an account</div>
+    </div>
   </div>
 </div>
 
 <!-- ===== MAIN APP SCREEN ===== -->
 <div id="mainScreen" style="display:none; flex-direction: column; height: 100vh;">
   <div class="topbar">
-    <div class="avatar" id="userAvatar">?</div>
+    <div class="avatar-ring"><div class="avatar" id="userAvatar">?</div></div>
     <div>
       <div class="name" id="userName">User</div>
-      <div class="vip" id="userLevelLabel">Level 1</div>
+      <div class="level-badge">👑 <span id="userLevelLabel">Level 1</span></div>
     </div>
     <button class="logout-btn" onclick="handleLogout()">Logout</button>
   </div>
@@ -191,7 +256,7 @@
       </div>
 
       <div class="create-family-box">
-        <h3>Create Your Own Family</h3>
+        <h3>✨ Create Your Own Family</h3>
         <input type="text" id="familyNameInput" placeholder="Family name">
         <button class="btn" id="createFamilyBtn" onclick="createFamily()">Create Family</button>
         <div class="lock-msg" id="createLockMsg" style="display:none;"></div>
@@ -223,8 +288,8 @@
   </div>
 
   <div class="bottom-nav">
-    <div class="nav-item active" id="navChat" onclick="switchTab('chat')">💬 Chat</div>
-    <div class="nav-item" id="navFamily" onclick="switchTab('family')">👨‍👩‍👧 Family</div>
+    <div class="nav-item active" id="navChat" onclick="switchTab('chat')"><span class="nav-icon">💬</span>Chat</div>
+    <div class="nav-item" id="navFamily" onclick="switchTab('family')"><span class="nav-icon">👨‍👩‍👧</span>Family</div>
   </div>
 </div>
 
@@ -381,7 +446,7 @@
       chatArea.innerHTML = '';
       const messages = snap.val();
       if (!messages) {
-        chatArea.innerHTML = '<div class="loading">No messages yet. Say hi!</div>';
+        chatArea.innerHTML = '<div class="loading">No messages yet. Say hi! 👋</div>';
         return;
       }
       Object.values(messages).forEach((msg) => {
@@ -418,7 +483,7 @@
       const listEl = document.getElementById('familyList');
       const families = snap.val();
       if (!families) {
-        listEl.innerHTML = '<div class="loading">No families yet. Be the first to create one!</div>';
+        listEl.innerHTML = '<div class="loading">No families yet. Be the first to create one! 🎊</div>';
         return;
       }
       listEl.innerHTML = '';
@@ -430,7 +495,7 @@
           <div class="f-avatar">${escapeHtml(fam.name.charAt(0).toUpperCase())}</div>
           <div class="f-info">
             <div class="f-name">${escapeHtml(fam.name)}</div>
-            <div class="f-members">${memberCount} member${memberCount !== 1 ? 's' : ''}</div>
+            <div class="f-members">👥 ${memberCount} member${memberCount !== 1 ? 's' : ''}</div>
           </div>
           <button class="join-btn" onclick="joinFamily('${famId}')">Join</button>
         `;
@@ -498,7 +563,7 @@
     const membersHandler = famRef.child('members').on('value', (snap) => {
       const members = snap.val() || {};
       const uids = Object.keys(members);
-      document.getElementById('insideFamMemberCount').textContent = uids.length + " member" + (uids.length !== 1 ? 's' : '');
+      document.getElementById('insideFamMemberCount').textContent = "👥 " + uids.length + " member" + (uids.length !== 1 ? 's' : '');
       const stripEl = document.getElementById('membersStrip');
       stripEl.innerHTML = '';
       uids.forEach((uid) => {
@@ -520,7 +585,7 @@
       chatArea.innerHTML = '';
       const messages = snap.val();
       if (!messages) {
-        chatArea.innerHTML = '<div class="loading">No messages yet. Say hi to your family!</div>';
+        chatArea.innerHTML = '<div class="loading">No messages yet. Say hi to your family! 👋</div>';
         return;
       }
       Object.values(messages).forEach((msg) => {
