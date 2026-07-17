@@ -314,7 +314,7 @@
 
       <div class="harvest-card">
         <div class="field-emoji">🌾</div>
-        <div class="lv-tag" id="homeLevelTag">Lv. 1</div>
+        <div class="lv-tag" id="homeLevelTag">Farm Lv. 1</div>
         <div class="prod-label">Production</div>
         <div class="prod-value" id="prodValue">🪙 0</div>
         <div class="timer-label">Harvest In</div>
@@ -322,11 +322,11 @@
         <button class="harvest-btn" id="harvestBtn" onclick="doHarvest()" disabled>Harvest</button>
       </div>
 
-      <div class="upgrade-card">
+      <div class="upgrade-card" id="upgradeCard" onclick="upgradeFarm()" style="cursor:pointer;">
         <div class="u-icon">📈</div>
         <div class="u-info">
-          <div class="u-title">Level Up</div>
-          <div class="u-sub">Chat to earn XP and boost your production</div>
+          <div class="u-title">Upgrade Farm — <span id="upgradeLevelText">Lv. 1 → 2</span></div>
+          <div class="u-sub" id="upgradeCostText">Costs 🪙 100</div>
         </div>
       </div>
     </div>
@@ -418,8 +418,10 @@
   const XP_PER_LEVEL = 20;
   const XP_PER_MESSAGE = 5;
   const HARVEST_CYCLE_MS = 30 * 60 * 1000; // 30 minutes
-  const BASE_PRODUCTION = 50; // coins per harvest at level 1
-  const PRODUCTION_PER_LEVEL = 25; // extra coins per level
+  const BASE_PRODUCTION = 50; // coins per harvest at farm level 1
+  const PRODUCTION_PER_LEVEL = 25; // extra coins per farm level
+  const UPGRADE_BASE_COST = 100; // coins to go from farm level 1 to 2
+  const UPGRADE_COST_MULTIPLIER = 1.6; // cost grows each level
 
   let isSignupMode = false;
   let currentUser = null;
@@ -458,6 +460,7 @@
             gems: 0,
             xp: 0,
             level: 1,
+            farmLevel: 1,
             familyId: null,
             lastHarvestAt: Date.now(),
             createdAt: Date.now()
@@ -550,23 +553,50 @@
   // ---------- HOME / HARVEST ----------
   let harvestIntervalStarted = false;
 
+  function getFarmLevel() {
+    return (currentUserData && currentUserData.farmLevel) || 1;
+  }
+
   function getProductionAmount() {
-    const level = (currentUserData && currentUserData.level) || 1;
-    return BASE_PRODUCTION + (level - 1) * PRODUCTION_PER_LEVEL;
+    const farmLevel = getFarmLevel();
+    return BASE_PRODUCTION + (farmLevel - 1) * PRODUCTION_PER_LEVEL;
+  }
+
+  function getUpgradeCost() {
+    const farmLevel = getFarmLevel();
+    return Math.round(UPGRADE_BASE_COST * Math.pow(UPGRADE_COST_MULTIPLIER, farmLevel - 1));
   }
 
   function renderHome() {
     if (!currentUserData) return;
     document.getElementById('coinsDisplay').textContent = formatNum(currentUserData.coins || 0);
     document.getElementById('gemsDisplay').textContent = formatNum(currentUserData.gems || 0);
-    document.getElementById('homeLevelTag').textContent = "Lv. " + (currentUserData.level || 1);
+    const farmLevel = getFarmLevel();
+    document.getElementById('homeLevelTag').textContent = "Farm Lv. " + farmLevel;
     document.getElementById('prodValue').textContent = "🪙 " + formatNum(getProductionAmount());
+
+    const cost = getUpgradeCost();
+    document.getElementById('upgradeLevelText').textContent = "Lv. " + farmLevel + " → " + (farmLevel + 1);
+    document.getElementById('upgradeCostText').textContent = "Costs 🪙 " + formatNum(cost) +
+      ((currentUserData.coins || 0) < cost ? " (not enough coins)" : "");
 
     if (!harvestIntervalStarted) {
       harvestIntervalStarted = true;
       setInterval(updateHarvestTimer, 1000);
     }
     updateHarvestTimer();
+  }
+
+  function upgradeFarm() {
+    if (!currentUser || !currentUserData) return;
+    const cost = getUpgradeCost();
+    const coins = currentUserData.coins || 0;
+    if (coins < cost) return;
+
+    db.ref('users/' + currentUser.uid).update({
+      coins: coins - cost,
+      farmLevel: getFarmLevel() + 1
+    });
   }
 
   function updateHarvestTimer() {
