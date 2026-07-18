@@ -244,6 +244,27 @@
   .pmi-value { font-size: 12.5px; color: rgba(255,255,255,0.5); font-weight: 600; }
   .pmi-arrow { color: rgba(255,255,255,0.35); font-size: 16px; }
 
+  /* ---- Invite View ---- */
+  .invite-title { font-family: 'Fredoka'; font-weight: 700; font-size: 20px; text-align: center; margin-bottom: 6px; }
+  .invite-sub { font-size: 12.5px; color: rgba(255,255,255,0.5); text-align: center; margin-bottom: 22px; font-weight: 500; }
+  .invite-code-box, .invite-redeem-box {
+    background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 18px; padding: 18px; text-align: center; margin-bottom: 16px;
+  }
+  .invite-code-label { font-size: 11.5px; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700; margin-bottom: 8px; }
+  .invite-code-value { font-family: 'Fredoka'; font-weight: 700; font-size: 26px; color: #ffd76a; letter-spacing: 2px; margin-bottom: 14px; }
+  .invite-copy-btn, .invite-redeem-btn {
+    border: none; border-radius: 14px; padding: 12px 20px; font-family: 'Fredoka'; font-weight: 700;
+    font-size: 14px; cursor: pointer; background: linear-gradient(90deg,#ffd76a,#ffb347); color: #3a2410;
+  }
+  .invite-redeem-box input {
+    width: 100%; padding: 12px 14px; margin-bottom: 12px; border-radius: 12px;
+    border: 1.5px solid rgba(255,255,255,0.12); background: rgba(0,0,0,0.2); color: #fff; font-size: 14px;
+    text-align: center; font-family: 'Fredoka'; letter-spacing: 1px;
+  }
+  .invite-redeem-btn { width: 100%; background: linear-gradient(90deg,#ff6b9d,#c44dff); color: #fff; }
+  .invite-redeem-status { font-size: 12px; color: #9df5c5; font-weight: 600; margin-top: 10px; }
+
   /* ---- Home / Harvest Panel ---- */
   .home-content {
     flex: 1; overflow-y: auto; padding: 18px 16px 30px;
@@ -572,37 +593,58 @@
   <!-- ===== PROFILE OVERLAY ===== -->
   <div class="profile-overlay" id="profileOverlay">
     <div class="profile-overlay-header">
-      <button onclick="closeProfile()">←</button>
+      <button onclick="handleProfileBack()">←</button>
     </div>
-    <div class="profile-hero">
-      <div class="profile-avatar-ring"><div class="profile-avatar" id="profileAvatarBig">?</div></div>
-      <div class="profile-name" id="profileNameBig">User</div>
-      <div class="profile-badges">
-        <span class="badge-pill" id="profileIdLevelBadge">🆔 ID Lv. 1</span>
-        <span class="badge-pill vip-pill" id="profileVipLevelBadge">👑 VIP 1</span>
+
+    <div id="profileMainView">
+      <div class="profile-hero">
+        <div class="profile-avatar-ring"><div class="profile-avatar" id="profileAvatarBig">?</div></div>
+        <div class="profile-name" id="profileNameBig">User</div>
+        <div class="profile-badges">
+          <span class="badge-pill" id="profileIdLevelBadge">🆔 ID Lv. 1</span>
+          <span class="badge-pill vip-pill" id="profileVipLevelBadge">👑 VIP 1</span>
+        </div>
+        <div class="profile-id-row">ID: <span id="profileIdNumber">—</span> <button onclick="copyProfileId()">📋</button></div>
       </div>
-      <div class="profile-id-row">ID: <span id="profileIdNumber">—</span> <button onclick="copyProfileId()">📋</button></div>
+      <div class="profile-menu">
+        <div class="profile-menu-item" onclick="goToFamilyFromProfile()">
+          <span class="pmi-icon">🏠</span><span class="pmi-label">Family</span>
+          <span class="pmi-value" id="profileFamilyValue">None</span><span class="pmi-arrow">›</span>
+        </div>
+        <div class="profile-menu-item" onclick="switchTab('hifami'); closeProfile();">
+          <span class="pmi-icon">💰</span><span class="pmi-label">Wallet</span>
+          <span class="pmi-value" id="profileWalletValue">🪙0 💎0</span><span class="pmi-arrow">›</span>
+        </div>
+        <div class="profile-menu-item" onclick="alert('Coming soon')">
+          <span class="pmi-icon">🌐</span><span class="pmi-label">Language</span>
+          <span class="pmi-value">English</span><span class="pmi-arrow">›</span>
+        </div>
+        <div class="profile-menu-item" onclick="openInviteView()">
+          <span class="pmi-icon">➕</span><span class="pmi-label">Invite Friends</span>
+          <span class="pmi-arrow">›</span>
+        </div>
+        <div class="profile-menu-item" onclick="alert('Coming soon')">
+          <span class="pmi-icon">⚙️</span><span class="pmi-label">Settings</span>
+          <span class="pmi-arrow">›</span>
+        </div>
+      </div>
     </div>
-    <div class="profile-menu">
-      <div class="profile-menu-item" onclick="goToFamilyFromProfile()">
-        <span class="pmi-icon">🏠</span><span class="pmi-label">Family</span>
-        <span class="pmi-value" id="profileFamilyValue">None</span><span class="pmi-arrow">›</span>
+
+    <div id="inviteView" style="display:none; padding: 0 20px;">
+      <div class="invite-title">🎁 Invite Friends</div>
+      <div class="invite-sub">Share your code — you and your friend both get 💎 50 gems!</div>
+
+      <div class="invite-code-box">
+        <div class="invite-code-label">Your Referral Code</div>
+        <div class="invite-code-value" id="myReferralCode">—</div>
+        <button class="invite-copy-btn" onclick="copyReferralCode()">📋 Copy Code</button>
       </div>
-      <div class="profile-menu-item" onclick="switchTab('hifami'); closeProfile();">
-        <span class="pmi-icon">💰</span><span class="pmi-label">Wallet</span>
-        <span class="pmi-value" id="profileWalletValue">🪙0 💎0</span><span class="pmi-arrow">›</span>
-      </div>
-      <div class="profile-menu-item" onclick="alert('Coming soon')">
-        <span class="pmi-icon">🌐</span><span class="pmi-label">Language</span>
-        <span class="pmi-value">English</span><span class="pmi-arrow">›</span>
-      </div>
-      <div class="profile-menu-item" onclick="alert('Coming soon')">
-        <span class="pmi-icon">➕</span><span class="pmi-label">Invite Friends</span>
-        <span class="pmi-arrow">›</span>
-      </div>
-      <div class="profile-menu-item" onclick="alert('Coming soon')">
-        <span class="pmi-icon">⚙️</span><span class="pmi-label">Settings</span>
-        <span class="pmi-arrow">›</span>
+
+      <div class="invite-redeem-box">
+        <div class="invite-code-label">Have a friend's code?</div>
+        <input type="text" id="redeemCodeInput" placeholder="Enter code">
+        <button class="invite-redeem-btn" onclick="redeemReferralCode()">Redeem</button>
+        <div class="invite-redeem-status" id="referredStatusText"></div>
       </div>
     </div>
   </div>
@@ -742,15 +784,33 @@
     renderProfile();
   }
 
+  let profileIdBeingGenerated = false;
+
   function renderProfile() {
     if (!currentUserData) return;
     document.getElementById('profileAvatarBig').textContent = currentUserData.name.charAt(0).toUpperCase();
     document.getElementById('profileNameBig').textContent = currentUserData.name;
     document.getElementById('profileIdLevelBadge').textContent = "🆔 ID Lv. " + (currentUserData.level || 1);
     document.getElementById('profileVipLevelBadge').textContent = "👑 VIP " + (currentUserData.farmLevel || 1);
-    document.getElementById('profileIdNumber').textContent = currentUserData.profileId || '—';
     document.getElementById('profileWalletValue').textContent = "🪙" + formatNum(currentUserData.coins || 0) + " 💎" + formatNum(currentUserData.gems || 0);
     document.getElementById('profileFamilyValue').textContent = currentFamilyId ? 'Joined' : 'None';
+
+    if (!currentUserData.profileId && !profileIdBeingGenerated) {
+      profileIdBeingGenerated = true;
+      const newId = String(Math.floor(10000000 + Math.random() * 90000000));
+      db.ref('users/' + currentUser.uid).update({ profileId: newId }).then(() => {
+        profileIdBeingGenerated = false;
+      });
+      document.getElementById('profileIdNumber').textContent = newId;
+      document.getElementById('myReferralCode').textContent = newId;
+    } else {
+      document.getElementById('profileIdNumber').textContent = currentUserData.profileId || '—';
+      document.getElementById('myReferralCode').textContent = currentUserData.profileId || '—';
+    }
+
+    document.getElementById('referredStatusText').textContent = currentUserData.referredBy
+      ? "✅ You've already used a referral code."
+      : "";
   }
 
   function openProfile() {
@@ -760,6 +820,9 @@
 
   function closeProfile() {
     document.getElementById('profileOverlay').classList.remove('show');
+    document.getElementById('inviteView').style.display = 'none';
+    document.getElementById('profileMainView').style.display = 'block';
+    inviteViewOpen = false;
   }
 
   function copyProfileId() {
@@ -772,6 +835,68 @@
   function goToFamilyFromProfile() {
     closeProfile();
     switchTab('family');
+  }
+
+  let inviteViewOpen = false;
+
+  function openInviteView() {
+    document.getElementById('profileMainView').style.display = 'none';
+    document.getElementById('inviteView').style.display = 'block';
+    inviteViewOpen = true;
+  }
+
+  function handleProfileBack() {
+    if (inviteViewOpen) {
+      document.getElementById('inviteView').style.display = 'none';
+      document.getElementById('profileMainView').style.display = 'block';
+      inviteViewOpen = false;
+    } else {
+      closeProfile();
+    }
+  }
+
+  function copyReferralCode() {
+    const code = document.getElementById('myReferralCode').textContent;
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(code).then(() => alert('Referral code copied: ' + code));
+    }
+  }
+
+  function redeemReferralCode() {
+    const input = document.getElementById('redeemCodeInput');
+    const code = input.value.trim();
+    const statusEl = document.getElementById('referredStatusText');
+    if (!code) return;
+
+    if (currentUserData.referredBy) {
+      statusEl.textContent = "❌ You've already used a referral code.";
+      return;
+    }
+    if (code === currentUserData.profileId) {
+      statusEl.textContent = "❌ You can't use your own code.";
+      return;
+    }
+
+    db.ref('users').orderByChild('profileId').equalTo(code).once('value').then((snap) => {
+      const results = snap.val();
+      if (!results) {
+        statusEl.textContent = "❌ Invalid referral code.";
+        return;
+      }
+      const referrerUid = Object.keys(results)[0];
+      const referrerData = results[referrerUid];
+
+      db.ref('users/' + currentUser.uid).update({
+        gems: (currentUserData.gems || 0) + 50,
+        referredBy: code
+      });
+      db.ref('users/' + referrerUid).update({
+        gems: (referrerData.gems || 0) + 50
+      });
+
+      statusEl.textContent = "✅ Success! You both received 💎 50 gems.";
+      input.value = '';
+    });
   }
 
   function renderLevelCard() {
