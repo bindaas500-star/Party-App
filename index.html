@@ -126,6 +126,63 @@
   }
   .loading { text-align: center; padding: 30px 20px; color: rgba(255,255,255,0.4); font-size: 13px; }
 
+  /* ---- Messages Shortcuts ---- */
+  .msg-shortcuts { display: flex; gap: 10px; padding: 14px 16px 4px; flex-shrink: 0; }
+  .msg-shortcut {
+    flex: 1; text-align: center; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 14px; padding: 12px 6px; cursor: pointer;
+  }
+  .ms-icon { font-size: 20px; margin-bottom: 4px; }
+  .ms-label { font-size: 10.5px; font-weight: 600; color: rgba(255,255,255,0.6); }
+
+  /* ---- Room ---- */
+  .room-title-bar {
+    padding: 14px 16px; font-family: 'Fredoka'; font-weight: 700; font-size: 16px;
+    background: rgba(0,0,0,0.2); flex-shrink: 0;
+  }
+  .games-row { display: flex; gap: 8px; padding: 12px 16px; overflow-x: auto; flex-shrink: 0; }
+  .game-chip {
+    flex-shrink: 0; padding: 8px 14px; border-radius: 16px; font-size: 12.5px; font-weight: 700;
+    font-family: 'Fredoka'; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12);
+    cursor: pointer; white-space: nowrap;
+  }
+  .seat-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; padding: 8px 16px 16px; flex-shrink: 0;
+  }
+  .seat-cell {
+    aspect-ratio: 1; border-radius: 14px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; cursor: pointer;
+  }
+  .seat-cell.occupied { background: linear-gradient(160deg, rgba(255,215,106,0.18), rgba(255,107,157,0.1)); border-color: rgba(255,215,106,0.35); }
+  .seat-cell .seat-avatar {
+    width: 30px; height: 30px; border-radius: 50%; background: linear-gradient(135deg,#ff6b9d,#c44dff);
+    display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12px; font-family: 'Fredoka';
+  }
+  .seat-cell .seat-plus { font-size: 18px; color: rgba(255,255,255,0.3); }
+  .seat-cell .seat-name { font-size: 9px; color: rgba(255,255,255,0.6); font-weight: 600; max-width: 90%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  /* ---- Tic-Tac-Toe Overlay ---- */
+  .ttt-overlay {
+    position: fixed; inset: 0; z-index: 250; background: #1a1030;
+    display: none; flex-direction: column; align-items: center; padding: 16px;
+  }
+  .ttt-overlay.show { display: flex; }
+  .ttt-header { width: 100%; display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+  .ttt-header button {
+    background: rgba(255,255,255,0.08); border: none; color: #fff; width: 36px; height: 36px;
+    border-radius: 50%; font-size: 18px; cursor: pointer;
+  }
+  .ttt-header h2 { font-family: 'Fredoka'; font-weight: 700; font-size: 18px; }
+  .ttt-status { font-family: 'Fredoka'; font-weight: 600; font-size: 14px; color: #ffd76a; margin-bottom: 18px; text-align: center; }
+  .ttt-board {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; width: 100%; max-width: 300px; margin-bottom: 20px;
+  }
+  .ttt-cell {
+    aspect-ratio: 1; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 14px; display: flex; align-items: center; justify-content: center;
+    font-family: 'Fredoka'; font-weight: 700; font-size: 34px; cursor: pointer; color: #fff;
+  }
+
   /* ---- Family Panel ---- */
   .family-content { flex: 1; overflow-y: auto; padding: 18px 16px; }
   .level-card {
@@ -639,6 +696,17 @@
 
   <!-- ===== CHAT PANEL ===== -->
   <div class="panel active" id="chatPanel">
+    <div class="msg-shortcuts">
+      <div class="msg-shortcut" onclick="alert('Coming soon')">
+        <div class="ms-icon">🔔</div><div class="ms-label">Notifications</div>
+      </div>
+      <div class="msg-shortcut" onclick="alert('Coming soon')">
+        <div class="ms-icon">🎁</div><div class="ms-label">Activity</div>
+      </div>
+      <div class="msg-shortcut" onclick="alert('Coming soon')">
+        <div class="ms-icon">❤️</div><div class="ms-label">Friends</div>
+      </div>
+    </div>
     <div class="chat-area" id="chatArea">
       <div class="loading">Loading messages...</div>
     </div>
@@ -705,13 +773,36 @@
     </div>
   </div>
 
-  <!-- ===== ROOM PANEL (placeholder) ===== -->
-  <div class="panel" id="roomPanel">
-    <div class="home-content" style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; text-align:center;">
-      <div style="font-size:48px; margin-bottom:12px;">🏠</div>
-      <div style="font-family:'Fredoka'; font-weight:700; font-size:18px; margin-bottom:6px;">Live Rooms</div>
-      <div style="font-size:13px; color:rgba(255,255,255,0.5);">Coming soon — voice rooms, games & gifting</div>
+  <!-- ===== ROOM PANEL ===== -->
+  <div class="panel" id="roomPanel" style="flex-direction: column; overflow: hidden;">
+    <div class="room-title-bar">🏠 Love, Fun &amp; Chat</div>
+
+    <div class="games-row">
+      <div class="game-chip" onclick="openTicTacToe()">⭕ Tic-Tac-Toe</div>
+      <div class="game-chip" onclick="alert('Coming soon')">🎴 UNO</div>
+      <div class="game-chip" onclick="alert('Coming soon')">🎱 Pool</div>
+      <div class="game-chip" onclick="alert('Coming soon')">🎲 Carrom</div>
+      <div class="game-chip" onclick="alert('Coming soon')">🐍 Snakes</div>
     </div>
+
+    <div class="seat-grid" id="seatGrid"></div>
+
+    <div class="chat-area" id="roomChatArea"></div>
+    <div class="input-bar">
+      <input type="text" id="roomMsgInput" placeholder="Say something..." onkeypress="if(event.key==='Enter') sendRoomMessage()">
+      <button class="send-btn" onclick="sendRoomMessage()">➤</button>
+    </div>
+  </div>
+
+  <!-- ===== TIC-TAC-TOE OVERLAY ===== -->
+  <div class="ttt-overlay" id="tttOverlay">
+    <div class="ttt-header">
+      <button onclick="closeTicTacToe()">←</button>
+      <h2>⭕ Tic-Tac-Toe</h2>
+    </div>
+    <div class="ttt-status" id="tttStatus">Waiting for players...</div>
+    <div class="ttt-board" id="tttBoard"></div>
+    <button class="btn" style="max-width:220px;" onclick="resetTicTacToe()">Reset Game</button>
   </div>
 
   <div class="bottom-nav">
@@ -991,6 +1082,8 @@
       document.getElementById('mainScreen').style.display = 'flex';
       listenToChat();
       listenToFamilyList();
+      listenToRoomSeats();
+      listenToRoomChat();
     } else {
       currentUser = null;
       currentUserData = null;
@@ -1687,6 +1780,176 @@
     const div = document.createElement('div');
     div.textContent = str;
     return div.innerHTML;
+  }
+
+  // ---------- ROOM: SEATS ----------
+  const TOTAL_SEATS = 8;
+  let seatsListenerAttached = false;
+  let roomChatListenerAttached = false;
+
+  function listenToRoomSeats() {
+    if (seatsListenerAttached) return;
+    seatsListenerAttached = true;
+    db.ref('rooms/mainRoom/seats').on('value', (snap) => {
+      const seats = snap.val() || {};
+      const gridEl = document.getElementById('seatGrid');
+      gridEl.innerHTML = '';
+      for (let i = 0; i < TOTAL_SEATS; i++) {
+        const seatData = seats[i];
+        const cell = document.createElement('div');
+        if (seatData) {
+          cell.className = 'seat-cell occupied';
+          cell.innerHTML = `<div class="seat-avatar">${escapeHtml((seatData.name || 'U').charAt(0).toUpperCase())}</div><div class="seat-name">${escapeHtml(seatData.name || 'User')}</div>`;
+        } else {
+          cell.className = 'seat-cell';
+          cell.innerHTML = `<div class="seat-plus">+</div><div class="seat-name">${i + 1}</div>`;
+        }
+        cell.onclick = () => tapSeat(i, !!seatData, seatData);
+        gridEl.appendChild(cell);
+      }
+    });
+  }
+
+  function tapSeat(index, isOccupied, seatData) {
+    if (!currentUser) return;
+    if (isOccupied) {
+      if (seatData.uid === currentUser.uid) {
+        db.ref('rooms/mainRoom/seats/' + index).remove();
+      }
+      return;
+    }
+    db.ref('rooms/mainRoom/seats').once('value').then((snap) => {
+      const seats = snap.val() || {};
+      Object.keys(seats).forEach((key) => {
+        if (seats[key].uid === currentUser.uid) {
+          db.ref('rooms/mainRoom/seats/' + key).remove();
+        }
+      });
+      db.ref('rooms/mainRoom/seats/' + index).set({
+        uid: currentUser.uid,
+        name: currentUserData.name
+      });
+    });
+  }
+
+  // ---------- ROOM: CHAT ----------
+  function listenToRoomChat() {
+    if (roomChatListenerAttached) return;
+    roomChatListenerAttached = true;
+    const chatArea = document.getElementById('roomChatArea');
+    db.ref('rooms/mainRoom/messages').limitToLast(50).on('value', (snap) => {
+      chatArea.innerHTML = '';
+      const messages = snap.val();
+      if (!messages) {
+        chatArea.innerHTML = '<div class="loading">No messages yet. Say hi! 👋</div>';
+        return;
+      }
+      Object.values(messages).forEach((msg) => {
+        const div = document.createElement('div');
+        const isMe = msg.uid === currentUser.uid;
+        div.className = 'msg ' + (isMe ? 'me' : 'other');
+        div.innerHTML = (isMe ? '' : `<div class="sender">${escapeHtml(msg.name)}</div>`) + escapeHtml(msg.text);
+        chatArea.appendChild(div);
+      });
+      chatArea.scrollTop = chatArea.scrollHeight;
+    });
+  }
+
+  function sendRoomMessage() {
+    const input = document.getElementById('roomMsgInput');
+    const text = input.value.trim();
+    if (!text || !currentUser) return;
+    db.ref('rooms/mainRoom/messages').push({
+      uid: currentUser.uid,
+      name: currentUserData.name,
+      text: text,
+      timestamp: Date.now()
+    });
+    addXp(XP_PER_MESSAGE);
+    input.value = '';
+  }
+
+  // ---------- TIC-TAC-TOE ----------
+  let tttListenerAttached = false;
+
+  function openTicTacToe() {
+    document.getElementById('tttOverlay').classList.add('show');
+    if (!tttListenerAttached) {
+      tttListenerAttached = true;
+      db.ref('games/tictactoe').on('value', renderTicTacToe);
+    }
+    db.ref('games/tictactoe/players').once('value').then((snap) => {
+      const players = snap.val() || {};
+      if (!players.X) {
+        db.ref('games/tictactoe/players/X').set({ uid: currentUser.uid, name: currentUserData.name });
+      } else if (!players.O && players.X.uid !== currentUser.uid) {
+        db.ref('games/tictactoe/players/O').set({ uid: currentUser.uid, name: currentUserData.name });
+      }
+    });
+  }
+
+  function closeTicTacToe() {
+    document.getElementById('tttOverlay').classList.remove('show');
+  }
+
+  function renderTicTacToe(snap) {
+    const data = snap.val() || {};
+    const board = data.board || Array(9).fill('');
+    const players = data.players || {};
+    const turn = data.turn || 'X';
+    const boardEl = document.getElementById('tttBoard');
+    const statusEl = document.getElementById('tttStatus');
+
+    boardEl.innerHTML = '';
+    board.forEach((val, i) => {
+      const cell = document.createElement('div');
+      cell.className = 'ttt-cell';
+      cell.textContent = val;
+      cell.onclick = () => tapTicTacToeCell(i, board, turn, players);
+      boardEl.appendChild(cell);
+    });
+
+    const winner = checkTicTacToeWinner(board);
+    if (winner) {
+      statusEl.textContent = "🎉 " + winner + " wins!";
+    } else if (board.every(c => c)) {
+      statusEl.textContent = "It's a draw!";
+    } else if (!players.X || !players.O) {
+      statusEl.textContent = "Waiting for a second player...";
+    } else {
+      const myMark = players.X.uid === currentUser.uid ? 'X' : (players.O.uid === currentUser.uid ? 'O' : null);
+      statusEl.textContent = myMark ? (turn === myMark ? "Your turn (" + myMark + ")" : "Opponent's turn") : "Spectating";
+    }
+  }
+
+  function tapTicTacToeCell(index, board, turn, players) {
+    if (!currentUser || board[index]) return;
+    const myMark = players.X && players.X.uid === currentUser.uid ? 'X' : (players.O && players.O.uid === currentUser.uid ? 'O' : null);
+    if (!myMark || myMark !== turn) return;
+    if (checkTicTacToeWinner(board)) return;
+
+    const newBoard = board.slice();
+    newBoard[index] = myMark;
+    db.ref('games/tictactoe').update({
+      board: newBoard,
+      turn: myMark === 'X' ? 'O' : 'X'
+    });
+  }
+
+  function checkTicTacToeWinner(board) {
+    const lines = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+    for (const [a,b,c] of lines) {
+      if (board[a] && board[a] === board[b] && board[a] === board[c]) return board[a];
+    }
+    return null;
+  }
+
+  function resetTicTacToe() {
+    db.ref('games/tictactoe').set({
+      board: Array(9).fill(''),
+      turn: 'X',
+      players: {}
+    });
   }
 </script>
 
