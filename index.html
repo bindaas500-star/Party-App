@@ -290,30 +290,28 @@
     50% { transform: translateY(-6px); }
   }
 
-  /* ---- Farm Field (crops + VIP locked plots) ---- */
+  /* ---- Farm Field (10 plots, unlock as VIP level increases) ---- */
   .plots-title { font-size: 12.5px; color: rgba(255,255,255,0.55); margin: 18px 0 10px; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; }
   .farm-field-wrap {
-    display: flex; gap: 10px;
     background: linear-gradient(160deg, #2d5a2f, #1f4322);
     border: 1px solid rgba(255,255,255,0.1);
     border-radius: 18px; padding: 14px;
   }
-  .vip-locks-col { display: flex; flex-direction: column; gap: 8px; width: 78px; flex-shrink: 0; }
-  .vip-lock-badge {
-    display: flex; align-items: center; gap: 5px; padding: 6px 8px; border-radius: 10px;
-    background: rgba(0,0,0,0.22); font-size: 10.5px; font-weight: 700; font-family: 'Fredoka';
+  .plots-grid-10 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+  .plot10-cell {
+    aspect-ratio: 1; border-radius: 12px; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 2px; text-align: center;
   }
-  .vip-lock-badge.unlocked { background: linear-gradient(90deg, rgba(255,215,106,0.25), rgba(255,215,106,0.08)); }
-  .vip-lock-badge .lock-emoji { font-size: 13px; }
-  .vip-lock-badge .lock-text { color: #ffd76a; }
-  .vip-lock-badge.unlocked .lock-text { color: #ffe9a8; }
-  .vip-lock-badge .lock-bonus { font-size: 8.5px; color: rgba(255,255,255,0.5); font-weight: 600; margin-left: auto; }
-
-  .crop-grid { flex: 1; display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; }
-  .crop-cell {
-    aspect-ratio: 1; border-radius: 10px; display: flex; align-items: center; justify-content: center;
-    font-size: 20px; background: linear-gradient(160deg, #5a3a1e, #402a15); border: 1px solid rgba(0,0,0,0.2);
+  .plot10-cell.unlocked {
+    background: linear-gradient(160deg, #5a3a1e, #402a15); border: 1px solid rgba(255,215,106,0.25);
   }
+  .plot10-cell.unlocked .p-emoji { font-size: 18px; }
+  .plot10-cell.unlocked .p-bonus { font-size: 8.5px; color: #ffd76a; font-weight: 700; font-family: 'Fredoka'; }
+  .plot10-cell.locked {
+    background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.06);
+  }
+  .plot10-cell.locked .p-emoji { font-size: 15px; opacity: 0.4; }
+  .plot10-cell.locked .p-label { font-size: 8px; font-weight: 700; font-family: 'Fredoka'; color: #ffb4b4; }
 
 
 </style>
@@ -390,8 +388,7 @@
 
       <div class="plots-title">Farm Field</div>
       <div class="farm-field-wrap">
-        <div class="vip-locks-col" id="vipLocksCol"></div>
-        <div class="crop-grid" id="cropGrid"></div>
+        <div class="plots-grid-10" id="plotsGrid10"></div>
       </div>
     </div>
   </div>
@@ -510,10 +507,17 @@
   const BASE_PRODUCTION = 50; // coins per harvest at farm/VIP level 1
   const PRODUCTION_PER_LEVEL = 25; // extra coins per VIP level
   const UPGRADE_INCREMENT = 1000000; // levels 1-14: cost = level * 1,000,000
-  const MILESTONE_PLOTS = [
-    { label: 'VIP2', requiredLevel: 2, bonus: 150 },
-    { label: 'VIP6', requiredLevel: 6, bonus: 350 },
-    { label: 'VIP10', requiredLevel: 10, bonus: 700 }
+  const PLOTS = [
+    { label: 'Lv.1', requiredLevel: 1, bonus: 20 },
+    { label: 'Lv.2', requiredLevel: 2, bonus: 35 },
+    { label: 'Lv.3', requiredLevel: 3, bonus: 50 },
+    { label: 'Lv.4', requiredLevel: 4, bonus: 70 },
+    { label: 'Lv.5', requiredLevel: 5, bonus: 90 },
+    { label: 'Lv.6', requiredLevel: 6, bonus: 120 },
+    { label: 'VIP8', requiredLevel: 8, bonus: 250 },
+    { label: 'VIP10', requiredLevel: 10, bonus: 500 },
+    { label: 'VIP12', requiredLevel: 12, bonus: 800 },
+    { label: 'VIP15', requiredLevel: 15, bonus: 1500 }
   ];
 
   let isSignupMode = false;
@@ -677,8 +681,8 @@
 
   function getProductionAmount() {
     const farmLevel = getFarmLevel();
-    let total = BASE_PRODUCTION + (farmLevel - 1) * PRODUCTION_PER_LEVEL;
-    MILESTONE_PLOTS.forEach((plot) => {
+    let total = 0;
+    PLOTS.forEach((plot) => {
       if (farmLevel >= plot.requiredLevel) total += plot.bonus;
     });
     return total;
@@ -711,33 +715,25 @@
     renderPlots();
   }
 
-  const CROP_EMOJIS = ['🥕','🌽','🥬','🍅','🌻','🥦','🍆','🌾','🥔'];
+  const CROP_EMOJIS = ['🥕','🌽','🥬','🍅','🌻','🥦','🍆','🌾','🥔','🌿'];
 
   function renderPlots() {
     const farmLevel = getFarmLevel();
+    const gridEl = document.getElementById('plotsGrid10');
+    gridEl.innerHTML = '';
 
-    // VIP lock badges (matches VIP2 / VIP6 / VIP10 in the reference screenshot)
-    const locksEl = document.getElementById('vipLocksCol');
-    locksEl.innerHTML = '';
-    MILESTONE_PLOTS.forEach((plot) => {
+    PLOTS.forEach((plot, i) => {
       const isUnlocked = farmLevel >= plot.requiredLevel;
-      const badge = document.createElement('div');
-      badge.className = 'vip-lock-badge' + (isUnlocked ? ' unlocked' : '');
-      badge.innerHTML = isUnlocked
-        ? `<span class="lock-emoji">🌾</span><span class="lock-text">${plot.label}</span><span class="lock-bonus">+${plot.bonus}</span>`
-        : `<span class="lock-emoji">🔒</span><span class="lock-text">${plot.label}</span>`;
-      locksEl.appendChild(badge);
-    });
-
-    // Always-growing decorative crop field (9 cells)
-    const cropEl = document.getElementById('cropGrid');
-    cropEl.innerHTML = '';
-    for (let i = 0; i < 9; i++) {
       const cell = document.createElement('div');
-      cell.className = 'crop-cell';
-      cell.textContent = CROP_EMOJIS[i % CROP_EMOJIS.length];
-      cropEl.appendChild(cell);
-    }
+      if (isUnlocked) {
+        cell.className = 'plot10-cell unlocked';
+        cell.innerHTML = `<div class="p-emoji">${CROP_EMOJIS[i % CROP_EMOJIS.length]}</div><div class="p-bonus">+${plot.bonus}</div>`;
+      } else {
+        cell.className = 'plot10-cell locked';
+        cell.innerHTML = `<div class="p-emoji">🔒</div><div class="p-label">${plot.label}</div>`;
+      }
+      gridEl.appendChild(cell);
+    });
   }
 
   function upgradeFarm() {
