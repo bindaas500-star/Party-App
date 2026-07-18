@@ -321,6 +321,48 @@
   }
   .edit-field textarea { resize: none; }
 
+  /* ---- Rank Overlay ---- */
+  .rank-overlay {
+    position: fixed; inset: 0; z-index: 200; background: #1a1030;
+    display: none; flex-direction: column; overflow-y: auto;
+  }
+  .rank-overlay.show { display: flex; }
+  .rank-header { padding: 16px; display: flex; align-items: center; gap: 12px; }
+  .rank-header button {
+    background: rgba(255,255,255,0.08); border: none; color: #fff; width: 36px; height: 36px;
+    border-radius: 50%; font-size: 18px; cursor: pointer; flex-shrink: 0;
+  }
+  .rank-header h2 { font-family: 'Fredoka'; font-weight: 700; font-size: 19px; }
+
+  .rank-tabs { display: flex; gap: 6px; padding: 0 16px 10px; overflow-x: auto; }
+  .rank-tab {
+    flex-shrink: 0; padding: 7px 14px; border-radius: 16px; font-size: 12.5px; font-weight: 700;
+    font-family: 'Fredoka'; color: rgba(255,255,255,0.5); cursor: pointer; white-space: nowrap;
+  }
+  .rank-tab.active { color: #fff; background: linear-gradient(90deg,#ffd76a,#ff9d5c); color: #3a2410; }
+
+  .rank-subtabs { display: flex; gap: 8px; padding: 0 16px 16px; }
+  .rank-subtab {
+    flex: 1; text-align: center; padding: 8px 0; border-radius: 12px; font-size: 12.5px; font-weight: 700;
+    font-family: 'Fredoka'; color: rgba(255,255,255,0.5); cursor: pointer; background: rgba(255,255,255,0.05);
+  }
+  .rank-subtab.active { color: #4ecdc4; background: rgba(78,205,196,0.12); }
+
+  .rank-list { padding: 0 16px 30px; }
+  .rank-row {
+    display: flex; align-items: center; gap: 12px; background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 12px 14px; margin-bottom: 8px;
+  }
+  .rank-num { font-family: 'Fredoka'; font-weight: 700; font-size: 15px; color: #ffd76a; width: 22px; text-align: center; }
+  .rank-avatar {
+    width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg,#ff6b9d,#c44dff);
+    display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; font-family: 'Fredoka'; flex-shrink: 0;
+  }
+  .rank-info { flex: 1; min-width: 0; }
+  .rank-name { font-family: 'Fredoka'; font-weight: 600; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .rank-sub { font-size: 11px; color: rgba(255,255,255,0.45); font-weight: 500; }
+  .rank-value { font-family: 'Fredoka'; font-weight: 700; font-size: 13px; color: #ffe9a8; flex-shrink: 0; }
+
   /* ---- Home / Harvest Panel ---- */
   .home-content {
     flex: 1; overflow-y: auto; padding: 18px 16px 30px;
@@ -517,7 +559,7 @@
       <div class="name" id="userName">User</div>
       <div class="level-badge">🆔 <span id="userLevelLabel">ID Lv. 1</span></div>
     </div>
-    <button class="logout-btn" onclick="handleLogout()">Logout</button>
+    <button class="logout-btn" onclick="openRankView()">🏆 Rank</button>
   </div>
 
   <!-- ===== HOME / HARVEST PANEL ===== -->
@@ -807,6 +849,32 @@
   </div>
 </div>
 
+<!-- ===== RANK OVERLAY ===== -->
+<div class="rank-overlay" id="rankOverlay">
+  <div class="rank-header">
+    <button onclick="closeRankView()">←</button>
+    <h2>🏆 Rank</h2>
+  </div>
+
+  <div class="rank-tabs" id="rankTabsRow">
+    <div class="rank-tab active" data-tab="honor" onclick="switchRankTab('honor')">Honor</div>
+    <div class="rank-tab" data-tab="family" onclick="switchRankTab('family')">Family</div>
+    <div class="rank-tab" data-tab="soulmate" onclick="switchRankTab('soulmate')">Soulmate</div>
+    <div class="rank-tab" data-tab="bff" onclick="switchRankTab('bff')">BFF</div>
+    <div class="rank-tab" data-tab="vip" onclick="switchRankTab('vip')">VIP</div>
+  </div>
+
+  <div class="rank-subtabs">
+    <div class="rank-subtab active" data-sub="today" onclick="switchRankSubtab('today')">Today</div>
+    <div class="rank-subtab" data-sub="yesterday" onclick="switchRankSubtab('yesterday')">Yesterday</div>
+    <div class="rank-subtab" data-sub="hall" onclick="switchRankSubtab('hall')">Hall of Fame</div>
+  </div>
+
+  <div class="rank-list" id="rankList">
+    <div class="loading">Loading leaderboard...</div>
+  </div>
+</div>
+
 <!-- Firebase SDKs -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
@@ -1003,6 +1071,72 @@
   function goToFamilyFromProfile() {
     closeProfile();
     switchTab('family');
+  }
+
+  let currentRankTab = 'honor';
+  let currentRankSubtab = 'today';
+
+  function openRankView() {
+    document.getElementById('rankOverlay').classList.add('show');
+    loadLeaderboard();
+  }
+
+  function closeRankView() {
+    document.getElementById('rankOverlay').classList.remove('show');
+  }
+
+  function switchRankTab(tab) {
+    currentRankTab = tab;
+    document.querySelectorAll('.rank-tab').forEach(el => {
+      el.classList.toggle('active', el.dataset.tab === tab);
+    });
+    loadLeaderboard();
+  }
+
+  function switchRankSubtab(sub) {
+    currentRankSubtab = sub;
+    document.querySelectorAll('.rank-subtab').forEach(el => {
+      el.classList.toggle('active', el.dataset.sub === sub);
+    });
+    loadLeaderboard();
+  }
+
+  function loadLeaderboard() {
+    const listEl = document.getElementById('rankList');
+    listEl.innerHTML = '<div class="loading">Loading leaderboard...</div>';
+
+    if (currentRankTab !== 'honor') {
+      listEl.innerHTML = '<div class="loading">Coming soon for this category.</div>';
+      return;
+    }
+    if (currentRankSubtab !== 'today') {
+      listEl.innerHTML = '<div class="loading">Coming soon — check back later.</div>';
+      return;
+    }
+
+    db.ref('users').orderByChild('coins').limitToLast(30).once('value').then((snap) => {
+      const data = snap.val();
+      listEl.innerHTML = '';
+      if (!data) {
+        listEl.innerHTML = '<div class="loading">No players yet.</div>';
+        return;
+      }
+      const players = Object.values(data).sort((a, b) => (b.coins || 0) - (a.coins || 0));
+      players.forEach((p, i) => {
+        const row = document.createElement('div');
+        row.className = 'rank-row';
+        row.innerHTML = `
+          <div class="rank-num">${i + 1}</div>
+          <div class="rank-avatar">${escapeHtml((p.name || 'U').charAt(0).toUpperCase())}</div>
+          <div class="rank-info">
+            <div class="rank-name">${escapeHtml(p.name || 'User')}</div>
+            <div class="rank-sub">VIP ${p.farmLevel || 1}</div>
+          </div>
+          <div class="rank-value">🪙 ${formatNum(p.coins || 0)}</div>
+        `;
+        listEl.appendChild(row);
+      });
+    });
   }
 
   let currentProfileSubView = null;
