@@ -9,6 +9,7 @@
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   html, body { height: 100%; overflow: hidden; position: fixed; width: 100%; }
+  .app-shell { height: 100vh; height: 100dvh; }
   body {
     font-family: 'Inter', -apple-system, Segoe UI, Roboto, Arial, sans-serif;
     background:
@@ -20,7 +21,7 @@
     min-height: 100vh;
   }
   h1, h2, h3, .display { font-family: 'Fredoka', 'Inter', sans-serif; }
-  .screen { display: none; min-height: 100vh; flex-direction: column; }
+  .screen { display: none; min-height: 100vh; min-height: 100dvh; flex-direction: column; }
   .screen.active { display: flex; }
 
   /* ---- Auth Screen ---- */
@@ -609,7 +610,7 @@
 </div>
 
 <!-- ===== MAIN APP SCREEN ===== -->
-<div id="mainScreen" style="display:none; flex-direction: column; height: 100vh;">
+<div id="mainScreen" class="app-shell" style="display:none; flex-direction: column;">
   <div class="topbar">
     <div class="avatar-ring" onclick="openProfile()" style="cursor:pointer;"><div class="avatar" id="userAvatar">?</div></div>
     <div>
@@ -620,7 +621,7 @@
   </div>
 
   <!-- ===== HOME / HARVEST PANEL ===== -->
-  <div class="panel" id="homePanel">
+  <div class="panel active" id="homePanel">
     <div class="home-content">
 
       <!-- Wallet -->
@@ -695,7 +696,7 @@
   </div>
 
   <!-- ===== CHAT PANEL ===== -->
-  <div class="panel active" id="chatPanel">
+  <div class="panel" id="chatPanel">
     <div class="msg-shortcuts">
       <div class="msg-shortcut" onclick="alert('Coming soon')">
         <div class="ms-icon">🔔</div><div class="ms-label">Notifications</div>
@@ -806,9 +807,9 @@
   </div>
 
   <div class="bottom-nav">
-    <div class="nav-item active" id="navMessages" onclick="switchTab('messages')"><span class="nav-icon">💬</span>Messages</div>
+    <div class="nav-item" id="navMessages" onclick="switchTab('messages')"><span class="nav-icon">💬</span>Messages</div>
     <div class="nav-item" id="navMoments" onclick="switchTab('moments')"><span class="nav-icon">🪐</span>Moments</div>
-    <div class="nav-item" id="navHifami" onclick="switchTab('hifami')"><span class="nav-icon">🌾</span>Home</div>
+    <div class="nav-item active" id="navHifami" onclick="switchTab('hifami')"><span class="nav-icon">🌾</span>Home</div>
     <div class="nav-item" id="navRoom" onclick="switchTab('room')"><span class="nav-icon">🏠</span>Room</div>
     <div class="nav-item" id="navFamily" onclick="switchTab('family')"><span class="nav-icon">👨‍👩‍👧</span>Family</div>
   </div>
