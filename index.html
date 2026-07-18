@@ -265,6 +265,42 @@
   .invite-redeem-btn { width: 100%; background: linear-gradient(90deg,#ff6b9d,#c44dff); color: #fff; }
   .invite-redeem-status { font-size: 12px; color: #9df5c5; font-weight: 600; margin-top: 10px; }
 
+  .milestone-box {
+    background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 18px; padding: 18px; text-align: center; margin-bottom: 16px;
+  }
+  .milestone-progress-text { font-family: 'Fredoka'; font-weight: 600; font-size: 13px; color: rgba(255,255,255,0.7); margin-bottom: 14px; }
+  .milestone-row { display: flex; justify-content: space-between; gap: 8px; }
+  .milestone-cell { flex: 1; text-align: center; }
+  .milestone-cell .m-gems { font-size: 11px; font-weight: 700; color: #ffd76a; font-family: 'Fredoka'; margin-bottom: 6px; }
+  .milestone-cell .m-btn {
+    width: 34px; height: 34px; border-radius: 50%; border: none; font-size: 13px; margin: 0 auto 5px;
+    display: flex; align-items: center; justify-content: center; font-weight: 700;
+    background: rgba(0,0,0,0.25); color: rgba(255,255,255,0.35); cursor: default;
+  }
+  .milestone-cell .m-btn.claimable { background: linear-gradient(135deg,#ffd76a,#ff9d5c); color: #3a2410; cursor: pointer; }
+  .milestone-cell .m-btn.claimed { background: rgba(78,205,196,0.25); color: #4ecdc4; }
+  .milestone-cell .m-need { font-size: 10px; color: rgba(255,255,255,0.4); font-weight: 600; }
+
+  .language-list { display: flex; flex-direction: column; }
+  .language-item {
+    padding: 16px 4px; border-bottom: 1px solid rgba(255,255,255,0.08); font-size: 15px; font-weight: 500;
+    display: flex; justify-content: space-between; align-items: center; cursor: pointer;
+  }
+  .language-item .lang-check { color: #ffd76a; font-weight: 700; display: none; }
+  .language-item.selected .lang-check { display: inline; }
+
+  .settings-list { display: flex; flex-direction: column; }
+  .settings-item {
+    padding: 16px 4px; border-bottom: 1px solid rgba(255,255,255,0.08); font-size: 14.5px; font-weight: 500; cursor: pointer;
+  }
+  .settings-item.no-arrow { color: rgba(255,255,255,0.4); font-size: 12.5px; text-align: center; border-bottom: none; padding-top: 24px; }
+  .sign-out-btn {
+    width: 100%; margin-top: 20px; padding: 15px; border: none; border-radius: 16px;
+    background: rgba(255,107,107,0.12); border: 1px solid rgba(255,107,107,0.4);
+    color: #ff8a8a; font-family: 'Fredoka'; font-weight: 700; font-size: 15px; cursor: pointer;
+  }
+
   /* ---- Home / Harvest Panel ---- */
   .home-content {
     flex: 1; overflow-y: auto; padding: 18px 16px 30px;
@@ -615,15 +651,15 @@
           <span class="pmi-icon">💰</span><span class="pmi-label">Wallet</span>
           <span class="pmi-value" id="profileWalletValue">🪙0 💎0</span><span class="pmi-arrow">›</span>
         </div>
-        <div class="profile-menu-item" onclick="alert('Coming soon')">
+        <div class="profile-menu-item" onclick="openLanguageView()">
           <span class="pmi-icon">🌐</span><span class="pmi-label">Language</span>
-          <span class="pmi-value">English</span><span class="pmi-arrow">›</span>
+          <span class="pmi-value" id="profileLangValue">English</span><span class="pmi-arrow">›</span>
         </div>
         <div class="profile-menu-item" onclick="openInviteView()">
           <span class="pmi-icon">➕</span><span class="pmi-label">Invite Friends</span>
           <span class="pmi-arrow">›</span>
         </div>
-        <div class="profile-menu-item" onclick="alert('Coming soon')">
+        <div class="profile-menu-item" onclick="openSettingsView()">
           <span class="pmi-icon">⚙️</span><span class="pmi-label">Settings</span>
           <span class="pmi-arrow">›</span>
         </div>
@@ -645,6 +681,32 @@
         <input type="text" id="redeemCodeInput" placeholder="Enter code">
         <button class="invite-redeem-btn" onclick="redeemReferralCode()">Redeem</button>
         <div class="invite-redeem-status" id="referredStatusText"></div>
+      </div>
+
+      <div class="milestone-box">
+        <div class="invite-code-label">Weekly Bonus — Invite Milestones</div>
+        <div class="milestone-progress-text" id="milestoneProgressText">0 friends invited</div>
+        <div class="milestone-row" id="milestoneRow"></div>
+      </div>
+    </div>
+
+    <div id="languageView" style="display:none; padding: 0 20px;">
+      <div class="invite-title">🌐 Language</div>
+      <div class="language-list" id="languageList"></div>
+    </div>
+
+    <div id="settingsView" style="display:none; padding: 0 20px;">
+      <div class="settings-list">
+        <div class="settings-item" onclick="handleProfileBack()">Personal Profile</div>
+        <div class="settings-item" onclick="alert('Coming soon')">Notification</div>
+        <div class="settings-item" onclick="alert('Coming soon')">Blocked Users</div>
+        <div class="settings-item" onclick="alert('Coming soon')">Account Security</div>
+        <div class="settings-item" onclick="alert('Coming soon')">Terms of Use</div>
+        <div class="settings-item" onclick="alert('Coming soon')">Privacy Policy</div>
+        <div class="settings-item" onclick="alert('Coming soon')">Community Guidelines</div>
+        <div class="settings-item" onclick="alert('Coming soon')">Help &amp; Feedback</div>
+        <div class="settings-item no-arrow">Version 1.0.0</div>
+        <button class="sign-out-btn" onclick="handleLogout()">Sign Out</button>
       </div>
     </div>
   </div>
@@ -794,6 +856,7 @@
     document.getElementById('profileVipLevelBadge').textContent = "👑 VIP " + (currentUserData.farmLevel || 1);
     document.getElementById('profileWalletValue').textContent = "🪙" + formatNum(currentUserData.coins || 0) + " 💎" + formatNum(currentUserData.gems || 0);
     document.getElementById('profileFamilyValue').textContent = currentFamilyId ? 'Joined' : 'None';
+    document.getElementById('profileLangValue').textContent = currentUserData.language || 'English';
 
     if (!currentUserData.profileId && !profileIdBeingGenerated) {
       profileIdBeingGenerated = true;
@@ -811,18 +874,27 @@
     document.getElementById('referredStatusText').textContent = currentUserData.referredBy
       ? "✅ You've already used a referral code."
       : "";
+    renderMilestones();
   }
 
   function openProfile() {
     renderProfile();
+    renderLanguageList();
+    renderMilestones();
     document.getElementById('profileOverlay').classList.add('show');
   }
 
   function closeProfile() {
     document.getElementById('profileOverlay').classList.remove('show');
+    hideAllProfileSubViews();
+  }
+
+  function hideAllProfileSubViews() {
     document.getElementById('inviteView').style.display = 'none';
+    document.getElementById('languageView').style.display = 'none';
+    document.getElementById('settingsView').style.display = 'none';
     document.getElementById('profileMainView').style.display = 'block';
-    inviteViewOpen = false;
+    currentProfileSubView = null;
   }
 
   function copyProfileId() {
@@ -837,22 +909,101 @@
     switchTab('family');
   }
 
-  let inviteViewOpen = false;
+  let currentProfileSubView = null;
 
   function openInviteView() {
     document.getElementById('profileMainView').style.display = 'none';
     document.getElementById('inviteView').style.display = 'block';
-    inviteViewOpen = true;
+    currentProfileSubView = 'invite';
+    renderMilestones();
+  }
+
+  function openLanguageView() {
+    document.getElementById('profileMainView').style.display = 'none';
+    document.getElementById('languageView').style.display = 'block';
+    currentProfileSubView = 'language';
+  }
+
+  function openSettingsView() {
+    document.getElementById('profileMainView').style.display = 'none';
+    document.getElementById('settingsView').style.display = 'block';
+    currentProfileSubView = 'settings';
   }
 
   function handleProfileBack() {
-    if (inviteViewOpen) {
-      document.getElementById('inviteView').style.display = 'none';
-      document.getElementById('profileMainView').style.display = 'block';
-      inviteViewOpen = false;
+    if (currentProfileSubView) {
+      hideAllProfileSubViews();
     } else {
       closeProfile();
     }
+  }
+
+  const LANGUAGES = ['English','عربي','Türkçe','Bahasa Indonesia','Español','Português','Filipino','Tiếng Việt','Italiano','हिन्दी'];
+
+  function renderLanguageList() {
+    const listEl = document.getElementById('languageList');
+    listEl.innerHTML = '';
+    const currentLang = (currentUserData && currentUserData.language) || 'English';
+    LANGUAGES.forEach((lang) => {
+      const item = document.createElement('div');
+      item.className = 'language-item' + (lang === currentLang ? ' selected' : '');
+      item.innerHTML = `<span>${lang}</span><span class="lang-check">✓</span>`;
+      item.onclick = () => selectLanguage(lang);
+      listEl.appendChild(item);
+    });
+  }
+
+  function selectLanguage(lang) {
+    if (!currentUser) return;
+    db.ref('users/' + currentUser.uid).update({ language: lang });
+    document.getElementById('profileLangValue').textContent = lang;
+    renderLanguageList();
+  }
+
+  const MILESTONES = [
+    { need: 3, gems: 600 },
+    { need: 10, gems: 1000 },
+    { need: 50, gems: 2400 }
+  ];
+
+  function renderMilestones() {
+    if (!currentUserData) return;
+    const referralCount = currentUserData.referralCount || 0;
+    document.getElementById('milestoneProgressText').textContent = referralCount + " friend" + (referralCount !== 1 ? 's' : '') + " invited";
+
+    const rowEl = document.getElementById('milestoneRow');
+    rowEl.innerHTML = '';
+    MILESTONES.forEach((m) => {
+      const claimedField = 'milestoneClaimed' + m.need;
+      const alreadyClaimed = !!currentUserData[claimedField];
+      const canClaim = !alreadyClaimed && referralCount >= m.need;
+
+      const cell = document.createElement('div');
+      cell.className = 'milestone-cell';
+      let btnClass = 'm-btn';
+      let btnContent = '🔒';
+      if (alreadyClaimed) { btnClass += ' claimed'; btnContent = '✓'; }
+      else if (canClaim) { btnClass += ' claimable'; btnContent = '🎁'; }
+
+      cell.innerHTML = `
+        <div class="m-gems">+${m.gems}💎</div>
+        <div class="${btnClass}" onclick="${canClaim ? `claimMilestone(${m.need}, ${m.gems})` : ''}">${btnContent}</div>
+        <div class="m-need">${m.need} friends</div>
+      `;
+      rowEl.appendChild(cell);
+    });
+  }
+
+  function claimMilestone(need, gems) {
+    if (!currentUser || !currentUserData) return;
+    const claimedField = 'milestoneClaimed' + need;
+    if (currentUserData[claimedField]) return;
+    if ((currentUserData.referralCount || 0) < need) return;
+
+    const update = {};
+    update[claimedField] = true;
+    update.gems = (currentUserData.gems || 0) + gems;
+    db.ref('users/' + currentUser.uid).update(update);
   }
 
   function copyReferralCode() {
@@ -891,7 +1042,8 @@
         referredBy: code
       });
       db.ref('users/' + referrerUid).update({
-        gems: (referrerData.gems || 0) + 50
+        gems: (referrerData.gems || 0) + 50,
+        referralCount: (referrerData.referralCount || 0) + 1
       });
 
       statusEl.textContent = "✅ Success! You both received 💎 50 gems.";
