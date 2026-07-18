@@ -623,9 +623,6 @@
 
       </div>
 
-      <!-- Growing Crops (visual) -->
-      <div class="growing-field" id="growingField"></div>
-
       <!-- Farm -->
 
       <div class="farm-grid" id="plotsGrid10">
@@ -1426,18 +1423,6 @@
     }
     updateHarvestTimer();
     renderPlots();
-    renderGrowingField();
-  }
-
-  function renderGrowingField() {
-    const fieldEl = document.getElementById('growingField');
-    if (fieldEl.childElementCount > 0) return;
-    for (let i = 0; i < 10; i++) {
-      const cell = document.createElement('div');
-      cell.className = 'growing-cell';
-      cell.textContent = CROP_EMOJIS[i % CROP_EMOJIS.length];
-      fieldEl.appendChild(cell);
-    }
   }
 
   const CROP_EMOJIS = ['🥕','🌽','🥬','🍅','🌻','🥦','🍆','🌾','🥔','🌿'];
