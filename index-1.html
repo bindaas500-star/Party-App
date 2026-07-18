@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Party App</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; }
+  body {
+    font-family: 'Inter', -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    background:
+      radial-gradient(circle at 15% 0%, rgba(255,77,141,0.25), transparent 45%),
+      radial-gradient(circle at 90% 15%, rgba(78,205,196,0.18), transparent 40%),
+      radial-gradient(circle at 50% 100%, rgba(255,201,60,0.12), transparent 50%),
+      #1a1030;
+    color: #fdf8ff;
+    min-height: 100vh;
+  }
+  h1, h2, h3, .display { font-family: 'Fredoka', 'Inter', sans-serif; }
+  .screen { display: none; min-height: 100vh; flex-direction: column; }
+  .screen.active { display: flex; }
+
+  /* ---- Auth Screen ---- */
+  #authScreen { justify-content: center; align-items: center; padding: 24px; }
+  .auth-logo {
+    text-align: center; margin-bottom: 22px;
+  }
+  .auth-logo .emoji { font-size: 46px; display: block; margin-bottom: 6px; filter: drop-shadow(0 4px 12px rgba(255,201,60,0.5)); }
+  .auth-logo .brand { font-family: 'Fredoka'; font-weight: 700; font-size: 26px; letter-spacing: 0.5px;
+    background: linear-gradient(90deg, #ffd76a, #ff9dcb, #a78bfa);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .auth-box {
+    width: 100%; max-width: 380px;
+    background: linear-gradient(160deg, rgba(255,255,255,0.09), rgba(255,255,255,0.03));
+    border: 1px solid rgba(255,255,255,0.12);
+    padding: 26px 22px; border-radius: 26px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+    backdrop-filter: blur(6px);
+  }
+  .auth-box h1 { text-align: center; margin-bottom: 22px; font-size: 21px; font-weight: 600; color: #fff; }
+  .auth-box input {
+    width: 100%; padding: 14px 16px; margin-bottom: 12px; border-radius: 14px;
+    border: 1.5px solid rgba(255,255,255,0.14); background: rgba(0,0,0,0.22); color: #fff; font-size: 15px;
+    font-family: 'Inter';
+  }
+  .auth-box input:focus { outline: none; border-color: #ff9dcb; }
+  .auth-box input::placeholder { color: rgba(255,255,255,0.4); }
+  .btn {
+    width: 100%; padding: 15px; border: none; border-radius: 16px; font-size: 15px; font-weight: 700;
+    font-family: 'Fredoka';
+    background: linear-gradient(90deg, #ff6b9d, #c44dff);
+    color: #fff; cursor: pointer; margin-top: 4px;
+    box-shadow: 0 8px 22px rgba(255,77,157,0.35);
+    letter-spacing: 0.3px;
+  }
+  .btn:active { transform: scale(0.98); }
+  .btn:disabled { opacity: 0.35; box-shadow: none; }
+  .toggle-link { text-align: center; margin-top: 16px; color: #c9b8ff; font-size: 13.5px; cursor: pointer; font-weight: 500; }
+  .error-msg { color: #ff8a8a; font-size: 13px; margin-bottom: 10px; min-height: 16px; text-align: center; font-weight: 500; }
+
+  /* ---- Main App ---- */
+  #mainScreen { display: none; flex-direction: column; height: 100vh; }
+  .topbar {
+    display: flex; align-items: center; padding: 14px 16px; gap: 12px; flex-shrink: 0;
+    background: rgba(0,0,0,0.28); border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+  .avatar-ring {
+    width: 46px; height: 46px; border-radius: 50%; padding: 2.5px; flex-shrink: 0;
+    background: linear-gradient(135deg, #ffd76a, #ff6b9d, #a78bfa);
+  }
+  .avatar {
+    width: 100%; height: 100%; border-radius: 50%; background: #241539;
+    display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 16px;
+    font-family: 'Fredoka'; color: #fff;
+  }
+  .topbar .name { font-weight: 700; font-size: 15px; font-family: 'Fredoka'; }
+  .level-badge {
+    display: inline-flex; align-items: center; gap: 3px; font-size: 10.5px; font-weight: 700;
+    color: #2a1a05; background: linear-gradient(90deg, #ffd76a, #ffb347);
+    padding: 2px 8px 2px 6px; border-radius: 20px; margin-top: 2px;
+  }
+  .logout-btn {
+    margin-left: auto; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.16);
+    color: #fff; padding: 7px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; font-family: 'Inter';
+  }
+
+  /* ---- Bottom Nav ---- */
+  .bottom-nav {
+    display: flex; background: rgba(10,5,20,0.55); border-top: 1px solid rgba(255,255,255,0.08); flex-shrink: 0;
+    padding: 6px 10px calc(6px + env(safe-area-inset-bottom, 0px));
+    backdrop-filter: blur(10px);
+  }
+  .nav-item {
+    flex: 1; text-align: center; padding: 7px 2px; font-size: 9.5px; color: rgba(255,255,255,0.45); cursor: pointer;
+    font-weight: 600; border-radius: 12px; transition: color .15s; white-space: nowrap;
+  }
+  .nav-item .nav-icon { display: block; font-size: 18px; margin-bottom: 2px; }
+  .nav-item.active { color: #ffd76a; background: rgba(255,215,106,0.08); }
+
+  /* ---- Content Panels ---- */
+  .panel { display: none; flex-direction: column; flex: 1; overflow: hidden; }
+  .panel.active { display: flex; }
+
+  .chat-area { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+  .msg { max-width: 78%; padding: 10px 14px; border-radius: 16px; font-size: 14px; line-height: 1.45; }
+  .msg .sender { font-size: 11px; color: #ffd76a; margin-bottom: 3px; font-weight: 700; }
+  .msg.other { background: rgba(255,255,255,0.08); align-self: flex-start; border-bottom-left-radius: 4px; }
+  .msg.me {
+    background: linear-gradient(135deg,#ff6b9d,#c44dff); align-self: flex-end; border-bottom-right-radius: 4px;
+    box-shadow: 0 4px 14px rgba(255,77,157,0.25);
+  }
+
+  .input-bar { display: flex; padding: 12px; gap: 10px; background: rgba(0,0,0,0.25); border-top: 1px solid rgba(255,255,255,0.08); flex-shrink: 0; }
+  .input-bar input {
+    flex: 1; padding: 12px 16px; border-radius: 24px; border: 1px solid rgba(255,255,255,0.1);
+    background: rgba(255,255,255,0.08); color: #fff; font-size: 14px; font-family: 'Inter';
+  }
+  .input-bar input::placeholder { color: rgba(255,255,255,0.4); }
+  .send-btn {
+    width: 44px; height: 44px; border-radius: 50%; border: none; background: linear-gradient(135deg,#ff6b9d,#c44dff);
+    color: #fff; font-size: 18px; cursor: pointer; flex-shrink: 0; box-shadow: 0 6px 16px rgba(255,77,157,0.35);
+  }
+  .loading { text-align: center; padding: 30px 20px; color: rgba(255,255,255,0.4); font-size: 13px; }
+
+  /* ---- Family Panel ---- */
+  .family-content { flex: 1; overflow-y: auto; padding: 18px 16px; }
+  .level-card {
+    background: linear-gradient(155deg, rgba(255,215,106,0.14), rgba(196,77,255,0.08));
+    border: 1px solid rgba(255,215,106,0.25);
+    border-radius: 20px; padding: 18px; margin-bottom: 18px;
+  }
+  .level-card .row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .level-card .lv-label { font-size: 17px; font-weight: 700; color: #ffd76a; font-family: 'Fredoka'; }
+  .level-card .xp-label { font-size: 12px; color: rgba(255,255,255,0.55); font-weight: 600; }
+  .xp-bar-bg { height: 9px; background: rgba(0,0,0,0.3); border-radius: 5px; overflow: hidden; }
+  .xp-bar-fill { height: 100%; background: linear-gradient(90deg,#ffd76a,#ff6b9d); border-radius: 5px; transition: width .3s; }
+
+  .create-family-box {
+    background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 20px; padding: 18px; margin-bottom: 22px;
+  }
+  .create-family-box h3 { font-size: 16px; margin-bottom: 12px; font-family: 'Fredoka'; font-weight: 600; }
+  .create-family-box input {
+    width: 100%; padding: 12px 14px; margin-bottom: 12px; border-radius: 12px;
+    border: 1.5px solid rgba(255,255,255,0.12); background: rgba(0,0,0,0.2); color: #fff; font-size: 14px; font-family: 'Inter';
+  }
+  .lock-msg {
+    font-size: 12px; color: #ffb4b4; margin-top: 8px; text-align: center; font-weight: 600;
+    background: rgba(255,107,107,0.1); padding: 8px; border-radius: 10px;
+  }
+
+  .section-title { font-size: 12.5px; color: rgba(255,255,255,0.4); margin: 18px 0 12px; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; }
+
+  .family-item {
+    display: flex; align-items: center; gap: 13px; background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    padding: 13px; border-radius: 16px; margin-bottom: 10px;
+  }
+  .family-item .f-avatar {
+    width: 46px; height: 46px; border-radius: 14px; background: linear-gradient(135deg,#4ecdc4,#3a7bd5);
+    display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 18px; flex-shrink: 0;
+    font-family: 'Fredoka';
+  }
+  .family-item .f-info { flex: 1; min-width: 0; }
+  .family-item .f-name { font-weight: 700; font-size: 14.5px; font-family: 'Fredoka'; }
+  .family-item .f-members { font-size: 11.5px; color: rgba(255,255,255,0.45); margin-top: 2px; font-weight: 500; }
+  .join-btn {
+    background: linear-gradient(135deg,#ffd76a,#ff9d5c); border: none; color: #2a1a05;
+    padding: 8px 16px; border-radius: 18px; font-size: 12.5px; font-weight: 700; font-family: 'Fredoka';
+    box-shadow: 0 4px 12px rgba(255,215,106,0.3);
+  }
+
+  /* Inside a family view */
+  .family-header {
+    padding: 16px; background: rgba(0,0,0,0.2); display: flex; align-items: center; gap: 13px; flex-shrink: 0;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+  .family-header .f-avatar-lg {
+    width: 54px; height: 54px; border-radius: 16px; background: linear-gradient(135deg,#4ecdc4,#3a7bd5);
+    display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 22px; flex-shrink: 0;
+    font-family: 'Fredoka';
+  }
+  .family-header .f-title { font-size: 17px; font-weight: 700; font-family: 'Fredoka'; }
+  .family-header .f-sub { font-size: 12px; color: rgba(255,255,255,0.5); margin-top: 2px; font-weight: 500; }
+  .leave-btn {
+    margin-left: auto; background: rgba(255,107,107,0.1); border: 1px solid rgba(255,107,107,0.4); color: #ff8a8a;
+    padding: 7px 14px; border-radius: 18px; font-size: 12px; font-weight: 700; font-family: 'Fredoka';
+  }
+  .members-strip { display: flex; gap: 10px; padding: 12px 16px; overflow-x: auto; flex-shrink: 0; background: rgba(0,0,0,0.12); }
+  .member-chip {
+    display: flex; flex-direction: column; align-items: center; gap: 5px; flex-shrink: 0; width: 56px;
+  }
+  .member-chip .m-avatar {
+    width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg,#ff6b9d,#c44dff);
+    display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; font-family: 'Fredoka';
+  }
+  .member-chip .m-name { font-size: 10px; color: rgba(255,255,255,0.65); text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%; font-weight: 500; }
+
+  /* ---- Home / Harvest Panel ---- */
+  .home-content { flex: 1; overflow-y: auto; padding: 18px 16px 30px; }
+  .wallet-row { display: flex; gap: 10px; margin-bottom: 20px; }
+  .wallet-chip {
+    flex: 1; display: flex; align-items: center; gap: 8px;
+    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 16px; padding: 12px 14px;
+  }
+  .wallet-chip .w-icon { font-size: 20px; }
+  .wallet-chip .w-val { font-family: 'Fredoka'; font-weight: 700; font-size: 15px; }
+  .wallet-chip .w-label { font-size: 10px; color: rgba(255,255,255,0.45); font-weight: 600; }
+
+  .harvest-card {
+    position: relative; overflow: hidden;
+    background: linear-gradient(160deg, rgba(78,205,196,0.18), rgba(58,123,213,0.1));
+    border: 1px solid rgba(78,205,196,0.3);
+    border-radius: 26px; padding: 24px 20px; text-align: center; margin-bottom: 20px;
+  }
+  .harvest-card .field-emoji { font-size: 40px; margin-bottom: 6px; }
+  .harvest-card .lv-tag {
+    display: inline-block; font-family: 'Fredoka'; font-weight: 700; font-size: 12px;
+    color: #ffd76a; background: rgba(255,215,106,0.12); border: 1px solid rgba(255,215,106,0.3);
+    padding: 3px 12px; border-radius: 14px; margin-bottom: 14px;
+  }
+  .harvest-card .prod-label { font-size: 11.5px; color: rgba(255,255,255,0.5); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+  .harvest-card .prod-value { font-family: 'Fredoka'; font-weight: 700; font-size: 26px; color: #ffd76a; margin-bottom: 18px; }
+  .harvest-card .timer-label { font-size: 11.5px; color: rgba(255,255,255,0.5); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+  .timer-digits {
+    font-family: 'Fredoka'; font-weight: 700; font-size: 30px; letter-spacing: 2px;
+    color: #fff; margin-bottom: 18px;
+  }
+  .harvest-btn {
+    width: 100%; padding: 16px; border: none; border-radius: 18px; font-size: 16px; font-weight: 700;
+    font-family: 'Fredoka'; cursor: pointer; letter-spacing: 0.3px;
+    background: linear-gradient(90deg, #4ecdc4, #3a7bd5);
+    color: #fff; box-shadow: 0 10px 26px rgba(78,205,196,0.35);
+  }
+  .harvest-btn:disabled {
+    background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.35); box-shadow: none; cursor: default;
+  }
+  .harvest-btn.ready { animation: pulseGlow 1.4s ease-in-out infinite; }
+  @keyframes pulseGlow {
+    0%, 100% { box-shadow: 0 10px 26px rgba(78,205,196,0.35); }
+    50% { box-shadow: 0 10px 36px rgba(78,205,196,0.65); }
+  }
+
+  .upgrade-card {
+    display: flex; align-items: center; gap: 14px;
+    background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 18px; padding: 16px; margin-bottom: 14px;
+  }
+  .upgrade-card .u-icon {
+    width: 46px; height: 46px; border-radius: 14px; background: linear-gradient(135deg,#ffd76a,#ff9d5c);
+    display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0;
+  }
+  .upgrade-card .u-info { flex: 1; }
+  .upgrade-card .u-title { font-family: 'Fredoka'; font-weight: 700; font-size: 14.5px; }
+  .upgrade-card .u-sub { font-size: 11.5px; color: rgba(255,255,255,0.45); margin-top: 2px; font-weight: 500; }
+
+  /* ---- Floating Family Bubble ---- */
+  .family-bubble {
+    position: fixed; right: 16px; bottom: 84px; z-index: 50;
+    width: 58px; height: 58px; border-radius: 50%;
+    background: linear-gradient(135deg, #4ecdc4, #3a7bd5);
+    display: none; align-items: center; justify-content: center;
+    font-family: 'Fredoka'; font-weight: 700; font-size: 20px; color: #fff;
+    box-shadow: 0 10px 28px rgba(0,0,0,0.4), 0 0 0 3px rgba(255,255,255,0.15);
+    cursor: pointer; animation: bubbleFloat 2.6s ease-in-out infinite;
+  }
+  .family-bubble.show { display: flex; }
+  .family-bubble .bubble-tag {
+    position: absolute; bottom: -4px; right: -4px; font-size: 15px;
+    background: #241539; border-radius: 50%; width: 22px; height: 22px;
+    display: flex; align-items: center; justify-content: center;
+    border: 2px solid #1a1030;
+  }
+  @keyframes bubbleFloat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-6px); }
+  }
+
+  /* ---- Farm Plots Grid ---- */
+  .plots-title { font-size: 12.5px; color: rgba(255,255,255,0.4); margin: 20px 0 12px; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; }
+  .plots-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 9px; }
+  .plot-cell {
+    aspect-ratio: 1; border-radius: 14px; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 3px; text-align: center;
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+  .plot-cell.unlocked {
+    background: linear-gradient(160deg, rgba(78,205,196,0.16), rgba(58,123,213,0.08));
+    border-color: rgba(78,205,196,0.3);
+  }
+  .plot-cell.unlocked .plot-emoji { font-size: 22px; }
+  .plot-cell.unlocked .plot-bonus { font-size: 9.5px; color: #ffd76a; font-weight: 700; font-family: 'Fredoka'; }
+  .plot-cell.locked {
+    background: rgba(255,255,255,0.03);
+  }
+  .plot-cell.locked .plot-emoji { font-size: 18px; opacity: 0.35; }
+  .plot-cell.locked .plot-vip { font-size: 10px; font-weight: 700; font-family: 'Fredoka'; color: #ffb4b4; }
+  .plot-cell.locked .plot-need { font-size: 8.5px; color: rgba(255,255,255,0.35); font-weight: 600; }
+</style>
+</head>
+<body>
+
+<!-- ===== AUTH SCREEN ===== -->
+<div id="authScreen" class="screen active">
+  <div>
+    <div class="auth-logo">
+      <span class="emoji">🎉</span>
+      <span class="brand">Party App</span>
+    </div>
+    <div class="auth-box">
+      <h1 id="authTitle">Welcome Back</h1>
+      <div class="error-msg" id="authError"></div>
+      <input type="text" id="nameInput" placeholder="Your name" style="display:none;">
+      <input type="email" id="emailInput" placeholder="Email">
+      <input type="password" id="passInput" placeholder="Password">
+      <button class="btn" id="authSubmitBtn" onclick="handleAuth()">Login</button>
+      <div class="toggle-link" id="toggleAuthMode" onclick="toggleAuthMode()">New here? Create an account</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MAIN APP SCREEN ===== -->
+<div id="mainScreen" style="display:none; flex-direction: column; height: 100vh;">
+  <div class="topbar">
+    <div class="avatar-ring"><div class="avatar" id="userAvatar">?</div></div>
+    <div>
+      <div class="name" id="userName">User</div>
+      <div class="level-badge">🆔 <span id="userLevelLabel">ID Lv. 1</span></div>
+    </div>
+    <button class="logout-btn" onclick="handleLogout()">Logout</button>
+  </div>
+
+  <!-- ===== HOME / HARVEST PANEL ===== -->
+  <div class="panel" id="homePanel">
+    <div class="home-content">
+      <div class="wallet-row">
+        <div class="wallet-chip">
+          <div class="w-icon">🪙</div>
+          <div>
+            <div class="w-val" id="coinsDisplay">0</div>
+            <div class="w-label">COINS</div>
+          </div>
+        </div>
+        <div class="wallet-chip">
+          <div class="w-icon">💎</div>
+          <div>
+            <div class="w-val" id="gemsDisplay">0</div>
+            <div class="w-label">GEMS</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="harvest-card">
+        <div class="field-emoji">🌾</div>
+        <div class="lv-tag" id="homeLevelTag">VIP Lv. 1</div>
+        <div class="prod-label">Production</div>
+        <div class="prod-value" id="prodValue">🪙 0</div>
+        <div class="timer-label">Harvest In</div>
+        <div class="timer-digits" id="harvestTimer">00:00:00</div>
+        <button class="harvest-btn" id="harvestBtn" onclick="doHarvest()" disabled>Harvest</button>
+      </div>
+
+      <div class="upgrade-card" id="upgradeCard" onclick="upgradeFarm()" style="cursor:pointer;">
+        <div class="u-icon">📈</div>
+        <div class="u-info">
+          <div class="u-title">Upgrade VIP — <span id="upgradeLevelText">Lv. 1 → 2</span></div>
+          <div class="u-sub" id="upgradeCostText">Costs 🪙 100</div>
+        </div>
+      </div>
+
+      <div class="plots-title">Farm Land</div>
+      <div class="plots-grid" id="plotsGrid"></div>
+    </div>
+  </div>
+
+  <!-- ===== CHAT PANEL ===== -->
+  <div class="panel active" id="chatPanel">
+    <div class="chat-area" id="chatArea">
+      <div class="loading">Loading messages...</div>
+    </div>
+    <div class="input-bar">
+      <input type="text" id="msgInput" placeholder="Say something..." onkeypress="if(event.key==='Enter') sendMessage()">
+      <button class="send-btn" onclick="sendMessage()">➤</button>
+    </div>
+  </div>
+
+  <!-- ===== FAMILY PANEL (not in a family) ===== -->
+  <div class="panel" id="familyPanel">
+    <div class="family-content" id="familyBrowseView">
+      <div class="level-card">
+        <div class="row">
+          <span class="lv-label" id="famLevelLabel">Level 1</span>
+          <span class="xp-label" id="famXpLabel">0 / 20 XP</span>
+        </div>
+        <div class="xp-bar-bg"><div class="xp-bar-fill" id="xpBarFill" style="width:0%;"></div></div>
+      </div>
+
+      <div class="create-family-box">
+        <h3>✨ Create Your Own Family</h3>
+        <input type="text" id="familyNameInput" placeholder="Family name">
+        <button class="btn" id="createFamilyBtn" onclick="createFamily()">Create Family</button>
+        <div class="lock-msg" id="createLockMsg" style="display:none;"></div>
+      </div>
+
+      <div class="section-title">Join a Family</div>
+      <div id="familyList">
+        <div class="loading">Loading families...</div>
+      </div>
+    </div>
+
+    <!-- ===== FAMILY PANEL (inside a family) ===== -->
+    <div id="familyInsideView" style="display:none; flex-direction: column; flex: 1; overflow: hidden;">
+      <div class="family-header">
+        <div class="f-avatar-lg" id="insideFamAvatar">F</div>
+        <div>
+          <div class="f-title" id="insideFamName">Family</div>
+          <div class="f-sub" id="insideFamMemberCount">0 members</div>
+        </div>
+        <button class="leave-btn" onclick="leaveFamily()">Leave</button>
+      </div>
+      <div class="members-strip" id="membersStrip"></div>
+      <div class="chat-area" id="familyChatArea"></div>
+      <div class="input-bar">
+        <input type="text" id="famMsgInput" placeholder="Message your family..." onkeypress="if(event.key==='Enter') sendFamilyMessage()">
+        <button class="send-btn" onclick="sendFamilyMessage()">➤</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="family-bubble" id="familyBubble" onclick="switchTab('family')">
+    <span id="familyBubbleAvatar">F</span>
+    <span class="bubble-tag">👨‍👩‍👧</span>
+  </div>
+
+  <!-- ===== MOMENTS PANEL (placeholder) ===== -->
+  <div class="panel" id="momentsPanel">
+    <div class="home-content" style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; text-align:center;">
+      <div style="font-size:48px; margin-bottom:12px;">🪐</div>
+      <div style="font-family:'Fredoka'; font-weight:700; font-size:18px; margin-bottom:6px;">Moments</div>
+      <div style="font-size:13px; color:rgba(255,255,255,0.5);">Coming soon — share photos & posts with everyone</div>
+    </div>
+  </div>
+
+  <!-- ===== ROOM PANEL (placeholder) ===== -->
+  <div class="panel" id="roomPanel">
+    <div class="home-content" style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; text-align:center;">
+      <div style="font-size:48px; margin-bottom:12px;">🏠</div>
+      <div style="font-family:'Fredoka'; font-weight:700; font-size:18px; margin-bottom:6px;">Live Rooms</div>
+      <div style="font-size:13px; color:rgba(255,255,255,0.5);">Coming soon — voice rooms, games & gifting</div>
+    </div>
+  </div>
+
+  <div class="bottom-nav">
+    <div class="nav-item active" id="navMessages" onclick="switchTab('messages')"><span class="nav-icon">💬</span>Messages</div>
+    <div class="nav-item" id="navMoments" onclick="switchTab('moments')"><span class="nav-icon">🪐</span>Moments</div>
+    <div class="nav-item" id="navHifami" onclick="switchTab('hifami')"><span class="nav-icon">🌾</span>Hifami</div>
+    <div class="nav-item" id="navRoom" onclick="switchTab('room')"><span class="nav-icon">🏠</span>Room</div>
+    <div class="nav-item" id="navFamily" onclick="switchTab('family')"><span class="nav-icon">👨‍👩‍👧</span>Family</div>
+  </div>
+</div>
+
+<!-- Firebase SDKs -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyCWFsDRzavLObytahjDj3cRYwsoSNuttaA",
+    authDomain: "party-app-f2413.firebaseapp.com",
+    databaseURL: "https://party-app-f2413-default-rtdb.firebaseio.com",
+    projectId: "party-app-f2413",
+    storageBucket: "party-app-f2413.firebasestorage.app",
+    messagingSenderId: "1016955843509",
+    appId: "1:1016955843509:web:db4f2393b4dc83c0cb5ffc",
+    measurementId: "G-9QEVZLLM1Y"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.database();
+
+  const LEVEL_REQUIRED_TO_CREATE = 5;
+  const XP_PER_LEVEL = 20;
+  const XP_PER_MESSAGE = 5;
+  const HARVEST_CYCLE_MS = 30 * 60 * 1000; // 30 minutes
+  const BASE_PRODUCTION = 50; // coins per harvest at farm/VIP level 1
+  const PRODUCTION_PER_LEVEL = 25; // extra coins per VIP level
+  const UPGRADE_INCREMENT = 1000000; // levels 1-14: cost = level * 1,000,000
+  const MILESTONE_PLOTS = [
+    { label: 'Plot 1', requiredLevel: 1, bonus: 100 },
+    { label: 'VIP5', requiredLevel: 5, bonus: 250 },
+    { label: 'VIP10', requiredLevel: 10, bonus: 500 },
+    { label: 'VIP15', requiredLevel: 15, bonus: 1000 }
+  ];
+
+  let isSignupMode = false;
+  let currentUser = null;
+  let currentUserData = null;
+  let currentFamilyId = null;
+  let familyListListenerAttached = false;
+
+  // ---------- AUTH MODE TOGGLE ----------
+  function toggleAuthMode() {
+    isSignupMode = !isSignupMode;
+    document.getElementById('authTitle').textContent = isSignupMode ? "Create Account" : "Welcome Back";
+    document.getElementById('authSubmitBtn').textContent = isSignupMode ? "Sign Up" : "Login";
+    document.getElementById('toggleAuthMode').textContent = isSignupMode ? "Already have an account? Login" : "New here? Create an account";
+    document.getElementById('nameInput').style.display = isSignupMode ? "block" : "none";
+    document.getElementById('authError').textContent = "";
+  }
+
+  function handleAuth() {
+    const email = document.getElementById('emailInput').value.trim();
+    const pass = document.getElementById('passInput').value;
+    const name = document.getElementById('nameInput').value.trim();
+    const errorEl = document.getElementById('authError');
+    errorEl.textContent = "";
+
+    if (!email || !pass) { errorEl.textContent = "Please fill email and password."; return; }
+    if (isSignupMode && !name) { errorEl.textContent = "Please enter your name."; return; }
+
+    if (isSignupMode) {
+      auth.createUserWithEmailAndPassword(email, pass)
+        .then((cred) => {
+          return db.ref('users/' + cred.user.uid).set({
+            name: name,
+            email: email,
+            vip: 1,
+            coins: 0,
+            gems: 0,
+            xp: 0,
+            level: 1,
+            farmLevel: 1,
+            familyId: null,
+            lastHarvestAt: Date.now(),
+            createdAt: Date.now()
+          });
+        })
+        .catch((err) => { errorEl.textContent = err.message; });
+    } else {
+      auth.signInWithEmailAndPassword(email, pass)
+        .catch((err) => { errorEl.textContent = err.message; });
+    }
+  }
+
+  function handleLogout() {
+    auth.signOut();
+  }
+
+  // ---------- AUTH STATE ----------
+  auth.onAuthStateChanged((user) => {
+    if (user) {
+      currentUser = user;
+      db.ref('users/' + user.uid).on('value', (snap) => {
+        currentUserData = snap.val() || { name: "User", level: 1, xp: 0, familyId: null, coins: 0, gems: 0, lastHarvestAt: Date.now() };
+        renderUserHeader();
+        renderLevelCard();
+        renderHome();
+        if (currentUserData.familyId) {
+          currentFamilyId = currentUserData.familyId;
+          showInsideFamily(currentFamilyId);
+        } else {
+          currentFamilyId = null;
+          showBrowseFamilies();
+        }
+        updateFamilyBubble(getActiveTab());
+      });
+
+      document.getElementById('authScreen').classList.remove('active');
+      document.getElementById('mainScreen').style.display = 'flex';
+      listenToChat();
+      listenToFamilyList();
+    } else {
+      currentUser = null;
+      currentUserData = null;
+      document.getElementById('mainScreen').style.display = 'none';
+      document.getElementById('authScreen').classList.add('active');
+    }
+  });
+
+  function renderUserHeader() {
+    document.getElementById('userName').textContent = currentUserData.name;
+    document.getElementById('userAvatar').textContent = currentUserData.name.charAt(0).toUpperCase();
+    document.getElementById('userLevelLabel').textContent = "ID Lv. " + (currentUserData.level || 1);
+  }
+
+  function renderLevelCard() {
+    const level = currentUserData.level || 1;
+    const xp = currentUserData.xp || 0;
+    const xpIntoLevel = xp % XP_PER_LEVEL;
+    document.getElementById('famLevelLabel').textContent = "ID Level " + level;
+    document.getElementById('famXpLabel').textContent = xpIntoLevel + " / " + XP_PER_LEVEL + " XP";
+    document.getElementById('xpBarFill').style.width = ((xpIntoLevel / XP_PER_LEVEL) * 100) + "%";
+
+    const createBtn = document.getElementById('createFamilyBtn');
+    const lockMsg = document.getElementById('createLockMsg');
+    if (level < LEVEL_REQUIRED_TO_CREATE) {
+      createBtn.disabled = true;
+      lockMsg.style.display = 'block';
+      lockMsg.textContent = "🔒 Unlocks at Level " + LEVEL_REQUIRED_TO_CREATE + " (chat to earn XP)";
+    } else {
+      createBtn.disabled = false;
+      lockMsg.style.display = 'none';
+    }
+  }
+
+  function addXp(amount) {
+    if (!currentUser || !currentUserData) return;
+    const newXp = (currentUserData.xp || 0) + amount;
+    const newLevel = Math.floor(newXp / XP_PER_LEVEL) + 1;
+    db.ref('users/' + currentUser.uid).update({ xp: newXp, level: newLevel });
+  }
+
+  // ---------- TAB SWITCHING ----------
+  function switchTab(tab) {
+    document.getElementById('homePanel').classList.toggle('active', tab === 'hifami');
+    document.getElementById('chatPanel').classList.toggle('active', tab === 'messages');
+    document.getElementById('familyPanel').classList.toggle('active', tab === 'family');
+    document.getElementById('momentsPanel').classList.toggle('active', tab === 'moments');
+    document.getElementById('roomPanel').classList.toggle('active', tab === 'room');
+
+    document.getElementById('navHifami').classList.toggle('active', tab === 'hifami');
+    document.getElementById('navMessages').classList.toggle('active', tab === 'messages');
+    document.getElementById('navFamily').classList.toggle('active', tab === 'family');
+    document.getElementById('navMoments').classList.toggle('active', tab === 'moments');
+    document.getElementById('navRoom').classList.toggle('active', tab === 'room');
+
+    updateFamilyBubble(tab);
+  }
+
+  function getActiveTab() {
+    if (document.getElementById('homePanel').classList.contains('active')) return 'hifami';
+    if (document.getElementById('familyPanel').classList.contains('active')) return 'family';
+    if (document.getElementById('momentsPanel').classList.contains('active')) return 'moments';
+    if (document.getElementById('roomPanel').classList.contains('active')) return 'room';
+    return 'messages';
+  }
+
+  function updateFamilyBubble(activeTab) {
+    const bubble = document.getElementById('familyBubble');
+    if (currentFamilyId && activeTab !== 'family') {
+      bubble.classList.add('show');
+    } else {
+      bubble.classList.remove('show');
+    }
+  }
+
+  // ---------- HOME / HARVEST ----------
+  let harvestIntervalStarted = false;
+
+  function getFarmLevel() {
+    return (currentUserData && currentUserData.farmLevel) || 1;
+  }
+
+  function getProductionAmount() {
+    const farmLevel = getFarmLevel();
+    let total = BASE_PRODUCTION + (farmLevel - 1) * PRODUCTION_PER_LEVEL;
+    MILESTONE_PLOTS.forEach((plot) => {
+      if (farmLevel >= plot.requiredLevel) total += plot.bonus;
+    });
+    return total;
+  }
+
+  function getUpgradeCost() {
+    const farmLevel = getFarmLevel();
+    if (farmLevel < 15) return farmLevel * UPGRADE_INCREMENT;
+    return 15000000 + (farmLevel - 14) * 5000000;
+  }
+
+  function renderHome() {
+    if (!currentUserData) return;
+    document.getElementById('coinsDisplay').textContent = formatNum(currentUserData.coins || 0);
+    document.getElementById('gemsDisplay').textContent = formatNum(currentUserData.gems || 0);
+    const farmLevel = getFarmLevel();
+    document.getElementById('homeLevelTag').textContent = "VIP Lv. " + farmLevel;
+    document.getElementById('prodValue').textContent = "🪙 " + formatNum(getProductionAmount());
+
+    const cost = getUpgradeCost();
+    document.getElementById('upgradeLevelText').textContent = "Lv. " + farmLevel + " → " + (farmLevel + 1);
+    document.getElementById('upgradeCostText').textContent = "Costs 🪙 " + formatNum(cost) +
+      ((currentUserData.coins || 0) < cost ? " (not enough coins)" : "");
+
+    if (!harvestIntervalStarted) {
+      harvestIntervalStarted = true;
+      setInterval(updateHarvestTimer, 1000);
+    }
+    updateHarvestTimer();
+    renderPlots();
+  }
+
+  function renderPlots() {
+    const farmLevel = getFarmLevel();
+    const gridEl = document.getElementById('plotsGrid');
+    gridEl.innerHTML = '';
+
+    MILESTONE_PLOTS.forEach((plot) => {
+      const cell = document.createElement('div');
+      const isUnlocked = farmLevel >= plot.requiredLevel;
+      if (isUnlocked) {
+        cell.className = 'plot-cell unlocked';
+        cell.innerHTML = `<div class="plot-emoji">🌾</div><div class="plot-bonus">+${plot.bonus}</div>`;
+      } else {
+        cell.className = 'plot-cell locked';
+        cell.innerHTML = `<div class="plot-emoji">🔒</div><div class="plot-vip">${plot.label}</div><div class="plot-need">Lv.${plot.requiredLevel}</div>`;
+      }
+      gridEl.appendChild(cell);
+    });
+  }
+
+  function upgradeFarm() {
+    if (!currentUser || !currentUserData) return;
+    const cost = getUpgradeCost();
+    const coins = currentUserData.coins || 0;
+    if (coins < cost) return;
+
+    db.ref('users/' + currentUser.uid).update({
+      coins: coins - cost,
+      farmLevel: getFarmLevel() + 1
+    });
+  }
+
+  function updateHarvestTimer() {
+    if (!currentUserData) return;
+    const lastHarvest = currentUserData.lastHarvestAt || Date.now();
+    const elapsed = Date.now() - lastHarvest;
+    const remaining = HARVEST_CYCLE_MS - elapsed;
+    const timerEl = document.getElementById('harvestTimer');
+    const btnEl = document.getElementById('harvestBtn');
+
+    if (remaining <= 0) {
+      timerEl.textContent = "Ready!";
+      btnEl.disabled = false;
+      btnEl.classList.add('ready');
+      btnEl.textContent = "🌾 Harvest Now";
+    } else {
+      const h = Math.floor(remaining / 3600000);
+      const m = Math.floor((remaining % 3600000) / 60000);
+      const s = Math.floor((remaining % 60000) / 1000);
+      timerEl.textContent = String(h).padStart(2,'0') + ":" + String(m).padStart(2,'0') + ":" + String(s).padStart(2,'0');
+      btnEl.disabled = true;
+      btnEl.classList.remove('ready');
+      btnEl.textContent = "Harvest";
+    }
+  }
+
+  function doHarvest() {
+    if (!currentUser || !currentUserData) return;
+    const lastHarvest = currentUserData.lastHarvestAt || Date.now();
+    if (Date.now() - lastHarvest < HARVEST_CYCLE_MS) return;
+
+    const reward = getProductionAmount();
+    const newCoins = (currentUserData.coins || 0) + reward;
+    db.ref('users/' + currentUser.uid).update({
+      coins: newCoins,
+      lastHarvestAt: Date.now()
+    });
+  }
+
+  function formatNum(n) {
+    if (n >= 1000000) return (n / 1000000).toFixed(2) + "M";
+    if (n >= 1000) return (n / 1000).toFixed(1) + "K";
+    return String(n);
+  }
+
+  // ---------- GLOBAL CHAT ----------
+  function listenToChat() {
+    const chatArea = document.getElementById('chatArea');
+    db.ref('rooms/global/messages').limitToLast(50).on('value', (snap) => {
+      chatArea.innerHTML = '';
+      const messages = snap.val();
+      if (!messages) {
+        chatArea.innerHTML = '<div class="loading">No messages yet. Say hi! 👋</div>';
+        return;
+      }
+      Object.values(messages).forEach((msg) => {
+        const div = document.createElement('div');
+        const isMe = msg.uid === currentUser.uid;
+        div.className = 'msg ' + (isMe ? 'me' : 'other');
+        div.innerHTML = (isMe ? '' : `<div class="sender">${escapeHtml(msg.name)}</div>`) + escapeHtml(msg.text);
+        chatArea.appendChild(div);
+      });
+      chatArea.scrollTop = chatArea.scrollHeight;
+    });
+  }
+
+  function sendMessage() {
+    const input = document.getElementById('msgInput');
+    const text = input.value.trim();
+    if (!text || !currentUser) return;
+
+    db.ref('rooms/global/messages').push({
+      uid: currentUser.uid,
+      name: currentUserData.name,
+      text: text,
+      timestamp: Date.now()
+    });
+    addXp(XP_PER_MESSAGE);
+    input.value = '';
+  }
+
+  // ---------- FAMILY LIST (browse) ----------
+  function listenToFamilyList() {
+    if (familyListListenerAttached) return;
+    familyListListenerAttached = true;
+    db.ref('families').on('value', (snap) => {
+      const listEl = document.getElementById('familyList');
+      const families = snap.val();
+      if (!families) {
+        listEl.innerHTML = '<div class="loading">No families yet. Be the first to create one! 🎊</div>';
+        return;
+      }
+      listEl.innerHTML = '';
+      Object.entries(families).forEach(([famId, fam]) => {
+        const memberCount = fam.members ? Object.keys(fam.members).length : 0;
+        const div = document.createElement('div');
+        div.className = 'family-item';
+        div.innerHTML = `
+          <div class="f-avatar">${escapeHtml(fam.name.charAt(0).toUpperCase())}</div>
+          <div class="f-info">
+            <div class="f-name">${escapeHtml(fam.name)}</div>
+            <div class="f-members">👥 ${memberCount} member${memberCount !== 1 ? 's' : ''}</div>
+          </div>
+          <button class="join-btn" onclick="joinFamily('${famId}')">Join</button>
+        `;
+        listEl.appendChild(div);
+      });
+    });
+  }
+
+  function showBrowseFamilies() {
+    document.getElementById('familyBrowseView').style.display = 'block';
+    document.getElementById('familyInsideView').style.display = 'none';
+    if (currentFamilyChatListener) { currentFamilyChatListener(); currentFamilyChatListener = null; }
+    if (currentFamilyMembersListener) { currentFamilyMembersListener(); currentFamilyMembersListener = null; }
+  }
+
+  // ---------- CREATE / JOIN / LEAVE FAMILY ----------
+  function createFamily() {
+    const name = document.getElementById('familyNameInput').value.trim();
+    if (!name) return;
+    if ((currentUserData.level || 1) < LEVEL_REQUIRED_TO_CREATE) return;
+
+    const newFamRef = db.ref('families').push();
+    const famId = newFamRef.key;
+    newFamRef.set({
+      name: name,
+      ownerUid: currentUser.uid,
+      createdAt: Date.now(),
+      members: { [currentUser.uid]: true }
+    }).then(() => {
+      db.ref('users/' + currentUser.uid).update({ familyId: famId });
+      document.getElementById('familyNameInput').value = '';
+    });
+  }
+
+  function joinFamily(famId) {
+    db.ref('families/' + famId + '/members/' + currentUser.uid).set(true).then(() => {
+      db.ref('users/' + currentUser.uid).update({ familyId: famId });
+    });
+  }
+
+  function leaveFamily() {
+    if (!currentFamilyId) return;
+    db.ref('families/' + currentFamilyId + '/members/' + currentUser.uid).remove().then(() => {
+      db.ref('users/' + currentUser.uid).update({ familyId: null });
+    });
+  }
+
+  // ---------- INSIDE FAMILY VIEW ----------
+  let currentFamilyChatListener = null;
+  let currentFamilyMembersListener = null;
+
+  function showInsideFamily(famId) {
+    document.getElementById('familyBrowseView').style.display = 'none';
+    document.getElementById('familyInsideView').style.display = 'flex';
+
+    const famRef = db.ref('families/' + famId);
+    famRef.once('value').then((snap) => {
+      const fam = snap.val();
+      if (!fam) return;
+      document.getElementById('insideFamName').textContent = fam.name;
+      document.getElementById('insideFamAvatar').textContent = fam.name.charAt(0).toUpperCase();
+      document.getElementById('familyBubbleAvatar').textContent = fam.name.charAt(0).toUpperCase();
+    });
+
+    // Members strip
+    const membersHandler = famRef.child('members').on('value', (snap) => {
+      const members = snap.val() || {};
+      const uids = Object.keys(members);
+      document.getElementById('insideFamMemberCount').textContent = "👥 " + uids.length + " member" + (uids.length !== 1 ? 's' : '');
+      const stripEl = document.getElementById('membersStrip');
+      stripEl.innerHTML = '';
+      uids.forEach((uid) => {
+        db.ref('users/' + uid).once('value').then((uSnap) => {
+          const u = uSnap.val();
+          if (!u) return;
+          const chip = document.createElement('div');
+          chip.className = 'member-chip';
+          chip.innerHTML = `<div class="m-avatar">${escapeHtml(u.name.charAt(0).toUpperCase())}</div><div class="m-name">${escapeHtml(u.name)}</div>`;
+          stripEl.appendChild(chip);
+        });
+      });
+    });
+    currentFamilyMembersListener = () => famRef.child('members').off('value', membersHandler);
+
+    // Family chat
+    const chatArea = document.getElementById('familyChatArea');
+    const msgsHandler = famRef.child('messages').limitToLast(50).on('value', (snap) => {
+      chatArea.innerHTML = '';
+      const messages = snap.val();
+      if (!messages) {
+        chatArea.innerHTML = '<div class="loading">No messages yet. Say hi to your family! 👋</div>';
+        return;
+      }
+      Object.values(messages).forEach((msg) => {
+        const div = document.createElement('div');
+        const isMe = msg.uid === currentUser.uid;
+        div.className = 'msg ' + (isMe ? 'me' : 'other');
+        div.innerHTML = (isMe ? '' : `<div class="sender">${escapeHtml(msg.name)}</div>`) + escapeHtml(msg.text);
+        chatArea.appendChild(div);
+      });
+      chatArea.scrollTop = chatArea.scrollHeight;
+    });
+    currentFamilyChatListener = () => famRef.child('messages').off('value', msgsHandler);
+  }
+
+  function sendFamilyMessage() {
+    const input = document.getElementById('famMsgInput');
+    const text = input.value.trim();
+    if (!text || !currentUser || !currentFamilyId) return;
+
+    db.ref('families/' + currentFamilyId + '/messages').push({
+      uid: currentUser.uid,
+      name: currentUserData.name,
+      text: text,
+      timestamp: Date.now()
+    });
+    addXp(XP_PER_MESSAGE);
+    input.value = '';
+  }
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+</script>
+
+</body>
+</html>
