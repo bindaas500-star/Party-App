@@ -10,6 +10,12 @@
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   html, body { height: 100%; overflow: hidden; position: fixed; width: 100%; }
   .app-shell { height: 100vh; height: 100dvh; height: var(--app-height, 100vh); }
+  .panels-wrap {
+    position: fixed; left: 0; right: 0; overflow: hidden;
+    display: flex; flex-direction: column;
+    top: var(--topbar-height, 78px);
+    bottom: var(--bottomnav-height, 66px);
+  }
   body {
     font-family: 'Inter', -apple-system, Segoe UI, Roboto, Arial, sans-serif;
     background:
@@ -67,7 +73,8 @@
   #mainScreen { display: none; flex-direction: column; height: 100vh; }
   .topbar {
     display: flex; align-items: center; padding: 14px 16px; gap: 12px; flex-shrink: 0;
-    background: rgba(0,0,0,0.28); border-bottom: 1px solid rgba(255,255,255,0.08);
+    background: rgba(30,15,50,0.98); border-bottom: 1px solid rgba(255,255,255,0.08);
+    position: fixed; top: 0; left: 0; right: 0; z-index: 60; box-sizing: border-box;
   }
   .avatar-ring {
     width: 46px; height: 46px; border-radius: 50%; padding: 2.5px; flex-shrink: 0;
@@ -91,9 +98,9 @@
 
   /* ---- Bottom Nav ---- */
   .bottom-nav {
-    display: flex; background: rgba(10,5,20,0.55); border-top: 1px solid rgba(255,255,255,0.08); flex-shrink: 0;
+    display: flex; background: rgba(10,5,20,0.95); border-top: 1px solid rgba(255,255,255,0.08); flex-shrink: 0;
     padding: 6px 10px calc(6px + env(safe-area-inset-bottom, 0px));
-    backdrop-filter: blur(10px);
+    position: fixed; bottom: 0; left: 0; right: 0; z-index: 60; box-sizing: border-box;
   }
   .nav-item {
     flex: 1; text-align: center; padding: 7px 2px; font-size: 9.5px; color: rgba(255,255,255,0.45); cursor: pointer;
@@ -620,6 +627,7 @@
     <button class="logout-btn" onclick="openRankView()">🏆 Rank</button>
   </div>
 
+  <div id="panelsWrap" class="panels-wrap">
   <!-- ===== HOME / HARVEST PANEL ===== -->
   <div class="panel active" id="homePanel">
     <div class="home-content">
@@ -794,6 +802,7 @@
       <button class="send-btn" onclick="sendRoomMessage()">➤</button>
     </div>
   </div>
+  </div> <!-- /panelsWrap -->
 
   <!-- ===== TIC-TAC-TOE OVERLAY ===== -->
   <div class="ttt-overlay" id="tttOverlay">
@@ -986,10 +995,20 @@
   // Fix mobile browser viewport height (address bar / keyboard) issues
   function setAppHeight() {
     document.documentElement.style.setProperty('--app-height', window.innerHeight + 'px');
+    const topbarEl = document.querySelector('.topbar');
+    const bottomNavEl = document.querySelector('.bottom-nav');
+    if (topbarEl) {
+      document.documentElement.style.setProperty('--topbar-height', topbarEl.getBoundingClientRect().height + 'px');
+    }
+    if (bottomNavEl) {
+      document.documentElement.style.setProperty('--bottomnav-height', bottomNavEl.getBoundingClientRect().height + 'px');
+    }
   }
   setAppHeight();
   window.addEventListener('resize', setAppHeight);
   window.addEventListener('orientationchange', setAppHeight);
+  setTimeout(setAppHeight, 300);
+  setTimeout(setAppHeight, 1000);
   const auth = firebase.auth();
   const db = firebase.database();
 
