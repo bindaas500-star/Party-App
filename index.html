@@ -360,9 +360,9 @@
         <div class="lv-tag" id="homeLevelTag">VIP Lv. 1</div>
         <div class="prod-label">Production</div>
         <div class="prod-value" id="prodValue">🪙 0</div>
-        <div class="timer-label">Harvest In</div>
-        <div class="timer-digits" id="harvestTimer">00:00:00</div>
-        <button class="harvest-btn" id="harvestBtn" onclick="doHarvest()" disabled>Harvest</button>
+        <div class="timer-label">Ready to Collect</div>
+        <div class="timer-digits" id="harvestTimer">🪙 0</div>
+        <button class="harvest-btn ready" id="harvestBtn" onclick="doHarvest()">Collect</button>
       </div>
 
       <div class="upgrade-card" id="upgradeCard" onclick="upgradeFarm()" style="cursor:pointer;">
@@ -488,7 +488,7 @@
   const LEVEL_REQUIRED_TO_CREATE = 5;
   const XP_PER_LEVEL = 20;
   const XP_PER_MESSAGE = 5;
-  const HARVEST_CYCLE_MS = 30 * 60 * 1000; // 30 minutes
+  const HARVEST_CYCLE_MS = 30 * 60 * 1000; // reference window used to derive per-second rate
   const BASE_PRODUCTION = 50; // coins per harvest at farm/VIP level 1
   const PRODUCTION_PER_LEVEL = 25; // extra coins per VIP level
   const UPGRADE_INCREMENT = 1000000; // levels 1-14: cost = level * 1,000,000
@@ -725,37 +725,38 @@
     });
   }
 
+  function getAccumulatedCoins() {
+    if (!currentUserData) return 0;
+    const perSecondRate = getProductionAmount() / (HARVEST_CYCLE_MS / 1000);
+    const lastHarvest = currentUserData.lastHarvestAt || Date.now();
+    const elapsedSeconds = Math.max(0, (Date.now() - lastHarvest) / 1000);
+    return Math.floor(perSecondRate * elapsedSeconds);
+  }
+
   function updateHarvestTimer() {
     if (!currentUserData) return;
-    const lastHarvest = currentUserData.lastHarvestAt || Date.now();
-    const elapsed = Date.now() - lastHarvest;
-    const remaining = HARVEST_CYCLE_MS - elapsed;
+    const accumulated = getAccumulatedCoins();
     const timerEl = document.getElementById('harvestTimer');
     const btnEl = document.getElementById('harvestBtn');
 
-    if (remaining <= 0) {
-      timerEl.textContent = "Ready!";
+    timerEl.textContent = "🪙 " + formatNum(accumulated);
+    if (accumulated >= 1) {
       btnEl.disabled = false;
       btnEl.classList.add('ready');
-      btnEl.textContent = "🌾 Harvest Now";
+      btnEl.textContent = "🌾 Collect " + formatNum(accumulated);
     } else {
-      const h = Math.floor(remaining / 3600000);
-      const m = Math.floor((remaining % 3600000) / 60000);
-      const s = Math.floor((remaining % 60000) / 1000);
-      timerEl.textContent = String(h).padStart(2,'0') + ":" + String(m).padStart(2,'0') + ":" + String(s).padStart(2,'0');
       btnEl.disabled = true;
       btnEl.classList.remove('ready');
-      btnEl.textContent = "Harvest";
+      btnEl.textContent = "Collect";
     }
   }
 
   function doHarvest() {
     if (!currentUser || !currentUserData) return;
-    const lastHarvest = currentUserData.lastHarvestAt || Date.now();
-    if (Date.now() - lastHarvest < HARVEST_CYCLE_MS) return;
+    const accumulated = getAccumulatedCoins();
+    if (accumulated < 1) return;
 
-    const reward = getProductionAmount();
-    const newCoins = (currentUserData.coins || 0) + reward;
+    const newCoins = (currentUserData.coins || 0) + accumulated;
     db.ref('users/' + currentUser.uid).update({
       coins: newCoins,
       lastHarvestAt: Date.now()
