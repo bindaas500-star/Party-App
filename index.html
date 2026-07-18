@@ -215,26 +215,8 @@
     margin-bottom:15px;
   }
 
-  .profile-box{
-    display:flex;
-    align-items:center;
-    gap:10px;
-  }
-
-  .avatar{
-    width:60px;
-    height:60px;
-    border-radius:50%;
-    border:3px solid gold;
-  }
-
-  .vip{
-    background:#ffbf00;
-    padding:4px 10px;
-    border-radius:20px;
-    font-size:12px;
-    color:#000;
-    font-weight:bold;
+  .home-title{
+    font-family: 'Fredoka'; font-weight: 700; font-size: 17px; color: #fff;
   }
 
   .wallet-box{
@@ -389,19 +371,10 @@
   <div class="panel" id="homePanel">
     <div class="home-content">
 
-      <!-- Top Profile -->
+      <!-- Wallet -->
       <div class="home-header">
 
-          <div class="profile-box">
-
-              <img src="https://i.pravatar.cc/100" class="avatar">
-
-              <div class="profile-info">
-                  <h3 id="homeUserName">Imran</h3>
-                  <span class="vip" id="homeVipLabel">VIP 1</span>
-              </div>
-
-          </div>
+          <div class="home-title">🌾 Your Farm</div>
 
           <div class="wallet-box">
 
@@ -773,8 +746,6 @@
     document.getElementById('coinsDisplay').textContent = formatNum(currentUserData.coins || 0);
     document.getElementById('gemsDisplay').textContent = formatNum(currentUserData.gems || 0);
     const farmLevel = getFarmLevel();
-    document.getElementById('homeUserName').textContent = currentUserData.name || 'User';
-    document.getElementById('homeVipLabel').textContent = "VIP " + farmLevel;
     document.getElementById('homeFarmLevelTag').textContent = "🌾 Farm Level " + farmLevel;
 
     const cost = getUpgradeCost();
