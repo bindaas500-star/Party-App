@@ -1936,15 +1936,38 @@
     }
   }
 
+  const GEMS_PER_DAY = 10;
+  const GEM_INTERVAL_MS = (24 * 60 * 60 * 1000) / GEMS_PER_DAY; // ~2.4 hours worth of "gem time" per gem on average
+
   function doHarvest() {
     if (!currentUser || !currentUserData) return;
     const accumulated = getAccumulatedCoins();
     if (accumulated < 1) return;
 
     const newCoins = (currentUserData.coins || 0) + accumulated;
-    db.ref('users/' + currentUser.uid).update({
+    const update = {
       coins: newCoins,
       lastHarvestAt: Date.now()
+    };
+
+    // Random gem reward — averages to GEMS_PER_DAY over 24h regardless of how often you collect
+    const now = Date.now();
+    const lastGemAt = currentUserData.lastGemAwardAt || now;
+    const elapsed = Math.max(0, now - lastGemAt);
+    const wholeGems = Math.floor(elapsed / GEM_INTERVAL_MS);
+    const remainder = elapsed % GEM_INTERVAL_MS;
+    const bonusChance = remainder / GEM_INTERVAL_MS;
+    const gemsAwarded = wholeGems + (Math.random() < bonusChance ? 1 : 0);
+
+    update.lastGemAwardAt = now;
+    if (gemsAwarded > 0) {
+      update.gems = (currentUserData.gems || 0) + gemsAwarded;
+    }
+
+    db.ref('users/' + currentUser.uid).update(update).then(() => {
+      if (gemsAwarded > 0) {
+        showGiftFlash('💎');
+      }
     });
   }
 
