@@ -706,13 +706,13 @@
   <!-- ===== CHAT PANEL ===== -->
   <div class="panel" id="chatPanel">
     <div class="msg-shortcuts">
-      <div class="msg-shortcut" onclick="alert('Coming soon')">
+      <div class="msg-shortcut" onclick="openListOverlay('notifications')">
         <div class="ms-icon">🔔</div><div class="ms-label">Notifications</div>
       </div>
-      <div class="msg-shortcut" onclick="alert('Coming soon')">
+      <div class="msg-shortcut" onclick="openListOverlay('activity')">
         <div class="ms-icon">🎁</div><div class="ms-label">Activity</div>
       </div>
-      <div class="msg-shortcut" onclick="alert('Coming soon')">
+      <div class="msg-shortcut" onclick="openListOverlay('friends')">
         <div class="ms-icon">❤️</div><div class="ms-label">Friends</div>
       </div>
     </div>
@@ -970,6 +970,27 @@
 
   <div class="rank-list" id="rankList">
     <div class="loading">Loading leaderboard...</div>
+  </div>
+</div>
+
+<!-- ===== NOTIFICATIONS / ACTIVITY / FRIENDS OVERLAY ===== -->
+<div class="rank-overlay" id="listOverlay">
+  <div class="rank-header">
+    <button onclick="closeListOverlay()">←</button>
+    <h2 id="listOverlayTitle">Notifications</h2>
+  </div>
+
+  <div id="friendsAddBox" style="display:none; padding: 0 16px 14px;">
+    <div class="invite-redeem-box" style="margin-bottom:0;">
+      <div class="invite-code-label">Add a friend by ID</div>
+      <input type="text" id="addFriendIdInput" placeholder="Enter friend's ID">
+      <button class="invite-redeem-btn" onclick="addFriendById()">Add Friend</button>
+      <div class="invite-redeem-status" id="addFriendStatus"></div>
+    </div>
+  </div>
+
+  <div class="rank-list" id="listOverlayContent">
+    <div class="loading">Loading...</div>
   </div>
 </div>
 
@@ -1257,6 +1278,101 @@
     });
   }
 
+  // ---------- NOTIFICATIONS / ACTIVITY / FRIENDS ----------
+  let currentListMode = 'notifications';
+
+  function openListOverlay(mode) {
+    currentListMode = mode;
+    document.getElementById('listOverlay').classList.add('show');
+    const titleMap = { notifications: '🔔 Notifications', activity: '🎁 Activity', friends: '❤️ Friends' };
+    document.getElementById('listOverlayTitle').textContent = titleMap[mode];
+    document.getElementById('friendsAddBox').style.display = mode === 'friends' ? 'block' : 'none';
+    loadListOverlayContent();
+  }
+
+  function closeListOverlay() {
+    document.getElementById('listOverlay').classList.remove('show');
+  }
+
+  function loadListOverlayContent() {
+    const contentEl = document.getElementById('listOverlayContent');
+    contentEl.innerHTML = '<div class="loading">Loading...</div>';
+    if (currentListMode === 'friends') {
+      loadFriendsList(contentEl);
+    } else {
+      loadActivityList(contentEl, currentListMode === 'notifications' ? 'social' : 'personal');
+    }
+  }
+
+  function loadActivityList(contentEl, filterType) {
+    db.ref('users/' + currentUser.uid + '/activity').limitToLast(50).once('value').then((snap) => {
+      const data = snap.val();
+      contentEl.innerHTML = '';
+      if (!data) { contentEl.innerHTML = '<div class="loading">Nothing here yet.</div>'; return; }
+      const items = Object.values(data).filter(a => a.type === filterType).sort((a, b) => b.timestamp - a.timestamp);
+      if (!items.length) { contentEl.innerHTML = '<div class="loading">Nothing here yet.</div>'; return; }
+      items.forEach((item) => {
+        const row = document.createElement('div');
+        row.className = 'rank-row';
+        row.innerHTML = `<div class="rank-info"><div class="rank-name">${escapeHtml(item.text)}</div><div class="rank-sub">${timeAgo(item.timestamp)}</div></div>`;
+        contentEl.appendChild(row);
+      });
+    });
+  }
+
+  function loadFriendsList(contentEl) {
+    db.ref('users/' + currentUser.uid + '/friends').once('value').then((snap) => {
+      const friends = snap.val();
+      contentEl.innerHTML = '';
+      if (!friends) { contentEl.innerHTML = '<div class="loading">No friends yet. Add one by ID above!</div>'; return; }
+      const uids = Object.keys(friends);
+      uids.forEach((uid) => {
+        db.ref('users/' + uid).once('value').then((uSnap) => {
+          const u = uSnap.val();
+          if (!u) return;
+          const row = document.createElement('div');
+          row.className = 'rank-row';
+          row.innerHTML = `<div class="rank-avatar">${escapeHtml((u.name || 'U').charAt(0).toUpperCase())}</div><div class="rank-info"><div class="rank-name">${escapeHtml(u.name || 'User')}</div><div class="rank-sub">VIP ${u.farmLevel || 1}</div></div>`;
+          contentEl.appendChild(row);
+        });
+      });
+    });
+  }
+
+  function addFriendById() {
+    const input = document.getElementById('addFriendIdInput');
+    const code = input.value.trim();
+    const statusEl = document.getElementById('addFriendStatus');
+    if (!code) return;
+    if (code === currentUserData.profileId) { statusEl.textContent = "❌ That's your own ID."; return; }
+
+    db.ref('users').orderByChild('profileId').equalTo(code).once('value').then((snap) => {
+      const results = snap.val();
+      if (!results) { statusEl.textContent = "❌ No user found with that ID."; return; }
+      const friendUid = Object.keys(results)[0];
+      db.ref('users/' + currentUser.uid + '/friends/' + friendUid).set(true);
+      db.ref('users/' + friendUid + '/friends/' + currentUser.uid).set(true);
+      addActivity(friendUid, 'social', currentUserData.name + ' added you as a friend!');
+      statusEl.textContent = "✅ Friend added!";
+      input.value = '';
+      loadFriendsList(document.getElementById('listOverlayContent'));
+    });
+  }
+
+  function timeAgo(timestamp) {
+    const diff = Date.now() - timestamp;
+    const mins = Math.floor(diff / 60000);
+    if (mins < 1) return 'just now';
+    if (mins < 60) return mins + 'm ago';
+    const hours = Math.floor(mins / 60);
+    if (hours < 24) return hours + 'h ago';
+    return Math.floor(hours / 24) + 'd ago';
+  }
+
+  function addActivity(uid, type, text) {
+    db.ref('users/' + uid + '/activity').push({ type: type, text: text, timestamp: Date.now() });
+  }
+
   let currentProfileSubView = null;
 
   function openInviteView() {
@@ -1382,7 +1498,9 @@
     const update = {};
     update[claimedField] = true;
     update.gems = (currentUserData.gems || 0) + gems;
-    db.ref('users/' + currentUser.uid).update(update);
+    db.ref('users/' + currentUser.uid).update(update).then(() => {
+      addActivity(currentUser.uid, 'personal', 'Claimed ' + need + '-friend milestone: +' + gems + ' gems');
+    });
   }
 
   function copyReferralCode() {
@@ -1424,6 +1542,9 @@
         gems: (referrerData.gems || 0) + 50,
         referralCount: (referrerData.referralCount || 0) + 1
       });
+
+      addActivity(currentUser.uid, 'personal', 'You redeemed a referral code: +💎50 gems');
+      addActivity(referrerUid, 'social', currentUserData.name + ' used your referral code! +💎50 gems');
 
       statusEl.textContent = "✅ Success! You both received 💎 50 gems.";
       input.value = '';
@@ -1714,13 +1835,22 @@
       members: { [currentUser.uid]: true }
     }).then(() => {
       db.ref('users/' + currentUser.uid).update({ familyId: famId });
+      addActivity(currentUser.uid, 'personal', 'You created the family "' + name + '"');
       document.getElementById('familyNameInput').value = '';
     });
   }
 
   function joinFamily(famId) {
-    db.ref('families/' + famId + '/members/' + currentUser.uid).set(true).then(() => {
-      db.ref('users/' + currentUser.uid).update({ familyId: famId });
+    db.ref('families/' + famId).once('value').then((snap) => {
+      const fam = snap.val();
+      if (!fam) return;
+      db.ref('families/' + famId + '/members/' + currentUser.uid).set(true).then(() => {
+        db.ref('users/' + currentUser.uid).update({ familyId: famId });
+        addActivity(currentUser.uid, 'personal', 'You joined the family "' + fam.name + '"');
+        if (fam.ownerUid && fam.ownerUid !== currentUser.uid) {
+          addActivity(fam.ownerUid, 'social', currentUserData.name + ' joined your family "' + fam.name + '"');
+        }
+      });
     });
   }
 
