@@ -220,6 +220,7 @@
     aspect-ratio: 1; border-radius: 14px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
     display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; cursor: pointer;
   }
+  .seat-cell { position: relative; }
   .seat-cell.occupied { background: linear-gradient(160deg, rgba(255,215,106,0.18), rgba(255,107,157,0.1)); border-color: rgba(255,215,106,0.35); }
   .seat-cell .seat-avatar {
     width: 30px; height: 30px; border-radius: 50%; background: linear-gradient(135deg,#ff6b9d,#c44dff);
@@ -227,6 +228,32 @@
   }
   .seat-cell .seat-plus { font-size: 18px; color: rgba(255,255,255,0.3); }
   .seat-cell .seat-name { font-size: 9px; color: rgba(255,255,255,0.6); font-weight: 600; max-width: 90%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .seat-gift-btn {
+    position: absolute; top: -4px; right: -4px; width: 20px; height: 20px; border-radius: 50%;
+    background: linear-gradient(135deg,#ff6b9d,#c44dff); display: flex; align-items: center; justify-content: center;
+    font-size: 11px; box-shadow: 0 2px 6px rgba(0,0,0,0.3); z-index: 2;
+  }
+
+  /* ---- Gift Picker ---- */
+  .gift-picker-header { text-align: center; padding: 16px; font-family: 'Fredoka', 'Inter', sans-serif; font-weight: 700; font-size: 15px; color: #ffd76a; }
+  .gift-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 0 16px 20px; }
+  .gift-cell {
+    background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 14px;
+    padding: 14px 6px; text-align: center; cursor: pointer;
+  }
+  .gift-cell .g-emoji { font-size: 30px; margin-bottom: 6px; }
+  .gift-cell .g-name { font-size: 11.5px; font-weight: 700; font-family: 'Fredoka', 'Inter', sans-serif; margin-bottom: 3px; }
+  .gift-cell .g-cost { font-size: 11px; color: #ffd76a; font-weight: 700; }
+  .gift-flash {
+    position: fixed; top: 40%; left: 50%; transform: translate(-50%,-50%); z-index: 300;
+    font-size: 60px; pointer-events: none; animation: giftPop 1.4s ease-out forwards;
+  }
+  @keyframes giftPop {
+    0% { transform: translate(-50%,-50%) scale(0.3); opacity: 0; }
+    30% { transform: translate(-50%,-50%) scale(1.2); opacity: 1; }
+    70% { transform: translate(-50%,-50%) scale(1); opacity: 1; }
+    100% { transform: translate(-50%,-80%) scale(1); opacity: 0; }
+  }
 
   /* ---- Tic-Tac-Toe Overlay ---- */
   .ttt-overlay {
@@ -920,6 +947,16 @@
     <div class="ttt-status" id="tttStatus">Waiting for players...</div>
     <div class="ttt-board" id="tttBoard"></div>
     <button class="btn" style="max-width:220px;" onclick="resetTicTacToe()">Reset Game</button>
+  </div>
+
+  <!-- ===== GIFT PICKER OVERLAY ===== -->
+  <div class="ttt-overlay" id="giftOverlay">
+    <div class="ttt-header">
+      <button onclick="closeGiftPicker()">←</button>
+      <h2>🎁 Send Gift</h2>
+    </div>
+    <div class="gift-picker-header" id="giftRecipientLabel">To: —</div>
+    <div class="gift-grid" id="giftGrid"></div>
   </div>
 
   <div class="bottom-nav">
@@ -2191,13 +2228,22 @@
         const cell = document.createElement('div');
         if (seatData) {
           cell.className = 'seat-cell occupied';
-          cell.innerHTML = `<div class="seat-avatar">${escapeHtml((seatData.name || 'U').charAt(0).toUpperCase())}</div><div class="seat-name">${escapeHtml(seatData.name || 'User')}</div>`;
+          const isMe = currentUser && seatData.uid === currentUser.uid;
+          cell.innerHTML = `<div class="seat-avatar">${escapeHtml((seatData.name || 'U').charAt(0).toUpperCase())}</div><div class="seat-name">${escapeHtml(seatData.name || 'User')}</div>` +
+            (isMe ? '' : `<div class="seat-gift-btn" data-gift-uid="${escapeHtml(seatData.uid)}" data-gift-name="${escapeHtml(seatData.name || 'User')}">🎁</div>`);
         } else {
           cell.className = 'seat-cell';
           cell.innerHTML = `<div class="seat-plus">+</div><div class="seat-name">${i + 1}</div>`;
         }
         cell.onclick = () => tapSeat(i, !!seatData, seatData);
         gridEl.appendChild(cell);
+        const giftBtn = cell.querySelector('.seat-gift-btn');
+        if (giftBtn) {
+          giftBtn.onclick = (e) => {
+            e.stopPropagation();
+            openGiftPicker(giftBtn.dataset.giftUid, giftBtn.dataset.giftName);
+          };
+        }
       }
     });
     currentSeatsListener = () => seatsRef.off('value', handler);
@@ -2345,6 +2391,81 @@
       turn: 'X',
       players: {}
     });
+  }
+
+  // ---------- GIFTS ----------
+  const GIFTS = [
+    { emoji: '🌹', name: 'Rose', cost: 10 },
+    { emoji: '🍰', name: 'Cake', cost: 50 },
+    { emoji: '💎', name: 'Diamond', cost: 100 },
+    { emoji: '👑', name: 'Crown', cost: 500 },
+    { emoji: '🚀', name: 'Rocket', cost: 1000 },
+    { emoji: '🦁', name: 'Lion', cost: 5000 }
+  ];
+
+  let giftRecipientUid = null;
+  let giftRecipientName = null;
+
+  function openGiftPicker(recipientUid, recipientName) {
+    giftRecipientUid = recipientUid;
+    giftRecipientName = recipientName;
+    document.getElementById('giftRecipientLabel').textContent = 'To: ' + recipientName;
+    renderGiftGrid();
+    document.getElementById('giftOverlay').classList.add('show');
+  }
+
+  function closeGiftPicker() {
+    document.getElementById('giftOverlay').classList.remove('show');
+  }
+
+  function renderGiftGrid() {
+    const gridEl = document.getElementById('giftGrid');
+    gridEl.innerHTML = '';
+    GIFTS.forEach((gift) => {
+      const cell = document.createElement('div');
+      cell.className = 'gift-cell';
+      cell.innerHTML = `<div class="g-emoji">${gift.emoji}</div><div class="g-name">${gift.name}</div><div class="g-cost">💎 ${formatNum(gift.cost)}</div>`;
+      cell.onclick = () => sendGift(gift);
+      gridEl.appendChild(cell);
+    });
+  }
+
+  function sendGift(gift) {
+    if (!currentUser || !currentUserData || !giftRecipientUid || !currentRoomId) return;
+    const myGems = currentUserData.gems || 0;
+    if (myGems < gift.cost) {
+      alert("Not enough gems for this gift.");
+      return;
+    }
+
+    db.ref('users/' + giftRecipientUid).once('value').then((snap) => {
+      const recipientData = snap.val();
+      if (!recipientData) return;
+
+      db.ref('users/' + currentUser.uid).update({ gems: myGems - gift.cost });
+      db.ref('users/' + giftRecipientUid).update({ gems: (recipientData.gems || 0) + Math.floor(gift.cost * 0.5) });
+
+      db.ref('liveRooms/' + currentRoomId + '/messages').push({
+        uid: currentUser.uid,
+        name: currentUserData.name,
+        text: '🎁 sent ' + giftRecipientName + ' a ' + gift.name + ' ' + gift.emoji,
+        timestamp: Date.now()
+      });
+
+      addActivity(currentUser.uid, 'personal', 'You sent ' + giftRecipientName + ' a ' + gift.emoji + ' ' + gift.name);
+      addActivity(giftRecipientUid, 'social', currentUserData.name + ' sent you a ' + gift.emoji + ' ' + gift.name + '!');
+
+      showGiftFlash(gift.emoji);
+      closeGiftPicker();
+    });
+  }
+
+  function showGiftFlash(emoji) {
+    const flash = document.createElement('div');
+    flash.className = 'gift-flash';
+    flash.textContent = emoji;
+    document.body.appendChild(flash);
+    setTimeout(() => flash.remove(), 1400);
   }
 </script>
 
