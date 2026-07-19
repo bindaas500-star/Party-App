@@ -1,6 +1,7 @@
 {
   "name": "Party App",
   "short_name": "PartyApp",
+  "description": "A social party app with chat, family groups, live rooms, and a farm-style earning game.",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#1a1030",
