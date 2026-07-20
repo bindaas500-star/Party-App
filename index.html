@@ -350,6 +350,25 @@
     display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; font-family: 'Fredoka', 'Inter', sans-serif;
   }
   .member-chip .m-name { font-size: 10px; color: rgba(255,255,255,0.65); text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%; font-weight: 500; }
+  .member-chip { position: relative; }
+  .member-kick-btn {
+    position: absolute; top: -3px; right: 4px; width: 16px; height: 16px; border-radius: 50%;
+    background: #ff6b6b; color: #fff; font-size: 10px; display: flex; align-items: center; justify-content: center;
+    cursor: pointer; z-index: 2;
+  }
+
+  .notice-banner {
+    margin: 10px 16px 0; padding: 10px 14px; border-radius: 12px; font-size: 12.5px; font-weight: 600;
+    background: rgba(255,215,106,0.12); border: 1px solid rgba(255,215,106,0.3); color: #ffe9a8;
+  }
+
+  .owner-menu-list { padding: 0 16px; display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 320px; }
+  .owner-menu-item {
+    display: flex; align-items: center; gap: 12px; background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1); border-radius: 14px; padding: 14px 16px; cursor: pointer;
+    font-family: 'Fredoka', 'Inter', sans-serif; font-weight: 600; font-size: 14px;
+  }
+  .owner-menu-item.danger { color: #ff8a8a; border-color: rgba(255,107,107,0.3); }
 
   /* ---- Profile Overlay ---- */
   .profile-overlay {
@@ -843,8 +862,10 @@
           <div class="f-title" id="insideFamName">Family</div>
           <div class="f-sub" id="insideFamMemberCount">0 members</div>
         </div>
+        <button id="familyOwnerBtn" onclick="openFamilyOwnerMenu()" style="display:none; background:rgba(255,255,255,0.08); border:none; color:#fff; width:32px; height:32px; border-radius:50%; font-size:15px; cursor:pointer; margin-left:auto;">⚙️</button>
         <button class="leave-btn" onclick="leaveFamily()">Leave</button>
       </div>
+      <div class="notice-banner" id="familyNoticeBanner" style="display:none;"></div>
       <div class="members-strip" id="membersStrip"></div>
       <div class="chat-area" id="familyChatArea"></div>
       <div class="input-bar">
@@ -917,7 +938,9 @@
       <div class="room-title-bar" style="display:flex; align-items:center; gap:10px;">
         <button onclick="leaveRoomToBrowse()" style="background:rgba(255,255,255,0.08); border:none; color:#fff; width:32px; height:32px; border-radius:50%; font-size:16px; cursor:pointer;">←</button>
         <span id="roomInsideTitle">Room</span>
+        <button id="roomOwnerBtn" onclick="openRoomOwnerMenu()" style="display:none; margin-left:auto; background:rgba(255,255,255,0.08); border:none; color:#fff; width:32px; height:32px; border-radius:50%; font-size:16px; cursor:pointer;">⚙️</button>
       </div>
+      <div class="notice-banner" id="roomNoticeBanner" style="display:none;"></div>
 
       <div class="games-row">
         <div class="game-chip" onclick="openTicTacToe()">⭕ Tic-Tac-Toe</div>
@@ -957,6 +980,32 @@
     </div>
     <div class="gift-picker-header" id="giftRecipientLabel">To: —</div>
     <div class="gift-grid" id="giftGrid"></div>
+  </div>
+
+  <!-- ===== ROOM OWNER MENU ===== -->
+  <div class="ttt-overlay" id="roomOwnerOverlay">
+    <div class="ttt-header">
+      <button onclick="closeRoomOwnerMenu()">←</button>
+      <h2>⚙️ Room Settings</h2>
+    </div>
+    <div class="owner-menu-list">
+      <div class="owner-menu-item" onclick="setRoomNotice()">📢 Set Notice</div>
+      <div class="owner-menu-item" onclick="clearRoomMessages()">🧹 Clear Messages</div>
+      <div class="owner-menu-item danger" onclick="deleteRoom()">🗑️ Delete Room</div>
+    </div>
+  </div>
+
+  <!-- ===== FAMILY OWNER MENU ===== -->
+  <div class="ttt-overlay" id="familyOwnerOverlay">
+    <div class="ttt-header">
+      <button onclick="closeFamilyOwnerMenu()">←</button>
+      <h2>⚙️ Family Settings</h2>
+    </div>
+    <div class="owner-menu-list">
+      <div class="owner-menu-item" onclick="setFamilyNotice()">📢 Set Notice</div>
+      <div class="owner-menu-item" onclick="clearFamilyMessages()">🧹 Clear Messages</div>
+      <div class="owner-menu-item danger" onclick="deleteFamily()">🗑️ Delete Family</div>
+    </div>
   </div>
 
   <div class="bottom-nav">
@@ -2090,9 +2139,52 @@
     });
   }
 
+  function openFamilyOwnerMenu() { document.getElementById('familyOwnerOverlay').classList.add('show'); }
+  function closeFamilyOwnerMenu() { document.getElementById('familyOwnerOverlay').classList.remove('show'); }
+
+  function setFamilyNotice() {
+    const current = document.getElementById('familyNoticeBanner').textContent.replace('📢 ', '');
+    const text = prompt('Set family notice (leave blank to clear):', current || '');
+    if (text === null || !currentFamilyId) return;
+    db.ref('families/' + currentFamilyId + '/notice').set(text.trim());
+    closeFamilyOwnerMenu();
+  }
+
+  function clearFamilyMessages() {
+    if (!currentFamilyId) return;
+    if (!confirm('Clear all messages in this family chat?')) return;
+    db.ref('families/' + currentFamilyId + '/messages').remove();
+    closeFamilyOwnerMenu();
+  }
+
+  function deleteFamily() {
+    if (!currentFamilyId) return;
+    if (!confirm('Delete this family permanently? All members will be removed. This cannot be undone.')) return;
+    const famIdToDelete = currentFamilyId;
+    closeFamilyOwnerMenu();
+
+    db.ref('families/' + famIdToDelete + '/members').once('value').then((snap) => {
+      const members = snap.val() || {};
+      Object.keys(members).forEach((uid) => {
+        db.ref('users/' + uid).update({ familyId: null });
+      });
+      db.ref('families/' + famIdToDelete).remove();
+    });
+  }
+
+  function kickFamilyMember(famId, memberUid, memberName) {
+    if (!confirm('Remove ' + memberName + ' from the family?')) return;
+    db.ref('families/' + famId + '/members/' + memberUid).remove();
+    db.ref('users/' + memberUid).update({ familyId: null });
+    addActivity(memberUid, 'social', 'You were removed from the family.');
+  }
+
   // ---------- INSIDE FAMILY VIEW ----------
   let currentFamilyChatListener = null;
   let currentFamilyMembersListener = null;
+
+  let currentFamilyOwnerUid = null;
+  let currentFamilyNoticeListener = null;
 
   function showInsideFamily(famId) {
     document.getElementById('familyBrowseView').style.display = 'none';
@@ -2105,7 +2197,18 @@
       document.getElementById('insideFamName').textContent = fam.name;
       document.getElementById('insideFamAvatar').textContent = fam.name.charAt(0).toUpperCase();
       document.getElementById('familyBubbleAvatar').textContent = fam.name.charAt(0).toUpperCase();
+      currentFamilyOwnerUid = fam.ownerUid;
+      document.getElementById('familyOwnerBtn').style.display = (currentUser && currentFamilyOwnerUid === currentUser.uid) ? 'block' : 'none';
     });
+
+    if (currentFamilyNoticeListener) { currentFamilyNoticeListener(); }
+    const noticeHandler = famRef.child('notice').on('value', (snap) => {
+      const notice = snap.val();
+      const bannerEl = document.getElementById('familyNoticeBanner');
+      if (notice) { bannerEl.textContent = '📢 ' + notice; bannerEl.style.display = 'block'; }
+      else { bannerEl.style.display = 'none'; }
+    });
+    currentFamilyNoticeListener = () => famRef.child('notice').off('value', noticeHandler);
 
     // Members strip
     const membersHandler = famRef.child('members').on('value', (snap) => {
@@ -2120,8 +2223,14 @@
           if (!u) return;
           const chip = document.createElement('div');
           chip.className = 'member-chip';
-          chip.innerHTML = `<div class="m-avatar">${escapeHtml(u.name.charAt(0).toUpperCase())}</div><div class="m-name">${escapeHtml(u.name)}</div>`;
+          const canKick = currentUser && currentFamilyOwnerUid === currentUser.uid && uid !== currentUser.uid;
+          chip.innerHTML = `<div class="m-avatar">${escapeHtml(u.name.charAt(0).toUpperCase())}</div><div class="m-name">${escapeHtml(u.name)}</div>` +
+            (canKick ? `<div class="member-kick-btn" data-kick-uid="${escapeHtml(uid)}">✕</div>` : '');
           stripEl.appendChild(chip);
+          const kickBtn = chip.querySelector('.member-kick-btn');
+          if (kickBtn) {
+            kickBtn.onclick = () => kickFamilyMember(famId, kickBtn.dataset.kickUid, u.name);
+          }
         });
       });
     });
@@ -2221,6 +2330,9 @@
     });
   }
 
+  let currentRoomOwnerUid = null;
+  let currentRoomNoticeListener = null;
+
   function enterRoom(roomId, roomName) {
     currentRoomId = roomId;
     document.getElementById('roomInsideTitle').textContent = roomName;
@@ -2228,14 +2340,57 @@
     document.getElementById('roomInsideView').style.display = 'flex';
     listenToRoomSeats();
     listenToRoomChat();
+
+    const roomRef = db.ref('liveRooms/' + roomId);
+    roomRef.once('value').then((snap) => {
+      const room = snap.val();
+      currentRoomOwnerUid = room ? room.ownerUid : null;
+      document.getElementById('roomOwnerBtn').style.display = (currentUser && currentRoomOwnerUid === currentUser.uid) ? 'block' : 'none';
+    });
+    const noticeHandler = roomRef.child('notice').on('value', (snap) => {
+      const notice = snap.val();
+      const bannerEl = document.getElementById('roomNoticeBanner');
+      if (notice) { bannerEl.textContent = '📢 ' + notice; bannerEl.style.display = 'block'; }
+      else { bannerEl.style.display = 'none'; }
+    });
+    currentRoomNoticeListener = () => roomRef.child('notice').off('value', noticeHandler);
   }
 
   function leaveRoomToBrowse() {
     if (currentSeatsListener) { currentSeatsListener(); currentSeatsListener = null; }
     if (currentRoomChatListener) { currentRoomChatListener(); currentRoomChatListener = null; }
+    if (currentRoomNoticeListener) { currentRoomNoticeListener(); currentRoomNoticeListener = null; }
     currentRoomId = null;
+    currentRoomOwnerUid = null;
     document.getElementById('roomInsideView').style.display = 'none';
     document.getElementById('roomBrowseView').style.display = 'flex';
+  }
+
+  function openRoomOwnerMenu() { document.getElementById('roomOwnerOverlay').classList.add('show'); }
+  function closeRoomOwnerMenu() { document.getElementById('roomOwnerOverlay').classList.remove('show'); }
+
+  function setRoomNotice() {
+    const current = document.getElementById('roomNoticeBanner').textContent.replace('📢 ', '');
+    const text = prompt('Set room notice (leave blank to clear):', current || '');
+    if (text === null || !currentRoomId) return;
+    db.ref('liveRooms/' + currentRoomId + '/notice').set(text.trim());
+    closeRoomOwnerMenu();
+  }
+
+  function clearRoomMessages() {
+    if (!currentRoomId) return;
+    if (!confirm('Clear all messages in this room?')) return;
+    db.ref('liveRooms/' + currentRoomId + '/messages').remove();
+    closeRoomOwnerMenu();
+  }
+
+  function deleteRoom() {
+    if (!currentRoomId) return;
+    if (!confirm('Delete this room permanently? This cannot be undone.')) return;
+    const roomIdToDelete = currentRoomId;
+    closeRoomOwnerMenu();
+    leaveRoomToBrowse();
+    db.ref('liveRooms/' + roomIdToDelete).remove();
   }
 
   // ---------- ROOM: SEATS ----------
@@ -2251,9 +2406,8 @@
         const cell = document.createElement('div');
         if (seatData) {
           cell.className = 'seat-cell occupied';
-          const isMe = currentUser && seatData.uid === currentUser.uid;
           cell.innerHTML = `<div class="seat-avatar">${escapeHtml((seatData.name || 'U').charAt(0).toUpperCase())}</div><div class="seat-name">${escapeHtml(seatData.name || 'User')}</div>` +
-            (isMe ? '' : `<div class="seat-gift-btn" data-gift-uid="${escapeHtml(seatData.uid)}" data-gift-name="${escapeHtml(seatData.name || 'User')}">🎁</div>`);
+            `<div class="seat-gift-btn" data-gift-uid="${escapeHtml(seatData.uid)}" data-gift-name="${escapeHtml(seatData.name || 'User')}">🎁</div>`;
         } else {
           cell.className = 'seat-cell';
           cell.innerHTML = `<div class="seat-plus">+</div><div class="seat-name">${i + 1}</div>`;
