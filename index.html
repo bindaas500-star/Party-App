@@ -1352,7 +1352,7 @@
   const db = firebase.database();
 
   const LEVEL_REQUIRED_TO_CREATE = 5;
-  const XP_PER_LEVEL = 20;
+  const XP_PER_LEVEL = 100;
   const XP_PER_MESSAGE = 5;
   const HARVEST_CYCLE_MS = 30 * 60 * 1000; // reference window used to derive per-second rate
   const BASE_PRODUCTION = 50; // coins per harvest at farm/VIP level 1
@@ -2210,7 +2210,7 @@
     }
 
     // ID Level XP — earned from harvesting (not just chatting)
-    const xpFromHarvest = Math.max(1, Math.floor(accumulated / 200));
+    const xpFromHarvest = 10;
     const newXp = (currentUserData.xp || 0) + xpFromHarvest;
     update.xp = newXp;
     update.level = Math.floor(newXp / XP_PER_LEVEL) + 1;
