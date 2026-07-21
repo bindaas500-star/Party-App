@@ -370,6 +370,31 @@
   }
   .owner-menu-item.danger { color: #ff8a8a; border-color: rgba(255,107,107,0.3); }
 
+  /* ---- Seat Profile Popup ---- */
+  .seat-prof-banner {
+    margin: 0 16px 10px; padding: 14px 16px; border-radius: 16px; cursor: pointer;
+    font-family: 'Fredoka', 'Inter', sans-serif; font-weight: 700; font-size: 14px; color: #fff;
+    display: flex; align-items: center;
+  }
+  .seat-prof-banner.soulmate { background: linear-gradient(90deg, #ff6b9d, #ffb347); }
+  .seat-prof-banner.bff { background: linear-gradient(90deg, #4ecdc4, #a78bfa); }
+
+  .seat-prof-tiles { display: flex; gap: 10px; padding: 4px 16px 16px; }
+  .seat-prof-tile {
+    flex: 1; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 14px; padding: 12px 10px; text-align: center; cursor: pointer;
+  }
+  .spt-label { font-size: 11px; color: rgba(255,255,255,0.5); font-weight: 700; margin-bottom: 5px; }
+  .spt-value { font-size: 13px; font-weight: 700; font-family: 'Fredoka', 'Inter', sans-serif; color: #ffd76a; }
+
+  .seat-prof-actions { display: flex; gap: 10px; padding: 6px 16px 24px; }
+  .spa-btn {
+    flex: 1; padding: 14px; border: none; border-radius: 16px; font-family: 'Fredoka', 'Inter', sans-serif;
+    font-weight: 700; font-size: 14px; cursor: pointer;
+  }
+  .spa-btn.gift { background: linear-gradient(90deg,#ff6b9d,#c44dff); color: #fff; }
+  .spa-btn.chat { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: #fff; }
+
   /* ---- Profile Overlay ---- */
   .profile-overlay {
     position: fixed; inset: 0; z-index: 200; background: #1a1030;
@@ -983,6 +1008,48 @@
   </div>
 
   <!-- ===== ROOM OWNER MENU ===== -->
+  <!-- ===== SEAT PROFILE POPUP ===== -->
+  <div class="profile-overlay" id="seatProfileOverlay">
+    <div class="profile-overlay-header">
+      <button onclick="closeSeatProfile()">←</button>
+    </div>
+    <div class="profile-hero">
+      <div class="profile-avatar-ring"><div class="profile-avatar" id="seatProfAvatar">?</div></div>
+      <div class="profile-name" id="seatProfName">User</div>
+      <div class="profile-badges">
+        <span class="badge-pill" id="seatProfIdBadge">🆔 ID Lv. 1</span>
+        <span class="badge-pill vip-pill" id="seatProfVipBadge">👑 VIP 1</span>
+      </div>
+    </div>
+
+    <div class="seat-prof-banner soulmate" onclick="alert('Coming soon')">
+      <span>💞 Become a Soulmate</span>
+    </div>
+    <div class="seat-prof-banner bff" onclick="alert('Coming soon')">
+      <span>🤝 Become BFF</span>
+    </div>
+
+    <div class="seat-prof-tiles">
+      <div class="seat-prof-tile" onclick="alert('Coming soon')">
+        <div class="spt-label">Gift Wall</div>
+        <div class="spt-value">🎁 —</div>
+      </div>
+      <div class="seat-prof-tile" onclick="alert('Coming soon')">
+        <div class="spt-label">Supporter</div>
+        <div class="spt-value">Vacant</div>
+      </div>
+      <div class="seat-prof-tile" id="seatProfFamilyTile">
+        <div class="spt-label">Family</div>
+        <div class="spt-value" id="seatProfFamilyValue">None</div>
+      </div>
+    </div>
+
+    <div class="seat-prof-actions">
+      <button class="spa-btn gift" onclick="giftFromSeatProfile()">🎁 Gift</button>
+      <button class="spa-btn chat" onclick="chatFromSeatProfile()">💬 Chat</button>
+    </div>
+  </div>
+
   <div class="ttt-overlay" id="roomOwnerOverlay">
     <div class="ttt-header">
       <button onclick="closeRoomOwnerMenu()">←</button>
@@ -2393,6 +2460,53 @@
     db.ref('liveRooms/' + roomIdToDelete).remove();
   }
 
+  // ---------- SEAT PROFILE POPUP ----------
+  let seatProfileUid = null;
+  let seatProfileName = null;
+
+  function openSeatProfile(uid, name) {
+    seatProfileUid = uid;
+    seatProfileName = name;
+    document.getElementById('seatProfAvatar').textContent = name.charAt(0).toUpperCase();
+    document.getElementById('seatProfName').textContent = name;
+    document.getElementById('seatProfIdBadge').textContent = '🆔 ID Lv. 1';
+    document.getElementById('seatProfVipBadge').textContent = '👑 VIP 1';
+    document.getElementById('seatProfFamilyValue').textContent = 'None';
+
+    db.ref('users/' + uid).once('value').then((snap) => {
+      const u = snap.val();
+      if (!u) return;
+      document.getElementById('seatProfIdBadge').textContent = '🆔 ID Lv. ' + (u.level || 1);
+      document.getElementById('seatProfVipBadge').textContent = '👑 VIP ' + (u.farmLevel || 1);
+      if (u.familyId) {
+        db.ref('families/' + u.familyId).once('value').then((famSnap) => {
+          const fam = famSnap.val();
+          document.getElementById('seatProfFamilyValue').textContent = fam ? fam.name : 'None';
+        });
+      }
+    });
+
+    document.getElementById('seatProfileOverlay').classList.add('show');
+  }
+
+  function closeSeatProfile() {
+    document.getElementById('seatProfileOverlay').classList.remove('show');
+  }
+
+  function giftFromSeatProfile() {
+    if (!seatProfileUid) return;
+    closeSeatProfile();
+    openGiftPicker(seatProfileUid, seatProfileName);
+  }
+
+  function chatFromSeatProfile() {
+    if (!seatProfileName) return;
+    closeSeatProfile();
+    const input = document.getElementById('roomMsgInput');
+    input.value = '@' + seatProfileName + ' ';
+    input.focus();
+  }
+
   // ---------- ROOM: SEATS ----------
   function listenToRoomSeats() {
     if (!currentRoomId) return;
@@ -2432,6 +2546,8 @@
     if (isOccupied) {
       if (seatData.uid === currentUser.uid) {
         seatsRef.child(index).remove();
+      } else {
+        openSeatProfile(seatData.uid, seatData.name);
       }
       return;
     }
