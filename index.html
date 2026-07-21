@@ -1538,7 +1538,7 @@
           <div class="rank-avatar">${escapeHtml((p.name || 'U').charAt(0).toUpperCase())}</div>
           <div class="rank-info">
             <div class="rank-name">${escapeHtml(p.name || 'User')}</div>
-            <div class="rank-sub">VIP ${p.farmLevel || 1}</div>
+            <div class="rank-sub">ID Lv. ${p.level || 1}</div>
           </div>
           <div class="rank-value">🪙 ${formatNum(p.coins || 0)}</div>
         `;
@@ -2105,6 +2105,12 @@
     if (loveAwarded > 0) {
       update.love = (currentUserData.love || 0) + loveAwarded;
     }
+
+    // ID Level XP — earned from harvesting (not just chatting)
+    const xpFromHarvest = Math.max(1, Math.floor(accumulated / 200));
+    const newXp = (currentUserData.xp || 0) + xpFromHarvest;
+    update.xp = newXp;
+    update.level = Math.floor(newXp / XP_PER_LEVEL) + 1;
 
     db.ref('users/' + currentUser.uid).update(update).then(() => {
       if (gemsAwarded > 0) {
