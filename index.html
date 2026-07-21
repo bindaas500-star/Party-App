@@ -584,17 +584,18 @@
 
   .wallet-box{
     display:flex;
-    gap:10px;
+    gap:6px;
   }
 
   .wallet{
     background: rgba(255,255,255,0.9);
     color: #1f4d2e;
-    padding:8px 14px;
-    border-radius:15px;
+    padding:7px 10px;
+    border-radius:14px;
     font-weight:bold;
     font-family: 'Fredoka', 'Inter', sans-serif;
-    font-size: 14px;
+    font-size: 12.5px;
+    white-space: nowrap;
   }
 
   .withdraw-card{
@@ -777,6 +778,11 @@
               <div class="wallet">
                   💎
                   <span id="gemsDisplay">0</span>
+              </div>
+
+              <div class="wallet">
+                  💕
+                  <span id="loveDisplay">0</span>
               </div>
 
           </div>
@@ -1348,6 +1354,7 @@
             vip: 1,
             coins: 0,
             gems: 0,
+            love: 0,
             xp: 0,
             level: 1,
             farmLevel: 1,
@@ -1974,6 +1981,7 @@
 
     document.getElementById('coinsDisplay').textContent = formatNum(currentUserData.coins || 0);
     document.getElementById('gemsDisplay').textContent = formatNum(currentUserData.gems || 0);
+    document.getElementById('loveDisplay').textContent = formatNum(currentUserData.love || 0);
     const farmLevel = getFarmLevel();
     document.getElementById('homeFarmLevelTag').textContent = "🌾 Farm Level " + farmLevel;
     document.getElementById('rateLabel').textContent = "In 30 min: 🪙 " + formatNum(getProductionAmount());
@@ -2057,6 +2065,9 @@
   const GEMS_PER_DAY = 10;
   const GEM_INTERVAL_MS = (24 * 60 * 60 * 1000) / GEMS_PER_DAY; // ~2.4 hours worth of "gem time" per gem on average
 
+  const LOVE_PER_DAY = 20;
+  const LOVE_INTERVAL_MS = (24 * 60 * 60 * 1000) / LOVE_PER_DAY;
+
   function doHarvest() {
     if (!currentUser || !currentUserData) return;
     const accumulated = getAccumulatedCoins();
@@ -2082,9 +2093,24 @@
       update.gems = (currentUserData.gems || 0) + gemsAwarded;
     }
 
+    // Random Love Coin reward — averages to LOVE_PER_DAY over 24h, for gifting
+    const lastLoveAt = currentUserData.lastLoveAwardAt || now;
+    const loveElapsed = Math.max(0, now - lastLoveAt);
+    const wholeLove = Math.floor(loveElapsed / LOVE_INTERVAL_MS);
+    const loveRemainder = loveElapsed % LOVE_INTERVAL_MS;
+    const loveBonusChance = loveRemainder / LOVE_INTERVAL_MS;
+    const loveAwarded = wholeLove + (Math.random() < loveBonusChance ? 1 : 0);
+
+    update.lastLoveAwardAt = now;
+    if (loveAwarded > 0) {
+      update.love = (currentUserData.love || 0) + loveAwarded;
+    }
+
     db.ref('users/' + currentUser.uid).update(update).then(() => {
       if (gemsAwarded > 0) {
         showGiftFlash('💎');
+      } else if (loveAwarded > 0) {
+        showGiftFlash('💕');
       }
     });
   }
@@ -2719,7 +2745,7 @@
     GIFTS.forEach((gift) => {
       const cell = document.createElement('div');
       cell.className = 'gift-cell';
-      cell.innerHTML = `<div class="g-emoji">${gift.emoji}</div><div class="g-name">${gift.name}</div><div class="g-cost">💎 ${formatNum(gift.cost)}</div>`;
+      cell.innerHTML = `<div class="g-emoji">${gift.emoji}</div><div class="g-name">${gift.name}</div><div class="g-cost">💕 ${formatNum(gift.cost)}</div>`;
       cell.onclick = () => sendGift(gift);
       gridEl.appendChild(cell);
     });
@@ -2727,9 +2753,9 @@
 
   function sendGift(gift) {
     if (!currentUser || !currentUserData || !giftRecipientUid || !currentRoomId) return;
-    const myGems = currentUserData.gems || 0;
-    if (myGems < gift.cost) {
-      alert("Not enough gems for this gift.");
+    const myLove = currentUserData.love || 0;
+    if (myLove < gift.cost) {
+      alert("Not enough Love Coins for this gift.");
       return;
     }
 
@@ -2737,8 +2763,8 @@
       const recipientData = snap.val();
       if (!recipientData) return;
 
-      db.ref('users/' + currentUser.uid).update({ gems: myGems - gift.cost });
-      db.ref('users/' + giftRecipientUid).update({ gems: (recipientData.gems || 0) + Math.floor(gift.cost * 0.5) });
+      db.ref('users/' + currentUser.uid).update({ love: myLove - gift.cost });
+      db.ref('users/' + giftRecipientUid).update({ love: (recipientData.love || 0) + Math.floor(gift.cost * 0.5) });
 
       db.ref('liveRooms/' + currentRoomId + '/messages').push({
         uid: currentUser.uid,
