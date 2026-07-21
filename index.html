@@ -1406,6 +1406,8 @@
     document.getElementById('userAvatar').textContent = currentUserData.name.charAt(0).toUpperCase();
     document.getElementById('userLevelLabel').textContent = "ID Lv. " + (currentUserData.level || 1);
     renderProfile();
+    requestAnimationFrame(setAppHeight);
+    setTimeout(setAppHeight, 150);
   }
 
   let profileIdBeingGenerated = false;
