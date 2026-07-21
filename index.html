@@ -395,6 +395,28 @@
   .spa-btn.gift { background: linear-gradient(90deg,#ff6b9d,#c44dff); color: #fff; }
   .spa-btn.chat { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: #fff; }
 
+  /* ---- VIP Benefits ---- */
+  .vip-tier-card {
+    margin: 16px; padding: 22px 18px; border-radius: 22px; text-align: center;
+    background: linear-gradient(160deg, rgba(78,205,196,0.15), rgba(58,123,213,0.08));
+    border: 1px solid rgba(78,205,196,0.3);
+  }
+  .vtc-badge {
+    display: inline-block; font-family: 'Fredoka', 'Inter', sans-serif; font-weight: 700; font-size: 20px;
+    color: #ffd76a; margin-bottom: 14px; letter-spacing: 1px;
+  }
+  .vtc-topup-text { font-size: 13.5px; color: rgba(255,255,255,0.75); font-weight: 500; margin-bottom: 6px; }
+  .vtc-topup-text span { color: #ffd76a; font-weight: 700; }
+  .vtc-progress-text { font-size: 11.5px; color: rgba(255,255,255,0.4); font-weight: 600; margin-bottom: 16px; }
+
+  .vip-benefits-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 10px 16px 24px; }
+  .vip-benefit-cell {
+    background: rgba(255,255,255,0.05); border: 1px solid rgba(255,215,106,0.2); border-radius: 14px;
+    padding: 16px 6px; text-align: center;
+  }
+  .vbc-icon { font-size: 26px; margin-bottom: 8px; }
+  .vbc-name { font-size: 11px; font-weight: 700; color: #ffd76a; font-family: 'Fredoka', 'Inter', sans-serif; }
+
   /* ---- Profile Overlay ---- */
   .profile-overlay {
     position: fixed; inset: 0; z-index: 200; background: #1a1030;
@@ -1106,6 +1128,10 @@
         <div class="profile-id-row">ID: <span id="profileIdNumber">—</span> <button onclick="copyProfileId()">📋</button></div>
       </div>
       <div class="profile-menu">
+        <div class="profile-menu-item" onclick="openVipBenefits()">
+          <span class="pmi-icon">👑</span><span class="pmi-label">VIP Benefits</span>
+          <span class="pmi-arrow">›</span>
+        </div>
         <div class="profile-menu-item" onclick="goToFamilyFromProfile()">
           <span class="pmi-icon">🏠</span><span class="pmi-label">Family</span>
           <span class="pmi-value" id="profileFamilyValue">None</span><span class="pmi-arrow">›</span>
@@ -1236,6 +1262,32 @@
 
   <div class="rank-list" id="rankList">
     <div class="loading">Loading leaderboard...</div>
+  </div>
+</div>
+
+<!-- ===== VIP BENEFITS OVERLAY ===== -->
+<div class="rank-overlay" id="vipBenefitsOverlay">
+  <div class="rank-header">
+    <button onclick="closeVipBenefits()">←</button>
+    <h2>👑 VIP Benefits</h2>
+  </div>
+
+  <div class="vip-tier-card">
+    <div class="vtc-badge" id="vtcBadge">VIP 1</div>
+    <div class="vtc-topup-text">Top up <span id="vtcAmount">—</span> to unlock <span id="vtcTierLabel">VIP 1</span></div>
+    <div class="xp-bar-bg" style="margin: 12px 0 6px;"><div class="xp-bar-fill" id="vtcProgressFill" style="width:0%;"></div></div>
+    <div class="vtc-progress-text" id="vtcProgressText">0 / 100</div>
+    <button class="btn" onclick="rechargeVip()">Recharge</button>
+  </div>
+
+  <div class="section-title" style="padding: 0 16px;">VIP Exclusive Benefits</div>
+  <div class="vip-benefits-grid">
+    <div class="vip-benefit-cell"><div class="vbc-icon">🏅</div><div class="vbc-name">VIP Badge</div></div>
+    <div class="vip-benefit-cell"><div class="vbc-icon">🖼️</div><div class="vbc-name">Exclusive Frame</div></div>
+    <div class="vip-benefit-cell"><div class="vbc-icon">💬</div><div class="vbc-name">Exclusive Bubble</div></div>
+    <div class="vip-benefit-cell"><div class="vbc-icon">⭐</div><div class="vbc-name">Front-row Avatar</div></div>
+    <div class="vip-benefit-cell"><div class="vbc-icon">⚡</div><div class="vbc-name">Stamina Boost</div></div>
+    <div class="vip-benefit-cell"><div class="vbc-icon">🌾</div><div class="vbc-name">Bonus Farm Land</div></div>
   </div>
 </div>
 
@@ -1491,6 +1543,57 @@
 
   function closeRankView() {
     document.getElementById('rankOverlay').classList.remove('show');
+  }
+
+  // ---------- VIP BENEFITS (currency-localized, payment not yet connected) ----------
+  const VIP_TIERS = [
+    { tier: 1, usd: 1 }, { tier: 2, usd: 5 }, { tier: 3, usd: 10 },
+    { tier: 4, usd: 20 }, { tier: 5, usd: 40 }, { tier: 6, usd: 75 },
+    { tier: 7, usd: 150 }, { tier: 8, usd: 300 }, { tier: 9, usd: 600 },
+    { tier: 10, usd: 1200 }, { tier: 11, usd: 2500 }, { tier: 12, usd: 5000 }
+  ];
+
+  const CURRENCY_MAP = {
+    'SA': { code: 'SAR', rate: 3.75, symbol: 'ر.س' },
+    'PK': { code: 'PKR', rate: 278, symbol: 'Rs' },
+    'AE': { code: 'AED', rate: 3.67, symbol: 'د.إ' },
+    'IN': { code: 'INR', rate: 83, symbol: '₹' },
+    'GB': { code: 'GBP', rate: 0.79, symbol: '£' },
+    'US': { code: 'USD', rate: 1, symbol: '$' }
+  };
+
+  function detectUserCurrency() {
+    const lang = navigator.language || 'en-US';
+    const region = (lang.split('-')[1] || '').toUpperCase();
+    return CURRENCY_MAP[region] || CURRENCY_MAP['US'];
+  }
+
+  function formatLocalPrice(usdAmount) {
+    const cur = detectUserCurrency();
+    const localAmount = usdAmount * cur.rate;
+    const decimals = localAmount < 10 ? 2 : 1;
+    return cur.symbol + localAmount.toFixed(decimals);
+  }
+
+  function openVipBenefits() {
+    const currentTier = (currentUserData && currentUserData.realVipTier) || 0;
+    const nextTierInfo = VIP_TIERS.find(t => t.tier === currentTier + 1) || VIP_TIERS[VIP_TIERS.length - 1];
+
+    document.getElementById('vtcBadge').textContent = 'VIP ' + currentTier;
+    document.getElementById('vtcTierLabel').textContent = 'VIP' + nextTierInfo.tier;
+    document.getElementById('vtcAmount').textContent = formatLocalPrice(nextTierInfo.usd);
+    document.getElementById('vtcProgressText').textContent = '0 / 100';
+    document.getElementById('vtcProgressFill').style.width = '0%';
+
+    document.getElementById('vipBenefitsOverlay').classList.add('show');
+  }
+
+  function closeVipBenefits() {
+    document.getElementById('vipBenefitsOverlay').classList.remove('show');
+  }
+
+  function rechargeVip() {
+    alert('Real payments are coming soon! You\'ll be able to top up in ' + detectUserCurrency().code + ' once this is ready.');
   }
 
   function switchRankTab(tab) {
