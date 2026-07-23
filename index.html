@@ -239,12 +239,12 @@
   }
 
   /* ---- Gift Picker ---- */
-  .gift-picker-header { text-align: center; padding: 16px; font-family: 'Fredoka', 'Inter', sans-serif; font-weight: 700; font-size: 15px; color: #ffd76a; }
-  .gift-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 0 16px 20px; }
+  .gift-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
   .gift-cell {
     background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 14px;
     padding: 14px 6px; text-align: center; cursor: pointer;
   }
+  .gift-cell.selected { border-color: #ffd76a; background: rgba(255,215,106,0.12); }
   .gift-cell .g-emoji { font-size: 30px; margin-bottom: 6px; }
   .gift-cell .g-name { font-size: 11.5px; font-weight: 700; font-family: 'Fredoka', 'Inter', sans-serif; margin-bottom: 3px; }
   .gift-cell .g-cost { font-size: 11px; color: #ffd76a; font-weight: 700; }
@@ -257,6 +257,40 @@
     30% { transform: translate(-50%,-50%) scale(1.2); opacity: 1; }
     70% { transform: translate(-50%,-50%) scale(1); opacity: 1; }
     100% { transform: translate(-50%,-80%) scale(1); opacity: 0; }
+  }
+
+  .gift-recipients-row { display: flex; gap: 10px; padding: 4px 16px 8px; overflow-x: auto; flex-shrink: 0; }
+  .gift-recip-chip { display: flex; flex-direction: column; align-items: center; gap: 4px; flex-shrink: 0; cursor: pointer; opacity: 0.5; }
+  .gift-recip-chip.selected { opacity: 1; }
+  .gift-recip-chip .grc-avatar {
+    width: 42px; height: 42px; border-radius: 50%; background: linear-gradient(135deg,#ff6b9d,#c44dff);
+    display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 15px; font-family: 'Fredoka', 'Inter', sans-serif;
+    border: 2px solid transparent;
+  }
+  .gift-recip-chip.selected .grc-avatar { border-color: #ffd76a; }
+  .gift-recip-chip .grc-name { font-size: 9.5px; color: rgba(255,255,255,0.7); max-width: 46px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  .gift-select-all-btn {
+    margin: 0 16px 12px; align-self: flex-start; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);
+    color: #fff; padding: 6px 14px; border-radius: 14px; font-size: 11.5px; font-weight: 600; cursor: pointer;
+  }
+  .gift-select-all-btn.active { background: rgba(255,215,106,0.2); border-color: #ffd76a; color: #ffd76a; }
+
+  .gift-category-tabs { display: flex; gap: 18px; padding: 0 16px 12px; flex-shrink: 0; border-bottom: 1px solid rgba(255,255,255,0.08); }
+  .gct { font-family: 'Fredoka', 'Inter', sans-serif; font-weight: 700; font-size: 13.5px; color: rgba(255,255,255,0.4); cursor: pointer; padding-bottom: 8px; }
+  .gct.active { color: #ffd76a; border-bottom: 2px solid #ffd76a; }
+
+  .gift-send-bar {
+    display: flex; align-items: center; gap: 10px; padding: 12px 16px; background: rgba(0,0,0,0.3);
+    border-top: 1px solid rgba(255,255,255,0.1); flex-shrink: 0;
+  }
+  .gsb-wallet { font-family: 'Fredoka', 'Inter', sans-serif; font-weight: 700; font-size: 13px; color: #ffd76a; flex-shrink: 0; }
+  .gsb-qty { display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.06); border-radius: 12px; padding: 4px 8px; }
+  .gsb-qty button { width: 24px; height: 24px; border-radius: 50%; border: none; background: rgba(255,255,255,0.1); color: #fff; font-size: 14px; cursor: pointer; }
+  .gsb-qty span { font-weight: 700; font-size: 13px; min-width: 18px; text-align: center; }
+  .gsb-send-btn {
+    margin-left: auto; background: linear-gradient(90deg,#ff6b9d,#c44dff); border: none; color: #fff;
+    padding: 10px 24px; border-radius: 20px; font-weight: 700; font-family: 'Fredoka', 'Inter', sans-serif; cursor: pointer;
   }
 
   /* ---- Tic-Tac-Toe Overlay ---- */
@@ -1032,13 +1066,31 @@
   </div>
 
   <!-- ===== GIFT PICKER OVERLAY ===== -->
-  <div class="ttt-overlay" id="giftOverlay">
-    <div class="ttt-header">
+  <div class="ttt-overlay" id="giftOverlay" style="align-items: stretch; padding: 0;">
+    <div class="ttt-header" style="padding: 16px 16px 8px;">
       <button onclick="closeGiftPicker()">←</button>
       <h2>🎁 Send Gift</h2>
     </div>
-    <div class="gift-picker-header" id="giftRecipientLabel">To: —</div>
-    <div class="gift-grid" id="giftGrid"></div>
+
+    <div class="gift-recipients-row" id="giftRecipientsRow"></div>
+    <button class="gift-select-all-btn" id="giftSelectAllBtn" onclick="toggleSelectAllRecipients()">Select All</button>
+
+    <div class="gift-category-tabs" id="giftCategoryTabs">
+      <div class="gct active" data-cat="classical" onclick="switchGiftCategory('classical')">Classical</div>
+      <div class="gct" data-cat="premium" onclick="switchGiftCategory('premium')">Premium</div>
+    </div>
+
+    <div class="gift-grid" id="giftGrid" style="flex: 1; overflow-y: auto; padding: 4px 16px 16px;"></div>
+
+    <div class="gift-send-bar">
+      <div class="gsb-wallet">💕 <span id="giftWalletDisplay">0</span></div>
+      <div class="gsb-qty">
+        <button onclick="changeGiftQty(-1)">−</button>
+        <span id="giftQtyDisplay">1</span>
+        <button onclick="changeGiftQty(1)">+</button>
+      </div>
+      <button class="gsb-send-btn" onclick="confirmSendGift()">Send</button>
+    </div>
   </div>
 
   <!-- ===== ROOM OWNER MENU ===== -->
@@ -2873,22 +2925,48 @@
 
   // ---------- GIFTS ----------
   const GIFTS = [
-    { emoji: '🌹', name: 'Rose', cost: 10 },
-    { emoji: '🍰', name: 'Cake', cost: 50 },
-    { emoji: '💎', name: 'Diamond', cost: 100 },
-    { emoji: '👑', name: 'Crown', cost: 500 },
-    { emoji: '🚀', name: 'Rocket', cost: 1000 },
-    { emoji: '🦁', name: 'Lion', cost: 5000 }
+    { emoji: '🍑', name: 'Peach Love', cost: 10, cat: 'classical' },
+    { emoji: '🍀', name: 'Clover', cost: 10, cat: 'classical' },
+    { emoji: '🥰', name: 'Love U', cost: 10, cat: 'classical' },
+    { emoji: '🔑', name: 'Golden Key', cost: 20, cat: 'classical' },
+    { emoji: '🍺', name: 'Celebration Glass', cost: 50, cat: 'classical' },
+    { emoji: '🌻', name: 'Sunflower', cost: 50, cat: 'classical' },
+    { emoji: '⏳', name: 'Hourglass', cost: 50, cat: 'classical' },
+    { emoji: '🪶', name: 'Golden Feather', cost: 50, cat: 'classical' },
+    { emoji: '🌹', name: 'Rose', cost: 10, cat: 'classical' },
+    { emoji: '🍰', name: 'Cake', cost: 50, cat: 'classical' },
+    { emoji: '💎', name: 'Diamond', cost: 100, cat: 'premium' },
+    { emoji: '👑', name: 'Crown', cost: 500, cat: 'premium' },
+    { emoji: '🚀', name: 'Rocket', cost: 1000, cat: 'premium' },
+    { emoji: '🦁', name: 'Lion', cost: 5000, cat: 'premium' }
   ];
+
+  let giftSelectedRecipients = new Set();
+  let giftSelectedCategory = 'classical';
+  let giftSelectedItem = null;
+  let giftQty = 1;
 
   let giftRecipientUid = null;
   let giftRecipientName = null;
 
-  function openGiftPicker(recipientUid, recipientName) {
-    giftRecipientUid = recipientUid;
-    giftRecipientName = recipientName;
-    document.getElementById('giftRecipientLabel').textContent = 'To: ' + recipientName;
-    renderGiftGrid();
+  function openGiftPicker(preselectUid, preselectName) {
+    if (!currentRoomId) { alert('Join a room first to send gifts.'); return; }
+    giftSelectedRecipients = new Set();
+    giftSelectedItem = null;
+    giftQty = 1;
+    giftSelectedCategory = 'classical';
+
+    db.ref('liveRooms/' + currentRoomId + '/seats').once('value').then((snap) => {
+      const seats = snap.val() || {};
+      const others = Object.values(seats).filter(s => currentUser && s.uid !== currentUser.uid);
+      renderRecipientChips(others);
+      if (preselectUid) giftSelectedRecipients.add(preselectUid);
+      renderRecipientChips(others);
+    });
+
+    document.getElementById('giftQtyDisplay').textContent = '1';
+    document.getElementById('giftWalletDisplay').textContent = formatNum((currentUserData && currentUserData.love) || 0);
+    switchGiftCategory('classical');
     document.getElementById('giftOverlay').classList.add('show');
   }
 
@@ -2896,46 +2974,113 @@
     document.getElementById('giftOverlay').classList.remove('show');
   }
 
+  let giftRecipientsCache = [];
+
+  function renderRecipientChips(others) {
+    if (others) giftRecipientsCache = others;
+    const rowEl = document.getElementById('giftRecipientsRow');
+    rowEl.innerHTML = '';
+    giftRecipientsCache.forEach((r) => {
+      const chip = document.createElement('div');
+      const isSel = giftSelectedRecipients.has(r.uid);
+      chip.className = 'gift-recip-chip' + (isSel ? ' selected' : '');
+      chip.innerHTML = `<div class="grc-avatar">${escapeHtml(r.name.charAt(0).toUpperCase())}</div><div class="grc-name">${escapeHtml(r.name)}</div>`;
+      chip.onclick = () => toggleRecipient(r.uid);
+      rowEl.appendChild(chip);
+    });
+    const allBtn = document.getElementById('giftSelectAllBtn');
+    const allSelected = giftRecipientsCache.length > 0 && giftSelectedRecipients.size === giftRecipientsCache.length;
+    allBtn.classList.toggle('active', allSelected);
+  }
+
+  function toggleRecipient(uid) {
+    if (giftSelectedRecipients.has(uid)) giftSelectedRecipients.delete(uid);
+    else giftSelectedRecipients.add(uid);
+    renderRecipientChips();
+  }
+
+  function toggleSelectAllRecipients() {
+    if (giftSelectedRecipients.size === giftRecipientsCache.length) {
+      giftSelectedRecipients = new Set();
+    } else {
+      giftSelectedRecipients = new Set(giftRecipientsCache.map(r => r.uid));
+    }
+    renderRecipientChips();
+  }
+
+  function switchGiftCategory(cat) {
+    giftSelectedCategory = cat;
+    document.querySelectorAll('.gct').forEach(el => el.classList.toggle('active', el.dataset.cat === cat));
+    renderGiftGrid();
+  }
+
   function renderGiftGrid() {
     const gridEl = document.getElementById('giftGrid');
     gridEl.innerHTML = '';
-    GIFTS.forEach((gift) => {
+    GIFTS.filter(g => g.cat === giftSelectedCategory).forEach((gift) => {
       const cell = document.createElement('div');
-      cell.className = 'gift-cell';
+      const isSel = giftSelectedItem === gift;
+      cell.className = 'gift-cell' + (isSel ? ' selected' : '');
       cell.innerHTML = `<div class="g-emoji">${gift.emoji}</div><div class="g-name">${gift.name}</div><div class="g-cost">💕 ${formatNum(gift.cost)}</div>`;
-      cell.onclick = () => sendGift(gift);
+      cell.onclick = () => { giftSelectedItem = gift; renderGiftGrid(); };
       gridEl.appendChild(cell);
     });
   }
 
-  function sendGift(gift) {
-    if (!currentUser || !currentUserData || !giftRecipientUid || !currentRoomId) return;
+  function changeGiftQty(delta) {
+    giftQty = Math.max(1, giftQty + delta);
+    document.getElementById('giftQtyDisplay').textContent = giftQty;
+  }
+
+  function confirmSendGift() {
+    if (!currentUser || !currentUserData || !currentRoomId) return;
+    if (giftSelectedRecipients.size === 0) { alert('Pick at least one recipient.'); return; }
+    if (!giftSelectedItem) { alert('Pick a gift first.'); return; }
+
+    const totalCost = giftSelectedItem.cost * giftQty * giftSelectedRecipients.size;
     const myLove = currentUserData.love || 0;
-    if (myLove < gift.cost) {
-      alert("Not enough Love Coins for this gift.");
-      return;
-    }
+    if (myLove < totalCost) { alert('Not enough Love Coins for this gift.'); return; }
 
-    db.ref('users/' + giftRecipientUid).once('value').then((snap) => {
-      const recipientData = snap.val();
-      if (!recipientData) return;
+    const recipientUids = Array.from(giftSelectedRecipients);
+    const perRecipientCost = giftSelectedItem.cost * giftQty;
+    const perRecipientReward = Math.floor(perRecipientCost * 0.5);
 
-      db.ref('users/' + currentUser.uid).update({ love: myLove - gift.cost });
-      db.ref('users/' + giftRecipientUid).update({ love: (recipientData.love || 0) + Math.floor(gift.cost * 0.5) });
+    db.ref('users/' + currentUser.uid).update({ love: myLove - totalCost });
 
-      db.ref('liveRooms/' + currentRoomId + '/messages').push({
-        uid: currentUser.uid,
-        name: currentUserData.name,
-        text: '🎁 sent ' + giftRecipientName + ' a ' + gift.name + ' ' + gift.emoji,
-        timestamp: Date.now()
+    const recipientNames = [];
+    let pending = recipientUids.length;
+    recipientUids.forEach((uid) => {
+      const chip = giftRecipientsCache.find(r => r.uid === uid);
+      const rName = chip ? chip.name : 'User';
+      recipientNames.push(rName);
+      db.ref('users/' + uid).once('value').then((snap) => {
+        const rData = snap.val();
+        if (rData) {
+          db.ref('users/' + uid).update({ love: (rData.love || 0) + perRecipientReward });
+        }
+        addActivity(uid, 'social', currentUserData.name + ' sent you ' + giftQty + '× ' + giftSelectedItem.emoji + ' ' + giftSelectedItem.name + '!');
+        pending--;
+        if (pending === 0) finishGiftSend(recipientNames);
       });
-
-      addActivity(currentUser.uid, 'personal', 'You sent ' + giftRecipientName + ' a ' + gift.emoji + ' ' + gift.name);
-      addActivity(giftRecipientUid, 'social', currentUserData.name + ' sent you a ' + gift.emoji + ' ' + gift.name + '!');
-
-      showGiftFlash(gift.emoji);
-      closeGiftPicker();
     });
+  }
+
+  function finishGiftSend(recipientNames) {
+    const namesText = recipientNames.length > 2
+      ? recipientNames.slice(0, 2).join(', ') + ' +' + (recipientNames.length - 2) + ' more'
+      : recipientNames.join(' & ');
+
+    db.ref('liveRooms/' + currentRoomId + '/messages').push({
+      uid: currentUser.uid,
+      name: currentUserData.name,
+      text: '🎁 sent ' + namesText + ' ' + giftQty + '× ' + giftSelectedItem.name + ' ' + giftSelectedItem.emoji,
+      timestamp: Date.now()
+    });
+
+    addActivity(currentUser.uid, 'personal', 'You sent ' + giftQty + '× ' + giftSelectedItem.emoji + ' ' + giftSelectedItem.name + ' to ' + namesText);
+
+    showGiftFlash(giftSelectedItem.emoji);
+    closeGiftPicker();
   }
 
   function showGiftFlash(emoji) {
