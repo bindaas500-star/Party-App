@@ -425,10 +425,10 @@
   .spt-label { font-size: 11px; color: rgba(255,255,255,0.5); font-weight: 700; margin-bottom: 5px; }
   .spt-value { font-size: 13px; font-weight: 700; font-family: 'Fredoka', 'Inter', sans-serif; color: #ffd76a; }
 
-  .seat-prof-actions { display: flex; gap: 10px; padding: 6px 16px 24px; }
+  .seat-prof-actions { display: flex; gap: 8px; padding: 6px 16px 24px; }
   .spa-btn {
-    flex: 1; padding: 14px; border: none; border-radius: 16px; font-family: 'Fredoka', 'Inter', sans-serif;
-    font-weight: 700; font-size: 14px; cursor: pointer;
+    flex: 1; padding: 13px 4px; border: none; border-radius: 14px; font-family: 'Fredoka', 'Inter', sans-serif;
+    font-weight: 700; font-size: 12px; cursor: pointer;
   }
   .spa-btn.gift { background: linear-gradient(90deg,#ff6b9d,#c44dff); color: #fff; }
   .spa-btn.chat { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: #fff; }
@@ -1106,6 +1106,7 @@
         <span class="badge-pill" id="seatProfIdBadge">🆔 ID Lv. 1</span>
         <span class="badge-pill vip-pill" id="seatProfVipBadge">👑 VIP 1</span>
       </div>
+      <div class="profile-id-row">ID: <span id="seatProfIdNumber">—</span></div>
     </div>
 
     <div class="seat-prof-banner soulmate" onclick="alert('Coming soon')">
@@ -1133,6 +1134,7 @@
     <div class="seat-prof-actions">
       <button class="spa-btn gift" onclick="giftFromSeatProfile()">🎁 Gift</button>
       <button class="spa-btn chat" onclick="chatFromSeatProfile()">💬 Chat</button>
+      <button class="spa-btn chat" onclick="addFriendFromSeatProfile()">👤+ Add Friend</button>
     </div>
   </div>
 
@@ -2709,12 +2711,14 @@
     document.getElementById('seatProfIdBadge').textContent = '🆔 ID Lv. 1';
     document.getElementById('seatProfVipBadge').textContent = '👑 VIP 1';
     document.getElementById('seatProfFamilyValue').textContent = 'None';
+    document.getElementById('seatProfIdNumber').textContent = '—';
 
     db.ref('users/' + uid).once('value').then((snap) => {
       const u = snap.val();
       if (!u) return;
       document.getElementById('seatProfIdBadge').textContent = '🆔 ID Lv. ' + (u.level || 1);
       document.getElementById('seatProfVipBadge').textContent = '👑 VIP ' + (u.farmLevel || 1);
+      document.getElementById('seatProfIdNumber').textContent = u.profileId || '—';
       if (u.familyId) {
         db.ref('families/' + u.familyId).once('value').then((famSnap) => {
           const fam = famSnap.val();
@@ -2742,6 +2746,20 @@
     const input = document.getElementById('roomMsgInput');
     input.value = '@' + seatProfileName + ' ';
     input.focus();
+  }
+
+  function addFriendFromSeatProfile() {
+    if (!currentUser || !seatProfileUid) return;
+    if (seatProfileUid === currentUser.uid) { alert("You can't add yourself as a friend."); return; }
+
+    db.ref('users/' + currentUser.uid + '/friends/' + seatProfileUid).once('value').then((snap) => {
+      if (snap.val()) { alert(seatProfileName + ' is already your friend.'); return; }
+
+      db.ref('users/' + currentUser.uid + '/friends/' + seatProfileUid).set(true);
+      db.ref('users/' + seatProfileUid + '/friends/' + currentUser.uid).set(true);
+      addActivity(seatProfileUid, 'social', currentUserData.name + ' added you as a friend!');
+      alert(seatProfileName + ' added as a friend!');
+    });
   }
 
   // ---------- ROOM: SEATS ----------
