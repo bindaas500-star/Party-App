@@ -802,6 +802,7 @@
       <input type="email" id="emailInput" placeholder="Email">
       <input type="password" id="passInput" placeholder="Password">
       <button class="btn" id="authSubmitBtn" onclick="handleAuth()">Login</button>
+      <div class="toggle-link" id="forgotPasswordLink" onclick="handleForgotPassword()">Forgot password?</div>
       <div class="toggle-link" id="toggleAuthMode" onclick="toggleAuthMode()">New here? Create an account</div>
     </div>
   </div>
@@ -1096,8 +1097,12 @@
   <!-- ===== ROOM OWNER MENU ===== -->
   <!-- ===== SEAT PROFILE POPUP ===== -->
   <div class="profile-overlay" id="seatProfileOverlay">
-    <div class="profile-overlay-header">
+    <div class="profile-overlay-header" style="display:flex; align-items:center; justify-content:space-between;">
       <button onclick="closeSeatProfile()">←</button>
+      <div style="display:flex; gap:8px;">
+        <button onclick="reportSeatProfileUser()" style="background:rgba(255,255,255,0.08); border:none; color:#ffb4b4; padding:7px 12px; border-radius:16px; font-size:11.5px; font-weight:600; cursor:pointer;">🚩 Report</button>
+        <button onclick="blockSeatProfileUser()" style="background:rgba(255,255,255,0.08); border:none; color:#ff8a8a; padding:7px 12px; border-radius:16px; font-size:11.5px; font-weight:600; cursor:pointer;">🚫 Block</button>
+      </div>
     </div>
     <div class="profile-hero">
       <div class="profile-avatar-ring"><div class="profile-avatar" id="seatProfAvatar">?</div></div>
@@ -1444,7 +1449,25 @@
     document.getElementById('authSubmitBtn').textContent = isSignupMode ? "Sign Up" : "Login";
     document.getElementById('toggleAuthMode').textContent = isSignupMode ? "Already have an account? Login" : "New here? Create an account";
     document.getElementById('nameInput').style.display = isSignupMode ? "block" : "none";
+    document.getElementById('forgotPasswordLink').style.display = isSignupMode ? "none" : "block";
     document.getElementById('authError').textContent = "";
+  }
+
+  function handleForgotPassword() {
+    const email = document.getElementById('emailInput').value.trim();
+    const errorEl = document.getElementById('authError');
+    errorEl.style.color = '';
+    if (!email) {
+      errorEl.textContent = "Enter your email above first, then tap 'Forgot password?'";
+      return;
+    }
+    auth.sendPasswordResetEmail(email).then(() => {
+      errorEl.style.color = '#9df5c5';
+      errorEl.textContent = "✅ Reset link sent! Check your email inbox.";
+    }).catch((err) => {
+      errorEl.style.color = '';
+      errorEl.textContent = err.message;
+    });
   }
 
   function handleAuth() {
@@ -1863,6 +1886,7 @@
       }
       const posts = Object.values(data).sort((a, b) => b.timestamp - a.timestamp);
       posts.forEach((post) => {
+        if (isUserBlocked(post.uid)) return;
         const card = document.createElement('div');
         card.className = 'moment-card';
         card.innerHTML = `
@@ -2343,6 +2367,7 @@
         return;
       }
       Object.values(messages).forEach((msg) => {
+        if (isUserBlocked(msg.uid)) return;
         const div = document.createElement('div');
         const isMe = msg.uid === currentUser.uid;
         div.className = 'msg ' + (isMe ? 'me' : 'other');
@@ -2762,6 +2787,39 @@
     });
   }
 
+  function reportSeatProfileUser() {
+    if (!currentUser || !seatProfileUid) return;
+    if (seatProfileUid === currentUser.uid) { alert("You can't report yourself."); return; }
+
+    const reason = prompt('Why are you reporting ' + seatProfileName + '? (e.g. harassment, spam, inappropriate content)');
+    if (reason === null || !reason.trim()) return;
+
+    db.ref('reports').push({
+      reportedUid: seatProfileUid,
+      reportedName: seatProfileName,
+      reporterUid: currentUser.uid,
+      reporterName: currentUserData.name,
+      reason: reason.trim(),
+      timestamp: Date.now()
+    });
+    alert('Thanks — your report has been submitted for review.');
+  }
+
+  function blockSeatProfileUser() {
+    if (!currentUser || !seatProfileUid) return;
+    if (seatProfileUid === currentUser.uid) { alert("You can't block yourself."); return; }
+
+    if (!confirm('Block ' + seatProfileName + '? You will no longer see their messages or posts.')) return;
+    db.ref('users/' + currentUser.uid + '/blocked/' + seatProfileUid).set(true);
+    alert(seatProfileName + ' has been blocked.');
+    closeSeatProfile();
+  }
+
+  function isUserBlocked(uid) {
+    return !!(currentUserData && currentUserData.blocked && currentUserData.blocked[uid]);
+  }
+
+
   // ---------- ROOM: SEATS ----------
   function listenToRoomSeats() {
     if (!currentRoomId) return;
@@ -2833,6 +2891,7 @@
         return;
       }
       Object.values(messages).forEach((msg) => {
+        if (isUserBlocked(msg.uid)) return;
         const div = document.createElement('div');
         const isMe = msg.uid === currentUser.uid;
         div.className = 'msg ' + (isMe ? 'me' : 'other');
