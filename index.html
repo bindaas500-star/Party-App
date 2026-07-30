@@ -379,7 +379,8 @@
     margin-left: auto; background: rgba(255,107,107,0.1); border: 1px solid rgba(255,107,107,0.4); color: #ff8a8a;
     padding: 7px 14px; border-radius: 18px; font-size: 12px; font-weight: 700; font-family: 'Fredoka', 'Inter', sans-serif;
   }
-  .members-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; padding: 14px 16px; flex-shrink: 0; background: rgba(0,0,0,0.12); overflow-y: auto; }
+  .members-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; padding: 14px 16px; flex-shrink: 0; background: rgba(0,0,0,0.12); overflow-y: auto; max-height: 180px; }
+  .members-strip-label { padding: 10px 16px 0; font-size: 11.5px; font-weight: 700; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.5px; flex-shrink: 0; }
   .member-chip {
     display: flex; flex-direction: column; align-items: center; gap: 5px; cursor: pointer;
     background: rgba(255,255,255,0.04); border-radius: 12px; padding: 8px 4px;
@@ -959,6 +960,8 @@
         <button class="leave-btn" onclick="leaveFamily()">Leave</button>
       </div>
       <div class="notice-banner" id="familyNoticeBanner" style="display:none;"></div>
+      <div class="seat-grid" id="familySeatGrid"></div>
+      <div class="members-strip-label">All Members</div>
       <div class="members-strip" id="membersStrip"></div>
       <div class="chat-area" id="familyChatArea"></div>
       <div class="input-bar">
@@ -2565,6 +2568,7 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
     document.getElementById('familyInsideView').style.display = 'none';
     if (currentFamilyChatListener) { currentFamilyChatListener(); currentFamilyChatListener = null; }
     if (currentFamilyMembersListener) { currentFamilyMembersListener(); currentFamilyMembersListener = null; }
+    if (currentFamilySeatsListener) { currentFamilySeatsListener(); currentFamilySeatsListener = null; }
   }
 
   // ---------- CREATE / JOIN / LEAVE FAMILY ----------
@@ -2603,8 +2607,10 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
 
   function leaveFamily() {
     if (!currentFamilyId) return;
-    db.ref('families/' + currentFamilyId + '/members/' + currentUser.uid).remove().then(() => {
-      db.ref('users/' + currentUser.uid).update({ familyId: null });
+    clearMyActiveSeat().then(() => {
+      db.ref('families/' + currentFamilyId + '/members/' + currentUser.uid).remove().then(() => {
+        db.ref('users/' + currentUser.uid).update({ familyId: null });
+      });
     });
   }
 
@@ -2648,6 +2654,54 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
     addActivity(memberUid, 'social', 'You were removed from the family.');
   }
 
+  const FAMILY_TOTAL_SEATS = 8;
+  let currentFamilySeatsListener = null;
+
+  function listenToFamilySeats(famId) {
+    if (currentFamilySeatsListener) { currentFamilySeatsListener(); }
+    const seatsRef = db.ref('families/' + famId + '/seats');
+    const handler = seatsRef.on('value', (snap) => {
+      const seats = snap.val() || {};
+      const gridEl = document.getElementById('familySeatGrid');
+      gridEl.innerHTML = '';
+      for (let i = 0; i < FAMILY_TOTAL_SEATS; i++) {
+        const seatData = seats[i];
+        const cell = document.createElement('div');
+        if (seatData) {
+          cell.className = 'seat-cell occupied';
+          cell.innerHTML = `<div class="seat-avatar">${escapeHtml((seatData.name || 'U').charAt(0).toUpperCase())}</div><div class="seat-name">${escapeHtml(seatData.name || 'User')}</div>`;
+        } else {
+          cell.className = 'seat-cell';
+          cell.innerHTML = `<div class="seat-plus">+</div><div class="seat-name">${i + 1}</div>`;
+        }
+        cell.onclick = () => tapFamilySeat(famId, i, !!seatData, seatData);
+        gridEl.appendChild(cell);
+      }
+    });
+    currentFamilySeatsListener = () => seatsRef.off('value', handler);
+  }
+
+  function tapFamilySeat(famId, index, isOccupied, seatData) {
+    if (!currentUser) return;
+    const seatsRef = db.ref('families/' + famId + '/seats');
+    if (isOccupied) {
+      if (seatData.uid === currentUser.uid) {
+        seatsRef.child(index).remove();
+        db.ref('users/' + currentUser.uid + '/activeSeat').remove();
+      } else {
+        openSeatProfile(seatData.uid, seatData.name);
+      }
+      return;
+    }
+    clearMyActiveSeat().then(() => {
+      seatsRef.child(index).set({
+        uid: currentUser.uid,
+        name: currentUserData.name
+      });
+      db.ref('users/' + currentUser.uid + '/activeSeat').set({ type: 'family', containerId: famId, seatIndex: index });
+    });
+  }
+
   // ---------- INSIDE FAMILY VIEW ----------
   let currentFamilyChatListener = null;
   let currentFamilyMembersListener = null;
@@ -2658,6 +2712,7 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
   function showInsideFamily(famId) {
     document.getElementById('familyBrowseView').style.display = 'none';
     document.getElementById('familyInsideView').style.display = 'flex';
+    listenToFamilySeats(famId);
 
     const famRef = db.ref('families/' + famId);
     famRef.once('value').then((snap) => {
@@ -3008,18 +3063,34 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
     currentSeatsListener = () => seatsRef.off('value', handler);
   }
 
+  function clearMyActiveSeat() {
+    if (!currentUser) return Promise.resolve();
+    return db.ref('users/' + currentUser.uid + '/activeSeat').once('value').then((snap) => {
+      const seat = snap.val();
+      if (!seat) return Promise.resolve();
+      const path = (seat.type === 'room' ? 'liveRooms/' : 'families/') + seat.containerId + '/seats/' + seat.seatIndex;
+      return db.ref(path).once('value').then((seatSnap) => {
+        const seatData = seatSnap.val();
+        if (seatData && seatData.uid === currentUser.uid) {
+          return db.ref(path).remove();
+        }
+      }).then(() => db.ref('users/' + currentUser.uid + '/activeSeat').remove());
+    });
+  }
+
   function tapSeat(index, isOccupied, seatData) {
     if (!currentUser || !currentRoomId) return;
     const seatsRef = db.ref('liveRooms/' + currentRoomId + '/seats');
     if (isOccupied) {
       if (seatData.uid === currentUser.uid) {
         seatsRef.child(index).remove();
+        db.ref('users/' + currentUser.uid + '/activeSeat').remove();
       } else {
         openSeatProfile(seatData.uid, seatData.name);
       }
       return;
     }
-    seatsRef.once('value').then((snap) => {
+    clearMyActiveSeat().then(() => seatsRef.once('value')).then((snap) => {
       const seats = snap.val() || {};
       Object.keys(seats).forEach((key) => {
         if (seats[key].uid === currentUser.uid) {
@@ -3030,6 +3101,7 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
         uid: currentUser.uid,
         name: currentUserData.name
       });
+      db.ref('users/' + currentUser.uid + '/activeSeat').set({ type: 'room', containerId: currentRoomId, seatIndex: index });
     });
   }
 
