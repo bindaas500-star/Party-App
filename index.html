@@ -1178,7 +1178,8 @@
     <div style="padding: 8px 20px;">
       <input type="text" id="imageUrlModalInput" placeholder="Paste image link here..." inputmode="url" autocomplete="off"
         style="width:100%; padding:14px; border-radius:14px; border:1px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.06); color:#fff; font-size:14px; margin-bottom:10px; box-sizing:border-box;">
-      <div style="color:rgba(255,255,255,0.45); font-size:11.5px; margin-bottom:18px;">Tip: long-press the box to paste a link copied from Google Photos, Imgur, etc.</div>
+      <button onclick="pasteFromClipboard()" style="width:100%; padding:12px; border-radius:14px; border:1px solid rgba(255,215,106,0.4); background:rgba(255,215,106,0.1); color:#ffd76a; font-size:13px; font-weight:600; cursor:pointer; margin-bottom:14px;">📋 Paste from Clipboard</button>
+      <div style="color:rgba(255,255,255,0.45); font-size:11.5px; margin-bottom:18px;">Copy your image link first, then tap the button above. If that doesn't work, long-press the box and choose Paste.</div>
       <button class="btn" onclick="confirmImageUrlModal()">Save</button>
     </div>
   </div>
@@ -2960,6 +2961,22 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
   function closeImageUrlModal() {
     document.getElementById('imageUrlOverlay').classList.remove('show');
     imageUrlModalTarget = null;
+  }
+
+  function pasteFromClipboard() {
+    if (!navigator.clipboard || !navigator.clipboard.readText) {
+      alert('Clipboard button not supported in this browser — please long-press the box and choose Paste instead.');
+      return;
+    }
+    navigator.clipboard.readText().then((text) => {
+      if (text && text.trim()) {
+        document.getElementById('imageUrlModalInput').value = text.trim();
+      } else {
+        alert('Your clipboard is empty. Copy the image link first, then try again.');
+      }
+    }).catch((err) => {
+      alert('Could not read clipboard automatically. Please long-press the box and choose Paste instead.');
+    });
   }
 
   function confirmImageUrlModal() {
