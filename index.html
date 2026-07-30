@@ -2673,14 +2673,18 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
 
   function leaveFamily() {
     if (!currentFamilyId) return;
+    const famIdLeaving = currentFamilyId;
+
+    // Hide immediately — don't wait on the network round-trip
+    currentFamilyId = null;
+    updateFamilyBubble(getActiveTab());
+    showBrowseFamilies();
+
     clearMyActiveSeat().then(() => {
-      db.ref('families/' + currentFamilyId + '/members/' + currentUser.uid).remove().then(() => {
-        db.ref('users/' + currentUser.uid).update({ familyId: null }).then(() => {
-          currentFamilyId = null;
-          updateFamilyBubble(getActiveTab());
-        });
+      db.ref('families/' + famIdLeaving + '/members/' + currentUser.uid).remove().then(() => {
+        db.ref('users/' + currentUser.uid).update({ familyId: null });
       });
-    });
+    }).catch((err) => console.error('leaveFamily error:', err));
   }
 
   function openFamilyOwnerMenu() { document.getElementById('familyOwnerOverlay').classList.add('show'); }
@@ -2707,15 +2711,16 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
     const famIdToDelete = currentFamilyId;
     closeFamilyOwnerMenu();
 
+    currentFamilyId = null;
+    updateFamilyBubble(getActiveTab());
+    showBrowseFamilies();
+
     db.ref('families/' + famIdToDelete + '/members').once('value').then((snap) => {
       const members = snap.val() || {};
       Object.keys(members).forEach((uid) => {
         db.ref('users/' + uid).update({ familyId: null });
       });
-      db.ref('families/' + famIdToDelete).remove().then(() => {
-        currentFamilyId = null;
-        updateFamilyBubble(getActiveTab());
-      });
+      db.ref('families/' + famIdToDelete).remove();
     });
   }
 
