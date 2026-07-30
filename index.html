@@ -1253,16 +1253,34 @@
     <div id="settingsView" style="display:none; padding: 0 20px;">
       <div class="settings-list">
         <div class="settings-item" onclick="openEditProfileView()">Personal Profile</div>
-        <div class="settings-item" onclick="alert('Coming soon')">Notification</div>
-        <div class="settings-item" onclick="alert('Coming soon')">Blocked Users</div>
-        <div class="settings-item" onclick="alert('Coming soon')">Account Security</div>
-        <div class="settings-item" onclick="alert('Coming soon')">Terms of Use</div>
-        <div class="settings-item" onclick="alert('Coming soon')">Privacy Policy</div>
-        <div class="settings-item" onclick="alert('Coming soon')">Community Guidelines</div>
-        <div class="settings-item" onclick="alert('Coming soon')">Help &amp; Feedback</div>
+        <div class="settings-item" onclick="alert('Push notifications are coming in a future update!')">Notification</div>
+        <div class="settings-item" onclick="openListOverlay('blocked')">Blocked Users</div>
+        <div class="settings-item" onclick="openAccountSecurityView()">Account Security</div>
+        <div class="settings-item" onclick="openInfoPage('terms')">Terms of Use</div>
+        <div class="settings-item" onclick="openInfoPage('privacy')">Privacy Policy</div>
+        <div class="settings-item" onclick="openInfoPage('guidelines')">Community Guidelines</div>
+        <div class="settings-item" onclick="alert('Need help? Message us via the Family or Global chat for now — a dedicated support form is coming soon.')">Help &amp; Feedback</div>
         <div class="settings-item no-arrow">Version 1.0.0</div>
         <button class="sign-out-btn" onclick="handleLogout()">Sign Out</button>
       </div>
+    </div>
+
+    <div id="accountSecurityView" style="display:none; padding: 0 20px;">
+      <div class="profile-overlay-header" style="padding:0 0 14px;">
+        <button onclick="closeAccountSecurityView()">←</button>
+        <span style="font-weight:700; font-size:16px; margin-left:8px;">Account Security</span>
+      </div>
+      <div style="color:rgba(255,255,255,0.6); font-size:13px; margin-bottom:16px;">Email: <span id="secEmailDisplay" style="color:#fff; font-weight:600;">—</span></div>
+      <button class="btn" onclick="sendChangePasswordEmail()" style="margin-bottom:12px;">Send Password Reset Email</button>
+      <div style="color:rgba(255,255,255,0.45); font-size:11.5px;">We'll email you a secure link to set a new password.</div>
+    </div>
+
+    <div id="infoPageView" style="display:none; padding: 0 20px;">
+      <div class="profile-overlay-header" style="padding:0 0 14px;">
+        <button onclick="closeInfoPage()">←</button>
+        <span id="infoPageTitle" style="font-weight:700; font-size:16px; margin-left:8px;">Terms of Use</span>
+      </div>
+      <div id="infoPageBody" style="color:rgba(255,255,255,0.75); font-size:13px; line-height:1.7; white-space:pre-line;"></div>
     </div>
 
     <div id="editProfileView" style="display:none; padding: 0 20px;">
@@ -1601,6 +1619,8 @@
     document.getElementById('languageView').style.display = 'none';
     document.getElementById('settingsView').style.display = 'none';
     document.getElementById('editProfileView').style.display = 'none';
+    document.getElementById('accountSecurityView').style.display = 'none';
+    document.getElementById('infoPageView').style.display = 'none';
     document.getElementById('profileMainView').style.display = 'block';
     currentProfileSubView = null;
   }
@@ -1740,7 +1760,7 @@
   function openListOverlay(mode) {
     currentListMode = mode;
     document.getElementById('listOverlay').classList.add('show');
-    const titleMap = { notifications: '🔔 Notifications', activity: '🎁 Activity', friends: '❤️ Friends', quickgift: '🎁 Pick Recipient', giftlog: '📦 Gift Log' };
+    const titleMap = { notifications: '🔔 Notifications', activity: '🎁 Activity', friends: '❤️ Friends', quickgift: '🎁 Pick Recipient', giftlog: '📦 Gift Log', blocked: '🚫 Blocked Users' };
     document.getElementById('listOverlayTitle').textContent = titleMap[mode];
     document.getElementById('friendsAddBox').style.display = mode === 'friends' ? 'block' : 'none';
     loadListOverlayContent();
@@ -1762,9 +1782,37 @@
       loadQuickGiftList(contentEl);
     } else if (currentListMode === 'giftlog') {
       loadGiftLog(contentEl);
+    } else if (currentListMode === 'blocked') {
+      loadBlockedList(contentEl);
     } else {
       loadActivityList(contentEl, currentListMode === 'notifications' ? 'social' : 'personal');
     }
+  }
+
+  function loadBlockedList(contentEl) {
+    const blocked = (currentUserData && currentUserData.blocked) || {};
+    const uids = Object.keys(blocked);
+    if (!uids.length) { contentEl.innerHTML = '<div class="loading">You haven\'t blocked anyone.</div>'; return; }
+    contentEl.innerHTML = '';
+    uids.forEach((uid) => {
+      db.ref('users/' + uid).once('value').then((snap) => {
+        const u = snap.val();
+        const name = u ? u.name : 'Unknown User';
+        const row = document.createElement('div');
+        row.className = 'rank-row';
+        row.innerHTML = `<div class="m-avatar" style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#ff6b9d,#c44dff);display:flex;align-items:center;justify-content:center;font-weight:700;">${escapeHtml(name.charAt(0).toUpperCase())}</div>
+          <div style="flex:1;padding-left:10px;font-weight:600;">${escapeHtml(name)}</div>
+          <button style="background:rgba(255,255,255,0.1);border:none;color:#fff;padding:8px 14px;border-radius:14px;font-size:12px;font-weight:600;cursor:pointer;">Unblock</button>`;
+        row.querySelector('button').onclick = () => unblockUser(uid);
+        contentEl.appendChild(row);
+      });
+    });
+  }
+
+  function unblockUser(uid) {
+    db.ref('users/' + currentUser.uid + '/blocked/' + uid).remove().then(() => {
+      loadListOverlayContent();
+    });
   }
 
   function loadQuickGiftList(contentEl) {
@@ -1951,6 +1999,95 @@
 
   function openSettingsView() {
     document.getElementById('profileMainView').style.display = 'none';
+    document.getElementById('settingsView').style.display = 'block';
+    currentProfileSubView = 'settings';
+  }
+
+  function openAccountSecurityView() {
+    document.getElementById('profileMainView').style.display = 'none';
+    document.getElementById('settingsView').style.display = 'none';
+    document.getElementById('accountSecurityView').style.display = 'block';
+    currentProfileSubView = 'accountSecurity';
+    document.getElementById('secEmailDisplay').textContent = (currentUser && currentUser.email) || '—';
+  }
+
+  function closeAccountSecurityView() {
+    document.getElementById('accountSecurityView').style.display = 'none';
+    document.getElementById('settingsView').style.display = 'block';
+    currentProfileSubView = 'settings';
+  }
+
+  function sendChangePasswordEmail() {
+    if (!currentUser || !currentUser.email) return;
+    auth.sendPasswordResetEmail(currentUser.email).then(() => {
+      alert('Password reset link sent to ' + currentUser.email + '. Check your inbox!');
+    }).catch((err) => {
+      alert(err.message);
+    });
+  }
+
+  const INFO_PAGES = {
+    terms: {
+      title: 'Terms of Use',
+      body: `Welcome to Party App! By using this app, you agree to the following terms:
+
+1. ACCOUNT — You are responsible for keeping your login details safe. You must be at least 13 years old to use this app.
+
+2. IN-APP CURRENCY — Coins, Gems, and Love Coins are virtual items with no real-world monetary value. They cannot be exchanged for cash and have no guaranteed value.
+
+3. ACCEPTABLE USE — You agree not to harass, threaten, or abuse other users. Hate speech, spam, and impersonation are not allowed. We may suspend or remove accounts that break these rules.
+
+4. CONTENT — Anything you post (chat messages, moments, images) must not be illegal, harmful, or infringe others' rights. You are responsible for what you post.
+
+5. CHANGES — We may update the app, these terms, or remove features at any time.
+
+6. NO WARRANTY — The app is provided "as is" without guarantees. We are not liable for lost virtual items, downtime, or data loss.
+
+By continuing to use Party App, you accept these terms.`
+    },
+    privacy: {
+      title: 'Privacy Policy',
+      body: `Your privacy matters to us. Here's what we collect and why:
+
+1. INFORMATION WE COLLECT — Your name, email address, and any profile details you add (bio, gender, date of birth, region). Also app activity like coins earned, messages sent, and rooms joined.
+
+2. HOW WE USE IT — To run your account, show your profile to other users, enable chat/gifting/family features, and improve the app.
+
+3. STORAGE — Data is stored securely using Firebase (Google Cloud infrastructure) and is only accessible to logged-in users as needed for app features.
+
+4. SHARING — We do not sell your personal data. Other users can see your public profile info (name, level, bio) as part of normal app use.
+
+5. YOUR CONTROLS — You can edit or delete your profile info anytime from Settings. You can block other users to stop seeing their content.
+
+6. CONTACT — For privacy questions, reach out via Help & Feedback in Settings.`
+    },
+    guidelines: {
+      title: 'Community Guidelines',
+      body: `To keep Party App fun and safe for everyone:
+
+✅ Be respectful — treat others how you'd like to be treated.
+✅ Keep chat and Moments posts appropriate — no nudity, violence, or illegal content.
+✅ No harassment, bullying, hate speech, or discrimination.
+✅ No spamming links, ads, or scams in chat.
+✅ Don't impersonate other people or share others' private info.
+✅ Report anything that breaks these rules using the 🚩 Report button on a user's profile.
+
+Breaking these guidelines may result in a warning, temporary restriction, or permanent ban depending on severity.`
+    }
+  };
+
+  function openInfoPage(key) {
+    document.getElementById('profileMainView').style.display = 'none';
+    document.getElementById('settingsView').style.display = 'none';
+    document.getElementById('infoPageView').style.display = 'block';
+    currentProfileSubView = 'infoPage';
+    const page = INFO_PAGES[key];
+    document.getElementById('infoPageTitle').textContent = page.title;
+    document.getElementById('infoPageBody').textContent = page.body;
+  }
+
+  function closeInfoPage() {
+    document.getElementById('infoPageView').style.display = 'none';
     document.getElementById('settingsView').style.display = 'block';
     currentProfileSubView = 'settings';
   }
