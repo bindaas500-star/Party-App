@@ -971,7 +971,7 @@
     </div>
   </div>
 
-  <div class="family-bubble" id="familyBubble" onclick="switchTab('family')">
+  <div class="family-bubble" id="familyBubble">
     <span id="familyBubbleAvatar">F</span>
     <span class="bubble-tag">👨‍👩‍👧</span>
   </div>
@@ -2313,6 +2313,51 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
     }
   }
 
+  (function makeFamilyBubbleDraggable() {
+    const bubble = document.getElementById('familyBubble');
+    let dragging = false;
+    let moved = false;
+    let startX = 0, startY = 0, startLeft = 0, startTop = 0;
+
+    bubble.addEventListener('pointerdown', (e) => {
+      dragging = true;
+      moved = false;
+      bubble.setPointerCapture(e.pointerId);
+      const rect = bubble.getBoundingClientRect();
+      startX = e.clientX;
+      startY = e.clientY;
+      startLeft = rect.left;
+      startTop = rect.top;
+      bubble.style.animation = 'none';
+    });
+
+    bubble.addEventListener('pointermove', (e) => {
+      if (!dragging) return;
+      const dx = e.clientX - startX;
+      const dy = e.clientY - startY;
+      if (Math.abs(dx) > 5 || Math.abs(dy) > 5) moved = true;
+      if (!moved) return;
+      let newLeft = startLeft + dx;
+      let newTop = startTop + dy;
+      const maxLeft = window.innerWidth - bubble.offsetWidth;
+      const maxTop = window.innerHeight - bubble.offsetHeight;
+      newLeft = Math.max(0, Math.min(maxLeft, newLeft));
+      newTop = Math.max(0, Math.min(maxTop, newTop));
+      bubble.style.left = newLeft + 'px';
+      bubble.style.top = newTop + 'px';
+      bubble.style.right = 'auto';
+      bubble.style.bottom = 'auto';
+    });
+
+    bubble.addEventListener('pointerup', (e) => {
+      dragging = false;
+      bubble.style.animation = '';
+      if (!moved) {
+        switchTab('family');
+      }
+    });
+  })();
+
   // ---------- HOME / HARVEST ----------
   let harvestIntervalStarted = false;
 
@@ -2609,7 +2654,10 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
     if (!currentFamilyId) return;
     clearMyActiveSeat().then(() => {
       db.ref('families/' + currentFamilyId + '/members/' + currentUser.uid).remove().then(() => {
-        db.ref('users/' + currentUser.uid).update({ familyId: null });
+        db.ref('users/' + currentUser.uid).update({ familyId: null }).then(() => {
+          currentFamilyId = null;
+          updateFamilyBubble(getActiveTab());
+        });
       });
     });
   }
@@ -2643,7 +2691,10 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
       Object.keys(members).forEach((uid) => {
         db.ref('users/' + uid).update({ familyId: null });
       });
-      db.ref('families/' + famIdToDelete).remove();
+      db.ref('families/' + famIdToDelete).remove().then(() => {
+        currentFamilyId = null;
+        updateFamilyBubble(getActiveTab());
+      });
     });
   }
 
