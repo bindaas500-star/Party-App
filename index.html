@@ -221,21 +221,41 @@
     display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; padding: 8px 16px 16px; flex-shrink: 0;
   }
   .seat-cell {
-    aspect-ratio: 1; border-radius: 14px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
-    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; cursor: pointer;
+    aspect-ratio: 1; background: transparent; border: none;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; cursor: pointer;
   }
   .seat-cell { position: relative; }
-  .seat-cell.occupied { background: linear-gradient(160deg, rgba(255,215,106,0.18), rgba(255,107,157,0.1)); border-color: rgba(255,215,106,0.35); }
   .seat-cell .seat-avatar {
-    width: 30px; height: 30px; border-radius: 50%; background: linear-gradient(135deg,#ff6b9d,#c44dff);
-    display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12px; font-family: 'Fredoka', 'Inter', sans-serif;
+    width: 58px; height: 58px; border-radius: 50%; background: linear-gradient(135deg,#ff6b9d,#c44dff);
+    display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 20px; font-family: 'Fredoka', 'Inter', sans-serif;
+    box-shadow: 0 0 0 3px rgba(255,215,106,0.6), 0 4px 14px rgba(0,0,0,0.4);
   }
-  .seat-cell .seat-plus { font-size: 18px; color: rgba(255,255,255,0.3); }
-  .seat-cell .seat-name { font-size: 9px; color: rgba(255,255,255,0.6); font-weight: 600; max-width: 90%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .seat-cell .seat-plus {
+    width: 58px; height: 58px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    font-size: 22px; color: rgba(255,255,255,0.35); background: rgba(255,255,255,0.05); border: 2px dashed rgba(255,255,255,0.2);
+  }
+  .seat-cell .seat-name { font-size: 10.5px; color: rgba(255,255,255,0.85); font-weight: 600; max-width: 90%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-shadow: 0 1px 4px rgba(0,0,0,0.6); }
   .seat-gift-btn {
-    position: absolute; top: -4px; right: -4px; width: 20px; height: 20px; border-radius: 50%;
+    position: absolute; top: 2px; right: 4px; width: 20px; height: 20px; border-radius: 50%;
     background: linear-gradient(135deg,#ff6b9d,#c44dff); display: flex; align-items: center; justify-content: center;
     font-size: 11px; box-shadow: 0 2px 6px rgba(0,0,0,0.3); z-index: 2;
+  }
+
+  .room-header-avatar {
+    width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(135deg,#ff6b9d,#c44dff);
+    display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px;
+    font-family: 'Fredoka', 'Inter', sans-serif; box-shadow: 0 0 0 2px rgba(255,215,106,0.6); flex-shrink: 0;
+  }
+
+  .floating-hearts { position: absolute; inset: 0; pointer-events: none; overflow: hidden; z-index: 1; }
+  .floating-hearts .fh-heart {
+    position: absolute; bottom: -20px; font-size: 16px; opacity: 0; animation: fhRise 6s linear infinite;
+  }
+  @keyframes fhRise {
+    0% { transform: translateY(0) translateX(0); opacity: 0; }
+    10% { opacity: 0.8; }
+    90% { opacity: 0.5; }
+    100% { transform: translateY(-420px) translateX(14px); opacity: 0; }
   }
 
   /* ---- Gift Picker ---- */
@@ -956,7 +976,8 @@
     </div>
 
     <!-- ===== FAMILY PANEL (inside a family) ===== -->
-    <div id="familyInsideView" style="display:none; flex-direction: column; flex: 1; overflow: hidden;">
+    <div id="familyInsideView" style="display:none; flex-direction: column; flex: 1; overflow: hidden; position:relative;">
+      <div class="floating-hearts" id="familyFloatingHearts"></div>
       <div class="family-header">
         <div class="f-avatar-lg" id="insideFamAvatar">F</div>
         <div>
@@ -1038,12 +1059,17 @@
     </div>
 
     <!-- ===== ROOM INSIDE VIEW ===== -->
-    <div id="roomInsideView" style="display:none; flex-direction:column; flex:1; overflow:hidden;">
+    <div id="roomInsideView" style="display:none; flex-direction:column; flex:1; overflow:hidden; position:relative;">
       <div class="room-title-bar" style="display:flex; align-items:center; gap:10px;">
         <button onclick="leaveRoomToBrowse()" style="background:rgba(255,255,255,0.08); border:none; color:#fff; width:32px; height:32px; border-radius:50%; font-size:16px; cursor:pointer;">←</button>
-        <span id="roomInsideTitle">Room</span>
+        <div class="room-header-avatar" id="roomHeaderOwnerAvatar">?</div>
+        <div style="display:flex; flex-direction:column; line-height:1.3;">
+          <span id="roomInsideTitle">Room</span>
+          <span id="roomIdDisplay" style="font-size:10px; color:rgba(255,255,255,0.4); font-weight:500;">ID: —</span>
+        </div>
         <button id="roomOwnerBtn" onclick="openRoomOwnerMenu()" style="display:none; margin-left:auto; background:rgba(255,255,255,0.08); border:none; color:#fff; width:32px; height:32px; border-radius:50%; font-size:16px; cursor:pointer;">⚙️</button>
       </div>
+      <div class="floating-hearts" id="roomFloatingHearts"></div>
       <div class="notice-banner" id="roomNoticeBanner" style="display:none;"></div>
 
       <div class="games-row">
@@ -2668,6 +2694,7 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
     if (currentFamilyChatListener) { currentFamilyChatListener(); currentFamilyChatListener = null; }
     if (currentFamilyMembersListener) { currentFamilyMembersListener(); currentFamilyMembersListener = null; }
     if (currentFamilySeatsListener) { currentFamilySeatsListener(); currentFamilySeatsListener = null; }
+    if (floatingHeartIntervals['familyFloatingHearts']) { clearInterval(floatingHeartIntervals['familyFloatingHearts']); delete floatingHeartIntervals['familyFloatingHearts']; }
   }
 
   // ---------- CREATE / JOIN / LEAVE FAMILY ----------
@@ -2827,6 +2854,7 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
     document.getElementById('familyBrowseView').style.display = 'none';
     document.getElementById('familyInsideView').style.display = 'flex';
     listenToFamilySeats(famId);
+    spawnFloatingHearts('familyFloatingHearts');
 
     const famRef = db.ref('families/' + famId);
     famRef.once('value').then((snap) => {
@@ -2939,6 +2967,26 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
     });
     addXp(XP_PER_MESSAGE);
     input.value = '';
+  }
+
+  const floatingHeartIntervals = {};
+  const HEART_EMOJIS = ['💕', '❤️', '💖', '💗'];
+
+  function spawnFloatingHearts(containerId) {
+    if (floatingHeartIntervals[containerId]) clearInterval(floatingHeartIntervals[containerId]);
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    floatingHeartIntervals[containerId] = setInterval(() => {
+      if (!container.isConnected || container.offsetParent === null) return;
+      const heart = document.createElement('div');
+      heart.className = 'fh-heart';
+      heart.textContent = HEART_EMOJIS[Math.floor(Math.random() * HEART_EMOJIS.length)];
+      heart.style.left = (Math.random() * 85 + 5) + '%';
+      heart.style.fontSize = (12 + Math.random() * 12) + 'px';
+      heart.style.animationDuration = (5 + Math.random() * 3) + 's';
+      container.appendChild(heart);
+      setTimeout(() => heart.remove(), 8500);
+    }, 900);
   }
 
   function escapeHtml(str) {
@@ -3086,7 +3134,8 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
     newRoomRef.set({
       name: name,
       ownerUid: currentUser.uid,
-      createdAt: Date.now()
+      createdAt: Date.now(),
+      roomNumericId: Math.floor(1000000 + Math.random() * 8999999)
     }).then(() => {
       input.value = '';
       enterRoom(newRoomRef.key, name);
@@ -3117,7 +3166,29 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
       } else {
         insideEl.style.backgroundImage = '';
       }
+
+      const avatarEl = document.getElementById('roomHeaderOwnerAvatar');
+      if (room && room.photoURL) {
+        avatarEl.style.backgroundImage = `url('${room.photoURL}')`;
+        avatarEl.style.backgroundSize = 'cover';
+        avatarEl.style.backgroundPosition = 'center';
+        avatarEl.textContent = '';
+      } else {
+        avatarEl.style.backgroundImage = '';
+        avatarEl.textContent = roomName.charAt(0).toUpperCase();
+      }
+
+      if (room && room.roomNumericId) {
+        document.getElementById('roomIdDisplay').textContent = 'ID: ' + room.roomNumericId;
+      } else if (room) {
+        const numericId = Math.floor(1000000 + Math.random() * 8999999);
+        roomRef.child('roomNumericId').set(numericId);
+        document.getElementById('roomIdDisplay').textContent = 'ID: ' + numericId;
+      }
     });
+
+    spawnFloatingHearts('roomFloatingHearts');
+
     const noticeHandler = roomRef.child('notice').on('value', (snap) => {
       const notice = snap.val();
       const bannerEl = document.getElementById('roomNoticeBanner');
@@ -3131,6 +3202,7 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
     if (currentSeatsListener) { currentSeatsListener(); currentSeatsListener = null; }
     if (currentRoomChatListener) { currentRoomChatListener(); currentRoomChatListener = null; }
     if (currentRoomNoticeListener) { currentRoomNoticeListener(); currentRoomNoticeListener = null; }
+    if (floatingHeartIntervals['roomFloatingHearts']) { clearInterval(floatingHeartIntervals['roomFloatingHearts']); delete floatingHeartIntervals['roomFloatingHearts']; }
     currentRoomId = null;
     currentRoomOwnerUid = null;
     document.getElementById('roomInsideView').style.display = 'none';
