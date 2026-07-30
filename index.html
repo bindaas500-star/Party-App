@@ -1169,6 +1169,20 @@
     </div>
   </div>
 
+  <!-- ===== IMAGE URL MODAL ===== -->
+  <div class="ttt-overlay" id="imageUrlOverlay">
+    <div class="ttt-header">
+      <button onclick="closeImageUrlModal()">←</button>
+      <h2 id="imageUrlModalTitle">Set Image</h2>
+    </div>
+    <div style="padding: 8px 20px;">
+      <input type="text" id="imageUrlModalInput" placeholder="Paste image link here..." inputmode="url" autocomplete="off"
+        style="width:100%; padding:14px; border-radius:14px; border:1px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.06); color:#fff; font-size:14px; margin-bottom:10px; box-sizing:border-box;">
+      <div style="color:rgba(255,255,255,0.45); font-size:11.5px; margin-bottom:18px;">Tip: long-press the box to paste a link copied from Google Photos, Imgur, etc.</div>
+      <button class="btn" onclick="confirmImageUrlModal()">Save</button>
+    </div>
+  </div>
+
   <!-- ===== FAMILY OWNER MENU ===== -->
   <div class="ttt-overlay" id="familyOwnerOverlay">
     <div class="ttt-header">
@@ -2933,14 +2947,30 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
   }
 
   // ---------- IMAGE URL SETTING (no paid Storage needed) ----------
+  let imageUrlModalTarget = null;
+
   function promptImageUrl(dbPath, label, onDone) {
-    const url = prompt('Paste an image link for ' + label + ':\n(e.g. from Google Photos, Imgur, or any public image URL)');
-    if (url === null) return;
-    const trimmed = url.trim();
+    imageUrlModalTarget = { dbPath, onDone };
+    document.getElementById('imageUrlModalTitle').textContent = 'Set ' + label;
+    document.getElementById('imageUrlModalInput').value = '';
+    document.getElementById('imageUrlOverlay').classList.add('show');
+    setTimeout(() => document.getElementById('imageUrlModalInput').focus(), 200);
+  }
+
+  function closeImageUrlModal() {
+    document.getElementById('imageUrlOverlay').classList.remove('show');
+    imageUrlModalTarget = null;
+  }
+
+  function confirmImageUrlModal() {
+    if (!imageUrlModalTarget) return;
+    const trimmed = document.getElementById('imageUrlModalInput').value.trim();
     if (!trimmed) { alert('No link entered.'); return; }
     if (!/^https?:\/\//i.test(trimmed)) { alert('Please paste a valid link starting with http:// or https://'); return; }
 
+    const { dbPath, onDone } = imageUrlModalTarget;
     db.ref(dbPath).set(trimmed).then(() => {
+      closeImageUrlModal();
       if (onDone) onDone(trimmed);
     }).catch((err) => alert('Could not save: ' + err.message));
   }
