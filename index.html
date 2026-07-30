@@ -1161,6 +1161,8 @@
       <h2>⚙️ Room Settings</h2>
     </div>
     <div class="owner-menu-list">
+      <div class="owner-menu-item" onclick="uploadRoomPhoto()">🖼️ Set Room Photo</div>
+      <div class="owner-menu-item" onclick="uploadRoomWallpaper()">🎨 Set Room Wallpaper</div>
       <div class="owner-menu-item" onclick="setRoomNotice()">📢 Set Notice</div>
       <div class="owner-menu-item" onclick="clearRoomMessages()">🧹 Clear Messages</div>
       <div class="owner-menu-item danger" onclick="deleteRoom()">🗑️ Delete Room</div>
@@ -1174,11 +1176,15 @@
       <h2>⚙️ Family Settings</h2>
     </div>
     <div class="owner-menu-list">
+      <div class="owner-menu-item" onclick="uploadFamilyPhoto()">🖼️ Set Family Photo</div>
+      <div class="owner-menu-item" onclick="uploadFamilyWallpaper()">🎨 Set Family Wallpaper</div>
       <div class="owner-menu-item" onclick="setFamilyNotice()">📢 Set Notice</div>
       <div class="owner-menu-item" onclick="clearFamilyMessages()">🧹 Clear Messages</div>
       <div class="owner-menu-item danger" onclick="deleteFamily()">🗑️ Delete Family</div>
     </div>
   </div>
+
+  <input type="file" id="hiddenImageUploadInput" accept="image/*" style="display:none;" onchange="handleImageUploadChange(event)">
 
   <div class="bottom-nav">
     <div class="nav-item" id="navMessages" onclick="switchTab('messages')"><span class="nav-icon">💬</span>Messages</div>
@@ -1297,7 +1303,9 @@
     <div id="editProfileView" style="display:none; padding: 0 20px;">
       <div class="edit-avatar-wrap">
         <div class="edit-avatar-ring"><div class="edit-avatar-circle" id="editAvatarBig">?</div></div>
-        <div class="edit-avatar-hint">Photo upload needs Firebase Storage setup — using your initial for now</div>
+        <div style="margin-top:10px;">
+          <button onclick="uploadMyProfilePhoto()" style="background:rgba(255,255,255,0.08); border:none; color:#ffd76a; padding:8px 16px; border-radius:16px; font-size:12px; font-weight:600; cursor:pointer;">📷 Change Photo</button>
+        </div>
       </div>
 
       <div class="edit-field">
@@ -1411,6 +1419,7 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
 
 <script>
   const firebaseConfig = {
@@ -1445,6 +1454,7 @@
   setTimeout(setAppHeight, 1000);
   const auth = firebase.auth();
   const db = firebase.database();
+  const storage = firebase.storage();
 
   const LEVEL_REQUIRED_TO_CREATE = 5;
   const XP_PER_LEVEL = 150;
@@ -1575,18 +1585,30 @@
 
   function renderUserHeader() {
     document.getElementById('userName').textContent = currentUserData.name;
-    document.getElementById('userAvatar').textContent = currentUserData.name.charAt(0).toUpperCase();
+    applyAvatarPhoto(document.getElementById('userAvatar'), currentUserData);
     document.getElementById('userLevelLabel').textContent = "ID Lv. " + (currentUserData.level || 1);
     renderProfile();
     requestAnimationFrame(setAppHeight);
     setTimeout(setAppHeight, 150);
   }
 
+  function applyAvatarPhoto(el, userData) {
+    if (userData && userData.photoURL) {
+      el.style.backgroundImage = `url('${userData.photoURL}')`;
+      el.style.backgroundSize = 'cover';
+      el.style.backgroundPosition = 'center';
+      el.textContent = '';
+    } else {
+      el.style.backgroundImage = '';
+      el.textContent = (userData && userData.name ? userData.name.charAt(0).toUpperCase() : '?');
+    }
+  }
+
   let profileIdBeingGenerated = false;
 
   function renderProfile() {
     if (!currentUserData) return;
-    document.getElementById('profileAvatarBig').textContent = currentUserData.name.charAt(0).toUpperCase();
+    applyAvatarPhoto(document.getElementById('profileAvatarBig'), currentUserData);
     document.getElementById('profileNameBig').textContent = currentUserData.name;
     document.getElementById('profileIdLevelBadge').textContent = "🆔 ID Lv. " + (currentUserData.level || 1);
     document.getElementById('profileVipLevelBadge').textContent = "👑 VIP " + (currentUserData.farmLevel || 1);
@@ -2746,7 +2768,10 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
         const cell = document.createElement('div');
         if (seatData) {
           cell.className = 'seat-cell occupied';
-          cell.innerHTML = `<div class="seat-avatar">${escapeHtml((seatData.name || 'U').charAt(0).toUpperCase())}</div><div class="seat-name">${escapeHtml(seatData.name || 'User')}</div>`;
+          const avatarInner = seatData.photoURL
+            ? `style="background-image:url('${seatData.photoURL}');background-size:cover;background-position:center;"`
+            : '';
+          cell.innerHTML = `<div class="seat-avatar" ${avatarInner}>${seatData.photoURL ? '' : escapeHtml((seatData.name || 'U').charAt(0).toUpperCase())}</div><div class="seat-name">${escapeHtml(seatData.name || 'User')}</div>`;
         } else {
           cell.className = 'seat-cell';
           cell.innerHTML = `<div class="seat-plus">+</div><div class="seat-name">${i + 1}</div>`;
@@ -2773,7 +2798,8 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
     clearMyActiveSeat().then(() => {
       seatsRef.child(index).set({
         uid: currentUser.uid,
-        name: currentUserData.name
+        name: currentUserData.name,
+        photoURL: currentUserData.photoURL || null
       });
       db.ref('users/' + currentUser.uid + '/activeSeat').set({ type: 'family', containerId: famId, seatIndex: index });
     });
@@ -2796,10 +2822,33 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
       const fam = snap.val();
       if (!fam) return;
       document.getElementById('insideFamName').textContent = fam.name;
-      document.getElementById('insideFamAvatar').textContent = fam.name.charAt(0).toUpperCase();
-      document.getElementById('familyBubbleAvatar').textContent = fam.name.charAt(0).toUpperCase();
       currentFamilyOwnerUid = fam.ownerUid;
       document.getElementById('familyOwnerBtn').style.display = (currentUser && currentFamilyOwnerUid === currentUser.uid) ? 'block' : 'none';
+
+      const insideEl = document.getElementById('familyInsideView');
+      if (fam.wallpaperURL) {
+        insideEl.style.backgroundImage = `linear-gradient(rgba(20,10,35,0.75),rgba(20,10,35,0.75)), url('${fam.wallpaperURL}')`;
+        insideEl.style.backgroundSize = 'cover';
+        insideEl.style.backgroundPosition = 'center';
+      } else {
+        insideEl.style.backgroundImage = '';
+      }
+
+      const famAvatarEl = document.getElementById('insideFamAvatar');
+      const bubbleAvatarEl = document.getElementById('familyBubbleAvatar');
+      if (fam.photoURL) {
+        famAvatarEl.style.backgroundImage = `url('${fam.photoURL}')`;
+        famAvatarEl.style.backgroundSize = 'cover';
+        famAvatarEl.textContent = '';
+        bubbleAvatarEl.style.backgroundImage = `url('${fam.photoURL}')`;
+        bubbleAvatarEl.style.backgroundSize = 'cover';
+        bubbleAvatarEl.textContent = '';
+      } else {
+        famAvatarEl.style.backgroundImage = '';
+        famAvatarEl.textContent = fam.name.charAt(0).toUpperCase();
+        bubbleAvatarEl.style.backgroundImage = '';
+        bubbleAvatarEl.textContent = fam.name.charAt(0).toUpperCase();
+      }
     });
 
     if (currentFamilyNoticeListener) { currentFamilyNoticeListener(); }
@@ -2825,7 +2874,8 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
           const chip = document.createElement('div');
           chip.className = 'member-chip';
           const canKick = currentUser && currentFamilyOwnerUid === currentUser.uid && uid !== currentUser.uid;
-          chip.innerHTML = `<div class="m-avatar">${escapeHtml(u.name.charAt(0).toUpperCase())}</div><div class="m-name">${escapeHtml(u.name)}</div>` +
+          const memberAvatarStyle = u.photoURL ? `style="background-image:url('${u.photoURL}');background-size:cover;background-position:center;"` : '';
+          chip.innerHTML = `<div class="m-avatar" ${memberAvatarStyle}>${u.photoURL ? '' : escapeHtml(u.name.charAt(0).toUpperCase())}</div><div class="m-name">${escapeHtml(u.name)}</div>` +
             (canKick ? `<div class="member-kick-btn" data-kick-uid="${escapeHtml(uid)}">✕</div>` : '');
           stripEl.appendChild(chip);
           if (uid !== currentUser.uid) {
@@ -2884,6 +2934,78 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
     const div = document.createElement('div');
     div.textContent = str;
     return div.innerHTML;
+  }
+
+  // ---------- IMAGE UPLOAD (Firebase Storage) ----------
+  let pendingUploadTarget = null;
+
+  function triggerImageUpload(storagePath, dbPath, onDone) {
+    pendingUploadTarget = { storagePath, dbPath, onDone };
+    document.getElementById('hiddenImageUploadInput').click();
+  }
+
+  function handleImageUploadChange(e) {
+    const file = e.target.files[0];
+    e.target.value = '';
+    if (!file || !pendingUploadTarget) return;
+    if (!file.type.startsWith('image/')) { alert('Please pick an image file.'); return; }
+    if (file.size > 5 * 1024 * 1024) { alert('Image too large — please pick one under 5MB.'); return; }
+
+    const { storagePath, dbPath, onDone } = pendingUploadTarget;
+    pendingUploadTarget = null;
+
+    const ref = storage.ref(storagePath);
+    ref.put(file).then((snapshot) => snapshot.ref.getDownloadURL())
+      .then((url) => db.ref(dbPath).set(url).then(() => url))
+      .then((url) => { if (onDone) onDone(url); })
+      .catch((err) => alert('Upload failed: ' + err.message));
+  }
+
+  function uploadMyProfilePhoto() {
+    if (!currentUser) return;
+    triggerImageUpload('profilePics/' + currentUser.uid + '.jpg', 'users/' + currentUser.uid + '/photoURL', (url) => {
+      document.getElementById('editAvatarBig').style.backgroundImage = `url('${url}')`;
+      document.getElementById('editAvatarBig').textContent = '';
+      alert('Profile photo updated!');
+    });
+  }
+
+  function uploadRoomPhoto() {
+    if (!currentRoomId) return;
+    triggerImageUpload('roomPhotos/' + currentRoomId + '.jpg', 'liveRooms/' + currentRoomId + '/photoURL', () => {
+      alert('Room photo updated!');
+      closeRoomOwnerMenu();
+    });
+  }
+
+  function uploadRoomWallpaper() {
+    if (!currentRoomId) return;
+    triggerImageUpload('roomWallpapers/' + currentRoomId + '.jpg', 'liveRooms/' + currentRoomId + '/wallpaperURL', (url) => {
+      document.getElementById('roomInsideView').style.backgroundImage = `linear-gradient(rgba(20,10,35,0.75),rgba(20,10,35,0.75)), url('${url}')`;
+      document.getElementById('roomInsideView').style.backgroundSize = 'cover';
+      document.getElementById('roomInsideView').style.backgroundPosition = 'center';
+      alert('Room wallpaper updated!');
+      closeRoomOwnerMenu();
+    });
+  }
+
+  function uploadFamilyPhoto() {
+    if (!currentFamilyId) return;
+    triggerImageUpload('familyPhotos/' + currentFamilyId + '.jpg', 'families/' + currentFamilyId + '/photoURL', () => {
+      alert('Family photo updated!');
+      closeFamilyOwnerMenu();
+    });
+  }
+
+  function uploadFamilyWallpaper() {
+    if (!currentFamilyId) return;
+    triggerImageUpload('familyWallpapers/' + currentFamilyId + '.jpg', 'families/' + currentFamilyId + '/wallpaperURL', (url) => {
+      document.getElementById('familyInsideView').style.backgroundImage = `linear-gradient(rgba(20,10,35,0.75),rgba(20,10,35,0.75)), url('${url}')`;
+      document.getElementById('familyInsideView').style.backgroundSize = 'cover';
+      document.getElementById('familyInsideView').style.backgroundPosition = 'center';
+      alert('Family wallpaper updated!');
+      closeFamilyOwnerMenu();
+    });
   }
 
   // ---------- ROOM: EXPLORE / BROWSE ----------
@@ -2954,6 +3076,14 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
       const room = snap.val();
       currentRoomOwnerUid = room ? room.ownerUid : null;
       document.getElementById('roomOwnerBtn').style.display = (currentUser && currentRoomOwnerUid === currentUser.uid) ? 'block' : 'none';
+      const insideEl = document.getElementById('roomInsideView');
+      if (room && room.wallpaperURL) {
+        insideEl.style.backgroundImage = `linear-gradient(rgba(20,10,35,0.75),rgba(20,10,35,0.75)), url('${room.wallpaperURL}')`;
+        insideEl.style.backgroundSize = 'cover';
+        insideEl.style.backgroundPosition = 'center';
+      } else {
+        insideEl.style.backgroundImage = '';
+      }
     });
     const noticeHandler = roomRef.child('notice').on('value', (snap) => {
       const notice = snap.val();
@@ -3008,7 +3138,7 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
   function openSeatProfile(uid, name) {
     seatProfileUid = uid;
     seatProfileName = name;
-    document.getElementById('seatProfAvatar').textContent = name.charAt(0).toUpperCase();
+    applyAvatarPhoto(document.getElementById('seatProfAvatar'), { name });
     document.getElementById('seatProfName').textContent = name;
     document.getElementById('seatProfIdBadge').textContent = '🆔 ID Lv. 1';
     document.getElementById('seatProfVipBadge').textContent = '👑 VIP 1';
@@ -3018,6 +3148,7 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
     db.ref('users/' + uid).once('value').then((snap) => {
       const u = snap.val();
       if (!u) return;
+      applyAvatarPhoto(document.getElementById('seatProfAvatar'), u);
       document.getElementById('seatProfIdBadge').textContent = '🆔 ID Lv. ' + (u.level || 1);
       document.getElementById('seatProfVipBadge').textContent = '👑 VIP ' + (u.farmLevel || 1);
       document.getElementById('seatProfIdNumber').textContent = u.profileId || '—';
@@ -3120,7 +3251,10 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
         const cell = document.createElement('div');
         if (seatData) {
           cell.className = 'seat-cell occupied';
-          cell.innerHTML = `<div class="seat-avatar">${escapeHtml((seatData.name || 'U').charAt(0).toUpperCase())}</div><div class="seat-name">${escapeHtml(seatData.name || 'User')}</div>` +
+          const avatarInner = seatData.photoURL
+            ? `style="background-image:url('${seatData.photoURL}');background-size:cover;background-position:center;"`
+            : '';
+          cell.innerHTML = `<div class="seat-avatar" ${avatarInner}>${seatData.photoURL ? '' : escapeHtml((seatData.name || 'U').charAt(0).toUpperCase())}</div><div class="seat-name">${escapeHtml(seatData.name || 'User')}</div>` +
             `<div class="seat-gift-btn" data-gift-uid="${escapeHtml(seatData.uid)}" data-gift-name="${escapeHtml(seatData.name || 'User')}">🎁</div>`;
         } else {
           cell.className = 'seat-cell';
@@ -3176,7 +3310,8 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
       });
       seatsRef.child(index).set({
         uid: currentUser.uid,
-        name: currentUserData.name
+        name: currentUserData.name,
+        photoURL: currentUserData.photoURL || null
       });
       db.ref('users/' + currentUser.uid + '/activeSeat').set({ type: 'room', containerId: currentRoomId, seatIndex: index });
     });
