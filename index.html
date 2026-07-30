@@ -1184,8 +1184,6 @@
     </div>
   </div>
 
-  <input type="file" id="hiddenImageUploadInput" accept="image/*" style="display:none;" onchange="handleImageUploadChange(event)">
-
   <div class="bottom-nav">
     <div class="nav-item" id="navMessages" onclick="switchTab('messages')"><span class="nav-icon">💬</span>Messages</div>
     <div class="nav-item" id="navMoments" onclick="switchTab('moments')"><span class="nav-icon">🪐</span>Moments</div>
@@ -1419,7 +1417,6 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
 
 <script>
   const firebaseConfig = {
@@ -1454,7 +1451,6 @@
   setTimeout(setAppHeight, 1000);
   const auth = firebase.auth();
   const db = firebase.database();
-  const storage = firebase.storage();
 
   const LEVEL_REQUIRED_TO_CREATE = 5;
   const XP_PER_LEVEL = 150;
@@ -2936,35 +2932,25 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
     return div.innerHTML;
   }
 
-  // ---------- IMAGE UPLOAD (Firebase Storage) ----------
-  let pendingUploadTarget = null;
+  // ---------- IMAGE URL SETTING (no paid Storage needed) ----------
+  function promptImageUrl(dbPath, label, onDone) {
+    const url = prompt('Paste an image link for ' + label + ':\n(e.g. from Google Photos, Imgur, or any public image URL)');
+    if (url === null) return;
+    const trimmed = url.trim();
+    if (!trimmed) { alert('No link entered.'); return; }
+    if (!/^https?:\/\//i.test(trimmed)) { alert('Please paste a valid link starting with http:// or https://'); return; }
 
-  function triggerImageUpload(storagePath, dbPath, onDone) {
-    pendingUploadTarget = { storagePath, dbPath, onDone };
-    document.getElementById('hiddenImageUploadInput').click();
-  }
-
-  function handleImageUploadChange(e) {
-    const file = e.target.files[0];
-    e.target.value = '';
-    if (!file || !pendingUploadTarget) return;
-    if (!file.type.startsWith('image/')) { alert('Please pick an image file.'); return; }
-    if (file.size > 5 * 1024 * 1024) { alert('Image too large — please pick one under 5MB.'); return; }
-
-    const { storagePath, dbPath, onDone } = pendingUploadTarget;
-    pendingUploadTarget = null;
-
-    const ref = storage.ref(storagePath);
-    ref.put(file).then((snapshot) => snapshot.ref.getDownloadURL())
-      .then((url) => db.ref(dbPath).set(url).then(() => url))
-      .then((url) => { if (onDone) onDone(url); })
-      .catch((err) => alert('Upload failed: ' + err.message));
+    db.ref(dbPath).set(trimmed).then(() => {
+      if (onDone) onDone(trimmed);
+    }).catch((err) => alert('Could not save: ' + err.message));
   }
 
   function uploadMyProfilePhoto() {
     if (!currentUser) return;
-    triggerImageUpload('profilePics/' + currentUser.uid + '.jpg', 'users/' + currentUser.uid + '/photoURL', (url) => {
+    promptImageUrl('users/' + currentUser.uid + '/photoURL', 'your profile picture', (url) => {
       document.getElementById('editAvatarBig').style.backgroundImage = `url('${url}')`;
+      document.getElementById('editAvatarBig').style.backgroundSize = 'cover';
+      document.getElementById('editAvatarBig').style.backgroundPosition = 'center';
       document.getElementById('editAvatarBig').textContent = '';
       alert('Profile photo updated!');
     });
@@ -2972,7 +2958,7 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
 
   function uploadRoomPhoto() {
     if (!currentRoomId) return;
-    triggerImageUpload('roomPhotos/' + currentRoomId + '.jpg', 'liveRooms/' + currentRoomId + '/photoURL', () => {
+    promptImageUrl('liveRooms/' + currentRoomId + '/photoURL', 'the room photo', () => {
       alert('Room photo updated!');
       closeRoomOwnerMenu();
     });
@@ -2980,7 +2966,7 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
 
   function uploadRoomWallpaper() {
     if (!currentRoomId) return;
-    triggerImageUpload('roomWallpapers/' + currentRoomId + '.jpg', 'liveRooms/' + currentRoomId + '/wallpaperURL', (url) => {
+    promptImageUrl('liveRooms/' + currentRoomId + '/wallpaperURL', 'the room wallpaper', (url) => {
       document.getElementById('roomInsideView').style.backgroundImage = `linear-gradient(rgba(20,10,35,0.75),rgba(20,10,35,0.75)), url('${url}')`;
       document.getElementById('roomInsideView').style.backgroundSize = 'cover';
       document.getElementById('roomInsideView').style.backgroundPosition = 'center';
@@ -2991,7 +2977,7 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
 
   function uploadFamilyPhoto() {
     if (!currentFamilyId) return;
-    triggerImageUpload('familyPhotos/' + currentFamilyId + '.jpg', 'families/' + currentFamilyId + '/photoURL', () => {
+    promptImageUrl('families/' + currentFamilyId + '/photoURL', 'the family photo', () => {
       alert('Family photo updated!');
       closeFamilyOwnerMenu();
     });
@@ -2999,7 +2985,7 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
 
   function uploadFamilyWallpaper() {
     if (!currentFamilyId) return;
-    triggerImageUpload('familyWallpapers/' + currentFamilyId + '.jpg', 'families/' + currentFamilyId + '/wallpaperURL', (url) => {
+    promptImageUrl('families/' + currentFamilyId + '/wallpaperURL', 'the family wallpaper', (url) => {
       document.getElementById('familyInsideView').style.backgroundImage = `linear-gradient(rgba(20,10,35,0.75),rgba(20,10,35,0.75)), url('${url}')`;
       document.getElementById('familyInsideView').style.backgroundSize = 'cover';
       document.getElementById('familyInsideView').style.backgroundPosition = 'center';
