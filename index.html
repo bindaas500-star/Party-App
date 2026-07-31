@@ -3104,6 +3104,7 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
   let imageUrlModalTarget = null;
 
   function promptImageUrl(dbPath, label, onDone) {
+    document.querySelectorAll('.ttt-overlay.show').forEach((el) => el.classList.remove('show'));
     imageUrlModalTarget = { dbPath, onDone };
     document.getElementById('imageUrlModalTitle').textContent = 'Set ' + label;
     document.getElementById('imageUrlModalInput').value = '';
