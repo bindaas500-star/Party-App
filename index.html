@@ -992,8 +992,7 @@
           <div class="f-title" id="insideFamName">Family</div>
           <div class="f-sub" id="insideFamMemberCount">0 members</div>
         </div>
-        <button id="familyOwnerBtn" onclick="openFamilyOwnerMenu()" style="display:none; background:rgba(255,255,255,0.08); border:none; color:#fff; width:32px; height:32px; border-radius:50%; font-size:15px; cursor:pointer; margin-left:auto;">⚙️</button>
-        <button class="leave-btn" onclick="leaveFamily()">Leave</button>
+        <button onclick="openFamilyOwnerMenu()" style="background:rgba(255,255,255,0.08); border:none; color:#fff; width:32px; height:32px; border-radius:50%; font-size:18px; cursor:pointer; margin-left:auto;">⋮</button>
       </div>
       <div class="notice-banner" id="familyNoticeBanner" style="display:none;"></div>
       <div class="seat-grid" id="familySeatGrid"></div>
@@ -1222,14 +1221,17 @@
   <div class="ttt-overlay" id="familyOwnerOverlay">
     <div class="ttt-header">
       <button onclick="closeFamilyOwnerMenu()">←</button>
-      <h2>⚙️ Family Settings</h2>
+      <h2>Family Menu</h2>
     </div>
-    <div class="owner-menu-list">
+    <div class="owner-menu-list" id="familyOwnerOnlyItems" style="display:none;">
       <div class="owner-menu-item" onclick="uploadFamilyPhoto()">🖼️ Set Family Photo</div>
       <div class="owner-menu-item" onclick="uploadFamilyWallpaper()">🎨 Set Family Wallpaper</div>
       <div class="owner-menu-item" onclick="setFamilyNotice()">📢 Set Notice</div>
       <div class="owner-menu-item" onclick="clearFamilyMessages()">🧹 Clear Messages</div>
       <div class="owner-menu-item danger" onclick="deleteFamily()">🗑️ Delete Family</div>
+    </div>
+    <div class="owner-menu-list" id="familyMemberItems">
+      <div class="owner-menu-item danger" onclick="closeFamilyOwnerMenu(); leaveFamily();">🚪 Leave Family</div>
     </div>
   </div>
 
@@ -2459,9 +2461,7 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
     if (tab === 'family') familyBubbleDismissed = false;
     updateFamilyBubble(tab);
 
-    const insideFamily = tab === 'family' && !!currentFamilyId;
-    const insideRoom = tab === 'room' && !!currentRoomId;
-    setGlobalTopbarVisible(!insideFamily && !insideRoom);
+    setGlobalTopbarVisible(tab !== 'family' && tab !== 'room');
 
     localStorage.setItem('lastTab', tab);
   }
@@ -2793,7 +2793,6 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
   function showBrowseFamilies() {
     document.getElementById('familyBrowseView').style.display = 'block';
     document.getElementById('familyInsideView').style.display = 'none';
-    setGlobalTopbarVisible(true);
     if (currentFamilyChatListener) { currentFamilyChatListener(); currentFamilyChatListener = null; }
     if (currentFamilyMembersListener) { currentFamilyMembersListener(); currentFamilyMembersListener = null; }
     if (currentFamilySeatsListener) { currentFamilySeatsListener(); currentFamilySeatsListener = null; }
@@ -2850,7 +2849,11 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
     }).catch((err) => console.error('leaveFamily error:', err));
   }
 
-  function openFamilyOwnerMenu() { document.getElementById('familyOwnerOverlay').classList.add('show'); }
+  function openFamilyOwnerMenu() {
+    const isOwner = currentUser && currentFamilyOwnerUid === currentUser.uid;
+    document.getElementById('familyOwnerOnlyItems').style.display = isOwner ? 'block' : 'none';
+    document.getElementById('familyOwnerOverlay').classList.add('show');
+  }
   function closeFamilyOwnerMenu() { document.getElementById('familyOwnerOverlay').classList.remove('show'); }
 
   function setFamilyNotice() {
@@ -2956,7 +2959,6 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
   function showInsideFamily(famId) {
     document.getElementById('familyBrowseView').style.display = 'none';
     document.getElementById('familyInsideView').style.display = 'flex';
-    setGlobalTopbarVisible(false);
     listenToFamilySeats(famId);
     spawnFloatingHearts('familyFloatingHearts');
 
@@ -2966,7 +2968,6 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
       if (!fam) return;
       document.getElementById('insideFamName').textContent = fam.name;
       currentFamilyOwnerUid = fam.ownerUid;
-      document.getElementById('familyOwnerBtn').style.display = (currentUser && currentFamilyOwnerUid === currentUser.uid) ? 'block' : 'none';
 
       const insideEl = document.getElementById('familyInsideView');
       if (fam.wallpaperURL) {
