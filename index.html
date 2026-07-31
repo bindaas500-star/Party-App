@@ -2347,6 +2347,12 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
   }
 
   // ---------- TAB SWITCHING ----------
+  function setGlobalTopbarVisible(visible) {
+    document.querySelector('.topbar').style.display = visible ? 'flex' : 'none';
+    requestAnimationFrame(setAppHeight);
+    setTimeout(setAppHeight, 150);
+  }
+
   function switchTab(tab) {
     document.getElementById('homePanel').classList.toggle('active', tab === 'hifami');
     document.getElementById('chatPanel').classList.toggle('active', tab === 'messages');
@@ -2362,6 +2368,10 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
 
     if (tab === 'family') familyBubbleDismissed = false;
     updateFamilyBubble(tab);
+
+    const insideFamily = tab === 'family' && !!currentFamilyId;
+    const insideRoom = tab === 'room' && !!currentRoomId;
+    setGlobalTopbarVisible(!insideFamily && !insideRoom);
   }
 
   function getActiveTab() {
@@ -2691,6 +2701,7 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
   function showBrowseFamilies() {
     document.getElementById('familyBrowseView').style.display = 'block';
     document.getElementById('familyInsideView').style.display = 'none';
+    setGlobalTopbarVisible(true);
     if (currentFamilyChatListener) { currentFamilyChatListener(); currentFamilyChatListener = null; }
     if (currentFamilyMembersListener) { currentFamilyMembersListener(); currentFamilyMembersListener = null; }
     if (currentFamilySeatsListener) { currentFamilySeatsListener(); currentFamilySeatsListener = null; }
@@ -2853,6 +2864,7 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
   function showInsideFamily(famId) {
     document.getElementById('familyBrowseView').style.display = 'none';
     document.getElementById('familyInsideView').style.display = 'flex';
+    setGlobalTopbarVisible(false);
     listenToFamilySeats(famId);
     spawnFloatingHearts('familyFloatingHearts');
 
@@ -3150,6 +3162,7 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
     document.getElementById('roomInsideTitle').textContent = roomName;
     document.getElementById('roomBrowseView').style.display = 'none';
     document.getElementById('roomInsideView').style.display = 'flex';
+    setGlobalTopbarVisible(false);
     listenToRoomSeats();
     listenToRoomChat();
 
@@ -3207,6 +3220,7 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
     currentRoomOwnerUid = null;
     document.getElementById('roomInsideView').style.display = 'none';
     document.getElementById('roomBrowseView').style.display = 'flex';
+    setGlobalTopbarVisible(true);
   }
 
   function openRoomOwnerMenu() { document.getElementById('roomOwnerOverlay').classList.add('show'); }
