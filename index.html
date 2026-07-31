@@ -1630,14 +1630,26 @@
   }
 
   function applyAvatarPhoto(el, userData) {
+    const fallbackLetter = (userData && userData.name ? userData.name.charAt(0).toUpperCase() : '?');
     if (userData && userData.photoURL) {
-      el.style.backgroundImage = `url('${userData.photoURL}')`;
-      el.style.backgroundSize = 'cover';
-      el.style.backgroundPosition = 'center';
-      el.textContent = '';
+      // Show the letter immediately as a placeholder while we verify the image loads
+      el.style.backgroundImage = '';
+      el.textContent = fallbackLetter;
+      const testImg = new Image();
+      testImg.onload = () => {
+        el.style.backgroundImage = `url('${userData.photoURL}')`;
+        el.style.backgroundSize = 'cover';
+        el.style.backgroundPosition = 'center';
+        el.textContent = '';
+      };
+      testImg.onerror = () => {
+        el.style.backgroundImage = '';
+        el.textContent = fallbackLetter;
+      };
+      testImg.src = userData.photoURL;
     } else {
       el.style.backgroundImage = '';
-      el.textContent = (userData && userData.name ? userData.name.charAt(0).toUpperCase() : '?');
+      el.textContent = fallbackLetter;
     }
   }
 
