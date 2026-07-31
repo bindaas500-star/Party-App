@@ -1205,7 +1205,7 @@
       <input type="text" id="imageUrlModalInput" placeholder="Paste image link here..." inputmode="url" autocomplete="off"
         style="width:100%; padding:14px; border-radius:14px; border:1px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.06); color:#fff; font-size:14px; margin-bottom:10px; box-sizing:border-box;">
       <button onclick="pasteFromClipboard()" style="width:100%; padding:12px; border-radius:14px; border:1px solid rgba(255,215,106,0.4); background:rgba(255,215,106,0.1); color:#ffd76a; font-size:13px; font-weight:600; cursor:pointer; margin-bottom:14px;">📋 Paste from Clipboard</button>
-      <div style="color:rgba(255,255,255,0.45); font-size:11.5px; margin-bottom:18px;">Copy your image link first, then tap the button above. If that doesn't work, long-press the box and choose Paste.</div>
+      <div style="color:rgba(255,255,255,0.45); font-size:11.5px; margin-bottom:18px;">Best source: upload to <b style="color:rgba(255,255,255,0.7);">imgur.com</b> (no account needed) and copy the direct image link (ends in .jpg/.png). Google Photos share links usually won't work.</div>
       <button class="btn" onclick="confirmImageUrlModal()">Save</button>
     </div>
   </div>
@@ -3045,11 +3045,23 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
     if (!trimmed) { alert('No link entered.'); return; }
     if (!/^https?:\/\//i.test(trimmed)) { alert('Please paste a valid link starting with http:// or https://'); return; }
 
-    const { dbPath, onDone } = imageUrlModalTarget;
-    db.ref(dbPath).set(trimmed).then(() => {
-      closeImageUrlModal();
-      if (onDone) onDone(trimmed);
-    }).catch((err) => alert('Could not save: ' + err.message));
+    const saveBtn = document.querySelector('#imageUrlOverlay .btn');
+    if (saveBtn) { saveBtn.textContent = 'Checking link...'; saveBtn.disabled = true; }
+
+    const testImg = new Image();
+    testImg.onload = () => {
+      if (saveBtn) { saveBtn.textContent = 'Save'; saveBtn.disabled = false; }
+      const { dbPath, onDone } = imageUrlModalTarget;
+      db.ref(dbPath).set(trimmed).then(() => {
+        closeImageUrlModal();
+        if (onDone) onDone(trimmed);
+      }).catch((err) => alert('Could not save: ' + err.message));
+    };
+    testImg.onerror = () => {
+      if (saveBtn) { saveBtn.textContent = 'Save'; saveBtn.disabled = false; }
+      alert("This link doesn't point directly to an image, so it won't display.\n\nGoogle Photos share links usually DON'T work — they open a webpage, not the raw image.\n\nTry imgur.com instead: upload your photo there (no account needed), then copy the direct image link it gives you (it should end in .jpg or .png).");
+    };
+    testImg.src = trimmed;
   }
 
   function uploadMyProfilePhoto() {
