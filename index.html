@@ -17,6 +17,19 @@
     transition: transform 0.15s ease, opacity 0.15s ease; pointer-events: none;
     font-family: 'Fredoka', 'Inter', sans-serif;
   }
+  #toastContainer {
+    position: fixed; bottom: calc(var(--bottomnav-height, 66px) + 16px); left: 16px; right: 16px;
+    z-index: 600; display: flex; flex-direction: column; gap: 8px; align-items: center; pointer-events: none;
+  }
+  .toast {
+    background: rgba(30,18,50,0.97); color: #fff; padding: 12px 18px; border-radius: 16px;
+    font-size: 13px; font-weight: 600; font-family: 'Fredoka', 'Inter', sans-serif; text-align: center;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4); border: 1px solid rgba(255,215,106,0.3);
+    max-width: 100%; animation: toastIn 0.25s ease, toastOut 0.25s ease 2.5s forwards;
+  }
+  .toast.error { border-color: rgba(255,107,107,0.4); }
+  @keyframes toastIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes toastOut { to { opacity: 0; transform: translateY(-6px); } }
   .app-shell { height: 100vh; height: 100dvh; height: var(--app-height, 100vh); }
   .panels-wrap {
     position: fixed; left: 0; right: 0; overflow: hidden;
@@ -872,6 +885,22 @@
 <!-- ===== MAIN APP SCREEN ===== -->
 <div id="mainScreen" class="app-shell" style="display:none; flex-direction: column;">
   <div id="pullRefreshIndicator">↓ Pull to refresh</div>
+  <div id="toastContainer"></div>
+
+  <!-- ===== ONBOARDING ===== -->
+  <div class="ttt-overlay" id="onboardingOverlay" style="z-index:900; background:linear-gradient(160deg,#2a1a4a,#1a1030); align-items:stretch; padding:0;">
+    <div id="onboardingSlides" style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:30px;">
+      <div id="onbEmoji" style="font-size:64px; margin-bottom:18px;">🎉</div>
+      <div id="onbTitle" style="font-family:'Fredoka','Inter',sans-serif; font-weight:700; font-size:22px; color:#fff; margin-bottom:12px;">Welcome to Party App!</div>
+      <div id="onbText" style="color:rgba(255,255,255,0.7); font-size:14px; line-height:1.6; max-width:300px;">Let's take a super quick look around before you dive in.</div>
+    </div>
+    <div style="padding:20px 24px 30px;">
+      <div id="onbDots" style="display:flex; justify-content:center; gap:6px; margin-bottom:18px;"></div>
+      <button class="btn" onclick="onboardingNext()" id="onbNextBtn">Next</button>
+      <div onclick="closeOnboarding()" style="text-align:center; margin-top:14px; color:rgba(255,255,255,0.4); font-size:12.5px; cursor:pointer;">Skip</div>
+    </div>
+  </div>
+
   <div class="topbar">
     <div class="avatar-ring" onclick="openProfile()" style="cursor:pointer;"><div class="avatar" id="userAvatar">?</div></div>
     <div>
@@ -930,7 +959,7 @@
 
           </div>
 
-          <button onclick="alert('Coming soon!')">Withdraw</button>
+          <button onclick="toast('Real-money withdrawals are coming soon!')">Withdraw</button>
 
       </div>
 
@@ -985,7 +1014,7 @@
       <div class="loading">Loading messages...</div>
     </div>
     <div class="input-bar">
-      <input type="text" id="msgInput" placeholder="Say something..." onkeypress="if(event.key==='Enter') sendMessage()">
+      <input type="text" id="msgInput" placeholder="Say something..." maxlength="300" onkeypress="if(event.key==='Enter') sendMessage()">
       <button class="send-btn" onclick="sendMessage()">➤</button>
     </div>
   </div>
@@ -1031,7 +1060,7 @@
       <div class="members-strip" id="membersStrip"></div>
       <div class="chat-area" id="familyChatArea"></div>
       <div class="input-bar">
-        <input type="text" id="famMsgInput" placeholder="Message your family..." onkeypress="if(event.key==='Enter') sendFamilyMessage()">
+        <input type="text" id="famMsgInput" placeholder="Message your family..." maxlength="300" onkeypress="if(event.key==='Enter') sendFamilyMessage()">
         <button class="send-btn" onclick="sendFamilyMessage()">➤</button>
       </div>
     </div>
@@ -1083,7 +1112,7 @@
 
       <div class="room-explore-tabs">
         <div class="ret active">Explore</div>
-        <div class="ret" onclick="alert('Coming soon')">Followed</div>
+        <div class="ret" onclick="toast('Followed rooms list is coming soon!')">Followed</div>
       </div>
 
       <div class="create-room-box">
@@ -1112,17 +1141,17 @@
 
       <div class="games-row">
         <div class="game-chip" onclick="openTicTacToe()">⭕ Tic-Tac-Toe</div>
-        <div class="game-chip" onclick="alert('Coming soon')">🎴 UNO</div>
-        <div class="game-chip" onclick="alert('Coming soon')">🎱 Pool</div>
-        <div class="game-chip" onclick="alert('Coming soon')">🎲 Carrom</div>
-        <div class="game-chip" onclick="alert('Coming soon')">🐍 Snakes</div>
+        <div class="game-chip" onclick="toast('UNO is coming soon!')">🎴 UNO</div>
+        <div class="game-chip" onclick="toast('Pool is coming soon!')">🎱 Pool</div>
+        <div class="game-chip" onclick="toast('Carrom is coming soon!')">🎲 Carrom</div>
+        <div class="game-chip" onclick="toast('Snakes is coming soon!')">🐍 Snakes</div>
       </div>
 
       <div class="seat-grid" id="seatGrid"></div>
 
       <div class="chat-area" id="roomChatArea"></div>
       <div class="input-bar">
-        <input type="text" id="roomMsgInput" placeholder="Say something..." onkeypress="if(event.key==='Enter') sendRoomMessage()">
+        <input type="text" id="roomMsgInput" placeholder="Say something..." maxlength="300" onkeypress="if(event.key==='Enter') sendRoomMessage()">
         <button class="quick-icon-btn" onclick="openQuickGiftPicker()" title="Send Gift">🎁</button>
         <button class="quick-icon-btn" onclick="openGiftLog()" title="Gift Log">📦</button>
         <button class="send-btn" onclick="sendRoomMessage()">➤</button>
@@ -1190,19 +1219,19 @@
       <div class="profile-id-row">ID: <span id="seatProfIdNumber">—</span></div>
     </div>
 
-    <div class="seat-prof-banner soulmate" onclick="alert('Coming soon')">
+    <div class="seat-prof-banner soulmate" onclick="toast('Soulmate feature is coming soon!')">
       <span>💞 Become a Soulmate</span>
     </div>
-    <div class="seat-prof-banner bff" onclick="alert('Coming soon')">
+    <div class="seat-prof-banner bff" onclick="toast('BFF feature is coming soon!')">
       <span>🤝 Become BFF</span>
     </div>
 
     <div class="seat-prof-tiles">
-      <div class="seat-prof-tile" onclick="alert('Coming soon')">
+      <div class="seat-prof-tile" onclick="toast('Gift Wall is coming soon!')">
         <div class="spt-label">Gift Wall</div>
         <div class="spt-value">🎁 —</div>
       </div>
-      <div class="seat-prof-tile" onclick="alert('Coming soon')">
+      <div class="seat-prof-tile" onclick="toast('Supporter feature is coming soon!')">
         <div class="spt-label">Supporter</div>
         <div class="spt-value">Vacant</div>
       </div>
@@ -1351,13 +1380,13 @@
     <div id="settingsView" style="display:none; padding: 0 20px;">
       <div class="settings-list">
         <div class="settings-item" onclick="openEditProfileView()">Personal Profile</div>
-        <div class="settings-item" onclick="alert('Push notifications are coming in a future update!')">Notification</div>
+        <div class="settings-item" onclick="toast('Push notifications are coming in a future update!')">Notification</div>
         <div class="settings-item" onclick="openListOverlay('blocked')">Blocked Users</div>
         <div class="settings-item" onclick="openAccountSecurityView()">Account Security</div>
         <div class="settings-item" onclick="openInfoPage('terms')">Terms of Use</div>
         <div class="settings-item" onclick="openInfoPage('privacy')">Privacy Policy</div>
         <div class="settings-item" onclick="openInfoPage('guidelines')">Community Guidelines</div>
-        <div class="settings-item" onclick="alert('Need help? Message us via the Family or Global chat for now — a dedicated support form is coming soon.')">Help &amp; Feedback</div>
+        <div class="settings-item" onclick="toast('Need help? Message us via Family or Global chat for now.')">Help &amp; Feedback</div>
         <div class="settings-item no-arrow">Version 1.0.0</div>
         <button class="sign-out-btn" onclick="handleLogout()">Sign Out</button>
       </div>
@@ -1758,6 +1787,7 @@
           } else {
             switchTab(lastTab);
           }
+          maybeShowOnboarding();
         }
       });
 
@@ -1865,7 +1895,7 @@
   function copyProfileId() {
     const id = document.getElementById('profileIdNumber').textContent;
     if (navigator.clipboard) {
-      navigator.clipboard.writeText(id).then(() => alert('ID copied: ' + id));
+      navigator.clipboard.writeText(id).then(() => toast('ID copied: ' + id));
     }
   }
 
@@ -1934,7 +1964,7 @@
   }
 
   function rechargeVip() {
-    alert('Real payments are coming soon! You\'ll be able to top up in ' + detectUserCurrency().code + ' once this is ready.');
+    toast('Real payments are coming soon in ' + detectUserCurrency().code + '!');
   }
 
   function switchRankTab(tab) {
@@ -2090,10 +2120,11 @@
   function loadActivityList(contentEl, filterType) {
     db.ref('users/' + currentUser.uid + '/activity').limitToLast(50).once('value').then((snap) => {
       const data = snap.val();
+      const emptyMsg = filterType === 'social' ? '🔔 No notifications yet — gifts and friend activity will show up here.' : '🎁 No activity yet — your actions will show up here.';
       contentEl.innerHTML = '';
-      if (!data) { contentEl.innerHTML = '<div class="loading">Nothing here yet.</div>'; return; }
+      if (!data) { contentEl.innerHTML = `<div class="loading">${emptyMsg}</div>`; return; }
       const items = Object.values(data).filter(a => a.type === filterType).sort((a, b) => b.timestamp - a.timestamp);
-      if (!items.length) { contentEl.innerHTML = '<div class="loading">Nothing here yet.</div>'; return; }
+      if (!items.length) { contentEl.innerHTML = `<div class="loading">${emptyMsg}</div>`; return; }
       items.forEach((item) => {
         const row = document.createElement('div');
         row.className = 'rank-row';
@@ -2257,7 +2288,7 @@
   function sendChangePasswordEmail() {
     if (!currentUser || !currentUser.email) return;
     auth.sendPasswordResetEmail(currentUser.email).then(() => {
-      alert('Password reset link sent to ' + currentUser.email + '. Check your inbox!');
+      toast('Reset link sent to ' + currentUser.email + '!');
     }).catch((err) => {
       alert(err.message);
     });
@@ -2355,7 +2386,7 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
       dob: document.getElementById('editDobInput').value,
       region: document.getElementById('editRegionInput').value.trim()
     }).then(() => {
-      alert('Profile updated!');
+      toast('Profile updated!');
       hideAllProfileSubViews();
     });
   }
@@ -2441,7 +2472,7 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
   function copyReferralCode() {
     const code = document.getElementById('myReferralCode').textContent;
     if (navigator.clipboard) {
-      navigator.clipboard.writeText(code).then(() => alert('Referral code copied: ' + code));
+      navigator.clipboard.writeText(code).then(() => toast('Referral code copied: ' + code));
     }
   }
 
@@ -2821,10 +2852,24 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
     });
   }
 
+  let lastMessageSentAt = 0;
+  const MESSAGE_COOLDOWN_MS = 1200;
+
+  function isChatRateLimited() {
+    const now = Date.now();
+    if (now - lastMessageSentAt < MESSAGE_COOLDOWN_MS) {
+      toast('Slow down a little! 🙂', 'error');
+      return true;
+    }
+    lastMessageSentAt = now;
+    return false;
+  }
+
   function sendMessage() {
     const input = document.getElementById('msgInput');
     const text = input.value.trim();
     if (!text || !currentUser) return;
+    if (isChatRateLimited()) return;
 
     db.ref('rooms/global/messages').push({
       uid: currentUser.uid,
@@ -3138,6 +3183,7 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
     const input = document.getElementById('famMsgInput');
     const text = input.value.trim();
     if (!text || !currentUser || !currentFamilyId) return;
+    if (isChatRateLimited()) return;
 
     db.ref('families/' + currentFamilyId + '/messages').push({
       uid: currentUser.uid,
@@ -3167,6 +3213,60 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
       container.appendChild(heart);
       setTimeout(() => heart.remove(), 8500);
     }, 900);
+  }
+
+  const ONBOARDING_STEPS = [
+    { emoji: '🎉', title: 'Welcome to Party App!', text: "Let's take a super quick look around before you dive in." },
+    { emoji: '🪙', title: 'Coins, Gems & Love', text: '🪙 Coins upgrade your farm. 💎 Gems are saved for future real-money withdrawals. 💕 Love Coins are used to send gifts.' },
+    { emoji: '🌾', title: 'Your Farm', text: 'Visit Home to collect coins over time, unlock plots, and level up your Farm — the more you upgrade, the faster you earn.' },
+    { emoji: '🎊', title: 'Rooms & Family', text: 'Join a Room to chat, play games, and send gifts live. Join or create a Family to hang out with your favorite people.' }
+  ];
+  let onboardingStep = 0;
+
+  function renderOnboardingDots() {
+    const dotsEl = document.getElementById('onbDots');
+    dotsEl.innerHTML = ONBOARDING_STEPS.map((_, i) =>
+      `<div style="width:${i === onboardingStep ? 20 : 6}px; height:6px; border-radius:3px; background:${i === onboardingStep ? '#ffd76a' : 'rgba(255,255,255,0.25)'}; transition: width 0.2s;"></div>`
+    ).join('');
+  }
+
+  function renderOnboardingStep() {
+    const step = ONBOARDING_STEPS[onboardingStep];
+    document.getElementById('onbEmoji').textContent = step.emoji;
+    document.getElementById('onbTitle').textContent = step.title;
+    document.getElementById('onbText').textContent = step.text;
+    document.getElementById('onbNextBtn').textContent = onboardingStep === ONBOARDING_STEPS.length - 1 ? "Let's go!" : 'Next';
+    renderOnboardingDots();
+  }
+
+  function onboardingNext() {
+    if (onboardingStep < ONBOARDING_STEPS.length - 1) {
+      onboardingStep++;
+      renderOnboardingStep();
+    } else {
+      closeOnboarding();
+    }
+  }
+
+  function closeOnboarding() {
+    document.getElementById('onboardingOverlay').classList.remove('show');
+    if (currentUser) db.ref('users/' + currentUser.uid + '/onboardingSeen').set(true);
+  }
+
+  function maybeShowOnboarding() {
+    if (currentUserData && !currentUserData.onboardingSeen) {
+      onboardingStep = 0;
+      renderOnboardingStep();
+      document.getElementById('onboardingOverlay').classList.add('show');
+    }
+  }
+
+  function toast(message, type) {
+    const el = document.createElement('div');
+    el.className = 'toast' + (type === 'error' ? ' error' : '');
+    el.textContent = message;
+    document.getElementById('toastContainer').appendChild(el);
+    setTimeout(() => el.remove(), 2800);
   }
 
   function escapeHtml(str) {
@@ -3240,14 +3340,14 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
       document.getElementById('editAvatarBig').style.backgroundSize = 'cover';
       document.getElementById('editAvatarBig').style.backgroundPosition = 'center';
       document.getElementById('editAvatarBig').textContent = '';
-      alert('Profile photo updated!');
+      toast('Profile photo updated!');
     });
   }
 
   function uploadRoomPhoto() {
     if (!currentRoomId) return;
     promptImageUrl('liveRooms/' + currentRoomId + '/photoURL', 'the room photo', () => {
-      alert('Room photo updated!');
+      toast('Room photo updated!');
       closeRoomOwnerMenu();
     });
   }
@@ -3258,7 +3358,7 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
       document.getElementById('roomInsideView').style.backgroundImage = `linear-gradient(rgba(20,10,35,0.75),rgba(20,10,35,0.75)), url('${url}')`;
       document.getElementById('roomInsideView').style.backgroundSize = 'cover';
       document.getElementById('roomInsideView').style.backgroundPosition = 'center';
-      alert('Room wallpaper updated!');
+      toast('Room wallpaper updated!');
       closeRoomOwnerMenu();
     });
   }
@@ -3266,7 +3366,7 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
   function uploadFamilyPhoto() {
     if (!currentFamilyId) return;
     promptImageUrl('families/' + currentFamilyId + '/photoURL', 'the family photo', () => {
-      alert('Family photo updated!');
+      toast('Family photo updated!');
       closeFamilyOwnerMenu();
     });
   }
@@ -3277,7 +3377,7 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
       document.getElementById('familyInsideView').style.backgroundImage = `linear-gradient(rgba(20,10,35,0.75),rgba(20,10,35,0.75)), url('${url}')`;
       document.getElementById('familyInsideView').style.backgroundSize = 'cover';
       document.getElementById('familyInsideView').style.backgroundPosition = 'center';
-      alert('Family wallpaper updated!');
+      toast('Family wallpaper updated!');
       closeFamilyOwnerMenu();
     });
   }
@@ -3509,7 +3609,7 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
       db.ref('users/' + currentUser.uid + '/friends/' + seatProfileUid).set(true);
       db.ref('users/' + seatProfileUid + '/friends/' + currentUser.uid).set(true);
       addActivity(seatProfileUid, 'social', currentUserData.name + ' added you as a friend!');
-      alert(seatProfileName + ' added as a friend!');
+      toast(seatProfileName + ' added as a friend!');
     });
   }
 
@@ -3528,7 +3628,7 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
       reason: reason.trim(),
       timestamp: Date.now()
     });
-    alert('Thanks — your report has been submitted for review.');
+    toast('Report submitted for review. Thank you.');
   }
 
   function blockSeatProfileUser() {
@@ -3537,7 +3637,7 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
 
     if (!confirm('Block ' + seatProfileName + '? You will no longer see their messages or posts.')) return;
     db.ref('users/' + currentUser.uid + '/blocked/' + seatProfileUid).set(true);
-    alert(seatProfileName + ' has been blocked.');
+    toast(seatProfileName + ' has been blocked.');
     closeSeatProfile();
   }
 
@@ -3654,6 +3754,7 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
     const input = document.getElementById('roomMsgInput');
     const text = input.value.trim();
     if (!text || !currentUser || !currentRoomId) return;
+    if (isChatRateLimited()) return;
     db.ref('liveRooms/' + currentRoomId + '/messages').push({
       uid: currentUser.uid,
       name: currentUserData.name,
