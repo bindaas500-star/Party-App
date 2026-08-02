@@ -3150,6 +3150,7 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
         photoURL: currentUserData.photoURL || null
       });
       db.ref('users/' + currentUser.uid + '/activeSeat').set({ type: 'family', containerId: famId, seatIndex: index });
+      completeFamilyTask(famId, 'sit');
     });
   }
 
@@ -3263,6 +3264,49 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
     currentFamilyChatListener = () => famRef.child('messages').off('value', msgsHandler);
   }
 
+  function getGroupLevelThreshold(level) {
+    return 15000 + (level - 1) * 10000;
+  }
+
+  function getGroupLevelInfo(totalXp) {
+    let level = 1;
+    let remaining = totalXp || 0;
+    while (remaining >= getGroupLevelThreshold(level)) {
+      remaining -= getGroupLevelThreshold(level);
+      level++;
+    }
+    return { level, currentXp: remaining, neededXp: getGroupLevelThreshold(level) };
+  }
+
+  function addGroupActivityXp(path, amount) {
+    db.ref(path).transaction((current) => (current || 0) + amount);
+  }
+
+  const FAMILY_DAILY_TASKS = [
+    { id: 'chat', xp: 200 },
+    { id: 'sit', xp: 200 },
+    { id: 'addfriend', xp: 300 }
+  ];
+
+  function getTodayDateString() {
+    const d = new Date();
+    return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate();
+  }
+
+  function completeFamilyTask(famId, taskId) {
+    if (!currentUser || !famId) return;
+    const task = FAMILY_DAILY_TASKS.find(t => t.id === taskId);
+    if (!task) return;
+    const today = getTodayDateString();
+    const path = 'families/' + famId + '/dailyTasks/' + currentUser.uid + '/' + today + '/' + taskId;
+    db.ref(path).once('value').then((snap) => {
+      if (snap.val()) return; // already completed today
+      db.ref(path).set(true);
+      addGroupActivityXp('families/' + famId + '/activityXp', task.xp);
+      toast('Task complete! +' + task.xp + ' Family XP 🎉');
+    });
+  }
+
   function sendFamilyMessage() {
     const input = document.getElementById('famMsgInput');
     const text = input.value.trim();
@@ -3276,6 +3320,7 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
       timestamp: Date.now()
     });
     addXp(XP_PER_MESSAGE);
+    completeFamilyTask(currentFamilyId, 'chat');
     input.value = '';
   }
 
@@ -3720,6 +3765,11 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
       db.ref('users/' + seatProfileUid + '/friends/' + currentUser.uid).set(true);
       addActivity(seatProfileUid, 'social', currentUserData.name + ' added you as a friend!');
       toast(seatProfileName + ' added as a friend!');
+      if (currentFamilyId) {
+        db.ref('families/' + currentFamilyId + '/members/' + seatProfileUid).once('value').then((memSnap) => {
+          if (memSnap.val()) completeFamilyTask(currentFamilyId, 'addfriend');
+        });
+      }
     });
   }
 
