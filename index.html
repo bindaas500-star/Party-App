@@ -1696,7 +1696,7 @@
   const HARVEST_CYCLE_MS = 30 * 60 * 1000; // reference window used to derive per-second rate
   const BASE_PRODUCTION = 50; // coins per harvest at farm/VIP level 1
   const PRODUCTION_PER_LEVEL = 25; // extra coins per VIP level
-  const UPGRADE_INCREMENT = 1000000; // levels 1-14: cost = level * 1,000,000
+  const UPGRADE_INCREMENT = 1000; // cost = level * 1000 gems
   const PLOTS = [
     { label: 'Lv.1', requiredLevel: 1, bonus: 10000 },
     { label: 'Lv.2', requiredLevel: 2, bonus: 15000 },
@@ -2697,8 +2697,7 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
 
   function getUpgradeCost() {
     const farmLevel = getFarmLevel();
-    if (farmLevel < 15) return farmLevel * UPGRADE_INCREMENT;
-    return 15000000 + (farmLevel - 14) * 5000000;
+    return farmLevel * UPGRADE_INCREMENT;
   }
 
   let harvestAtBeingFixed = false;
@@ -2724,8 +2723,8 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
 
     const cost = getUpgradeCost();
     const upgradeBtn = document.getElementById('upgradeFarmBtn');
-    upgradeBtn.textContent = "Upgrade Farm — 🪙 " + formatNum(cost);
-    upgradeBtn.disabled = (currentUserData.coins || 0) < cost;
+    upgradeBtn.textContent = "Upgrade VIP — 💎 " + formatNum(cost);
+    upgradeBtn.disabled = (currentUserData.gems || 0) < cost;
 
     if (!harvestIntervalStarted) {
       harvestIntervalStarted = true;
@@ -2759,13 +2758,13 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
   function upgradeFarm() {
     if (!currentUser || !currentUserData) return;
     const cost = getUpgradeCost();
-    const coins = currentUserData.coins || 0;
-    if (coins < cost) return;
+    const gems = currentUserData.gems || 0;
+    if (gems < cost) { toast('Not enough Gems for this upgrade.', 'error'); return; }
 
     db.ref('users/' + currentUser.uid).update({
-      coins: coins - cost,
+      gems: gems - cost,
       farmLevel: getFarmLevel() + 1
-    });
+    }).then(() => toast('VIP Level upgraded! 👑'));
   }
 
   function getAccumulatedCoins() {
