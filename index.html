@@ -4,6 +4,19 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Party App</title>
+<meta name="description" content="Join Party App — chat live, play games, grow your farm, and hang out with your family in fun social rooms.">
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="Party App">
+<meta property="og:description" content="Join Party App — chat live, play games, grow your farm, and hang out with your family in fun social rooms.">
+<meta property="og:image" content="https://bindaas500-star.github.io/Party-App/icon-512.png">
+<meta property="og:url" content="https://bindaas500-star.github.io/Party-App/">
+
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Party App">
+<meta name="twitter:description" content="Join Party App — chat live, play games, grow your farm, and hang out with your family in fun social rooms.">
+<meta name="twitter:image" content="https://bindaas500-star.github.io/Party-App/icon-512.png">
+
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#1a1030">
 <link rel="icon" type="image/png" href="icon-192.png">
@@ -863,6 +876,12 @@
 <body>
 
 <!-- ===== AUTH SCREEN ===== -->
+<div id="splashScreen" style="position:fixed; inset:0; z-index:2000; background:linear-gradient(160deg,#2a1a4a,#1a1030); display:flex; flex-direction:column; align-items:center; justify-content:center;">
+  <div style="width:64px; height:64px; border-radius:50%; background:linear-gradient(135deg,#ff6b9d,#c44dff); display:flex; align-items:center; justify-content:center; font-size:30px; font-weight:700; font-family:'Fredoka','Inter',sans-serif; color:#fff; box-shadow:0 0 0 4px rgba(255,215,106,0.4), 0 10px 30px rgba(0,0,0,0.4); animation: splashPulse 1.4s ease-in-out infinite;">P</div>
+  <div style="margin-top:16px; color:rgba(255,255,255,0.6); font-size:13px; font-family:'Fredoka','Inter',sans-serif; font-weight:600;">Party App</div>
+</div>
+<style>@keyframes splashPulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.08); } }</style>
+
 <div id="authScreen" class="screen active">
   <div>
     <div class="auth-logo">
@@ -872,7 +891,7 @@
     <div class="auth-box">
       <h1 id="authTitle">Welcome Back</h1>
       <div class="error-msg" id="authError"></div>
-      <input type="text" id="nameInput" placeholder="Your name" style="display:none;">
+      <input type="text" id="nameInput" placeholder="Your name" maxlength="25" style="display:none;">
       <input type="email" id="emailInput" placeholder="Email">
       <input type="password" id="passInput" placeholder="Password">
       <button class="btn" id="authSubmitBtn" onclick="handleAuth()">Login</button>
@@ -1032,7 +1051,7 @@
 
       <div class="create-family-box">
         <h3>✨ Create Your Own Family</h3>
-        <input type="text" id="familyNameInput" placeholder="Family name">
+        <input type="text" id="familyNameInput" placeholder="Family name" maxlength="30">
         <button class="btn" id="createFamilyBtn" onclick="createFamily()">Create Family</button>
         <div class="lock-msg" id="createLockMsg" style="display:none;"></div>
       </div>
@@ -1116,7 +1135,7 @@
       </div>
 
       <div class="create-room-box">
-        <input type="text" id="roomNameInput" placeholder="Room name">
+        <input type="text" id="roomNameInput" placeholder="Room name" maxlength="30">
         <button class="btn" onclick="createLiveRoom()">Create Room</button>
       </div>
 
@@ -1420,12 +1439,12 @@
 
       <div class="edit-field">
         <label>Personal Profile (Bio)</label>
-        <textarea id="editBioInput" rows="2" placeholder="Smile first, judge later..."></textarea>
+        <textarea id="editBioInput" rows="2" maxlength="150" placeholder="Smile first, judge later..."></textarea>
       </div>
 
       <div class="edit-field">
         <label>Name</label>
-        <input type="text" id="editNameInput" placeholder="Your name">
+        <input type="text" id="editNameInput" placeholder="Your name" maxlength="25">
       </div>
 
       <div class="edit-field">
@@ -1725,6 +1744,7 @@
 
     if (!email || !pass) { errorEl.textContent = "Please fill email and password."; return; }
     if (isSignupMode && !name) { errorEl.textContent = "Please enter your name."; return; }
+    if (isSignupMode && containsBadWords(name)) { errorEl.textContent = "Please choose an appropriate name."; return; }
 
     if (isSignupMode) {
       auth.createUserWithEmailAndPassword(email, pass)
@@ -1793,6 +1813,7 @@
 
       document.getElementById('authScreen').classList.remove('active');
       document.getElementById('mainScreen').style.display = 'flex';
+      document.getElementById('splashScreen').style.display = 'none';
       listenToChat();
       listenToFamilyList();
       listenToRoomList();
@@ -1802,6 +1823,7 @@
       currentUserData = null;
       document.getElementById('mainScreen').style.display = 'none';
       document.getElementById('authScreen').classList.add('active');
+      document.getElementById('splashScreen').style.display = 'none';
     }
   });
 
@@ -2377,11 +2399,13 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
   function saveEditProfile() {
     if (!currentUser) return;
     const newName = document.getElementById('editNameInput').value.trim();
+    const newBio = document.getElementById('editBioInput').value.trim();
     if (!newName) { alert('Name cannot be empty.'); return; }
+    if (containsBadWords(newName) || containsBadWords(newBio)) { alert('Please keep your name and bio appropriate.'); return; }
 
     db.ref('users/' + currentUser.uid).update({
       name: newName,
-      bio: document.getElementById('editBioInput').value.trim(),
+      bio: newBio,
       gender: document.getElementById('editGenderInput').value,
       dob: document.getElementById('editDobInput').value,
       region: document.getElementById('editRegionInput').value.trim()
@@ -2923,6 +2947,7 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
   function createFamily() {
     const name = document.getElementById('familyNameInput').value.trim();
     if (!name) return;
+    if (containsBadWords(name)) { toast('Please choose an appropriate family name.', 'error'); return; }
     if ((currentUserData.level || 1) < LEVEL_REQUIRED_TO_CREATE) return;
 
     const newFamRef = db.ref('families').push();
@@ -3261,6 +3286,16 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
     }
   }
 
+  const BAD_WORDS = [
+    'fuck', 'shit', 'bitch', 'asshole', 'bastard', 'cunt', 'dick', 'pussy', 'whore', 'slut',
+    'nigger', 'nigga', 'faggot', 'retard', 'rape', 'chutiya', 'madarchod', 'behenchod', 'bhosdi', 'randi', 'gaandu', 'harami', 'kutta', 'kutti'
+  ];
+
+  function containsBadWords(text) {
+    const normalized = text.toLowerCase().replace(/[^a-z0-9]/g, '');
+    return BAD_WORDS.some(w => normalized.includes(w));
+  }
+
   function toast(message, type) {
     const el = document.createElement('div');
     el.className = 'toast' + (type === 'error' ? ' error' : '');
@@ -3422,6 +3457,7 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
     const input = document.getElementById('roomNameInput');
     const name = input.value.trim();
     if (!name || !currentUser) return;
+    if (containsBadWords(name)) { toast('Please choose an appropriate room name.', 'error'); return; }
 
     const newRoomRef = db.ref('liveRooms').push();
     newRoomRef.set({
