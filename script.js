@@ -29,6 +29,30 @@
   setTimeout(setAppHeight, 300);
   setTimeout(setAppHeight, 1000);
 
+  (function setupBannerSlider() {
+    const track = document.getElementById('bannerTrack');
+    const dotsEl = document.getElementById('bannerDots');
+    if (!track || !dotsEl) return;
+    const slideCount = track.children.length;
+    let current = 0;
+
+    for (let i = 0; i < slideCount; i++) {
+      const dot = document.createElement('span');
+      if (i === 0) dot.className = 'active';
+      dotsEl.appendChild(dot);
+    }
+
+    function goToSlide(i) {
+      current = i;
+      track.style.transform = `translateX(-${i * 100}%)`;
+      Array.from(dotsEl.children).forEach((d, idx) => d.classList.toggle('active', idx === i));
+    }
+
+    setInterval(() => {
+      goToSlide((current + 1) % slideCount);
+    }, 4000);
+  })();
+
   (function setupPullToRefresh() {
     const indicator = document.getElementById('pullRefreshIndicator');
     let startY = 0;
@@ -1972,6 +1996,34 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
     db.ref('liveRooms').on('value', (snap) => {
       roomListCache = snap.val();
       renderRoomList();
+      renderPopularRooms();
+    });
+  }
+
+  function renderPopularRooms() {
+    const rowEl = document.getElementById('popularRoomsRow');
+    if (!rowEl) return;
+    const rooms = roomListCache;
+    if (!rooms || !Object.keys(rooms).length) {
+      rowEl.innerHTML = '<div class="loading" style="padding:10px 0; color:rgba(255,255,255,0.4); font-size:12.5px;">No rooms live right now.</div>';
+      return;
+    }
+    const entries = Object.entries(rooms)
+      .map(([id, room]) => ({ id, room, count: room.seats ? Object.keys(room.seats).length : 0 }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 8);
+    rowEl.innerHTML = '';
+    entries.forEach(({ id, room, count }) => {
+      const card = document.createElement('div');
+      card.className = 'pop-room-card';
+      const thumbStyle = room.photoURL ? `style="background-image:url('${room.photoURL}');background-size:cover;background-position:center;"` : '';
+      card.innerHTML = `
+        <div class="prc-thumb" ${thumbStyle}>${room.photoURL ? '' : '🏠'}</div>
+        <div class="prc-name">${escapeHtml(room.name)}</div>
+        <div class="prc-count">🔥 ${count}</div>
+      `;
+      card.onclick = () => { switchTab('room'); enterRoom(id, room.name); };
+      rowEl.appendChild(card);
     });
   }
 
