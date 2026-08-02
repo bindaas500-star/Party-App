@@ -125,7 +125,7 @@
   .panel.active { display: flex; }
 
   .chat-area { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
-  .msg { max-width: 78%; padding: 10px 14px; border-radius: 16px; font-size: 14px; line-height: 1.45; }
+  .msg { max-width: 78%; padding: 10px 14px; border-radius: 16px; font-size: 14px; line-height: 1.45; word-wrap: break-word; overflow-wrap: break-word; }
   .msg .sender { font-size: 11px; color: #ffd76a; margin-bottom: 3px; font-weight: 700; }
   .msg.other { background: rgba(255,255,255,0.08); align-self: flex-start; border-bottom-left-radius: 4px; }
   .msg.me {
@@ -177,7 +177,7 @@
   }
   .moment-card .mc-name { font-family: 'Fredoka', 'Inter', sans-serif; font-weight: 600; font-size: 14px; }
   .moment-card .mc-time { font-size: 10.5px; color: rgba(255,255,255,0.4); font-weight: 500; }
-  .moment-card .mc-text { font-size: 14px; line-height: 1.5; margin-bottom: 10px; white-space: pre-wrap; }
+  .moment-card .mc-text { font-size: 14px; line-height: 1.5; margin-bottom: 10px; white-space: pre-wrap; word-wrap: break-word; overflow-wrap: break-word; }
   .moment-card .mc-image { width: 100%; border-radius: 12px; display: block; max-height: 320px; object-fit: cover; }
 
   .moments-fab {
@@ -667,16 +667,17 @@
   .banner-slider { position: relative; margin-bottom: 16px; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 28px rgba(0,0,0,0.3); }
   .banner-track { display: flex; transition: transform 0.5s ease; }
   .banner-slide {
-    flex: 0 0 100%; min-height: 92px; display: flex; align-items: center; gap: 14px; padding: 18px 20px;
+    flex: 0 0 100%; width: 100%; min-width: 100%; box-sizing: border-box;
+    min-height: 92px; display: flex; align-items: center; gap: 14px; padding: 18px 20px;
     position: relative; overflow: hidden;
   }
   .banner-slide::after {
     content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(255,255,255,0.15), transparent 60%);
   }
-  .bs-emoji { font-size: 40px; filter: drop-shadow(0 3px 8px rgba(0,0,0,0.25)); z-index: 1; }
-  .bs-text { z-index: 1; }
-  .bs-title { font-family: 'Fredoka', 'Inter', sans-serif; font-weight: 700; font-size: 16px; color: #fff; text-shadow: 0 2px 6px rgba(0,0,0,0.25); }
-  .bs-sub { font-size: 12px; color: rgba(255,255,255,0.85); font-weight: 600; margin-top: 3px; }
+  .bs-emoji { font-size: 40px; filter: drop-shadow(0 3px 8px rgba(0,0,0,0.25)); z-index: 1; flex-shrink: 0; }
+  .bs-text { z-index: 1; min-width: 0; }
+  .bs-title { font-family: 'Fredoka', 'Inter', sans-serif; font-weight: 700; font-size: 16px; color: #fff; text-shadow: 0 2px 6px rgba(0,0,0,0.25); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .bs-sub { font-size: 12px; color: rgba(255,255,255,0.85); font-weight: 600; margin-top: 3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .banner-dots { position: absolute; bottom: 8px; left: 0; right: 0; display: flex; justify-content: center; gap: 5px; }
   .banner-dots span { width: 6px; height: 6px; border-radius: 3px; background: rgba(255,255,255,0.4); transition: width 0.2s, background 0.2s; }
   .banner-dots span.active { width: 16px; background: #fff; }
@@ -748,8 +749,19 @@
     display:flex;
     justify-content:space-between;
     align-items:center;
+    gap: 12px;
     margin-bottom:15px;
     box-shadow: 0 10px 26px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.3);
+  }
+  .withdraw-card > div { min-width: 0; flex: 1; }
+  .withdraw-card h2 {
+    font-size: 17px; font-weight: 700; color: #fff; margin: 0 0 3px;
+    font-family: 'Fredoka', 'Inter', sans-serif; line-height: 1.2;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .withdraw-card p {
+    font-size: 11.5px; color: rgba(255,255,255,0.85); margin: 0; font-weight: 600;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   }
 
   .withdraw-card button{
@@ -770,6 +782,15 @@
     margin-bottom:20px;
     border: 1px solid rgba(255,255,255,0.15);
     box-shadow: 0 14px 32px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.12);
+    overflow: hidden;
+  }
+  .farm-card h2 {
+    font-size: 15px; font-weight: 700; color: #ffd76a; margin: 0 0 8px;
+    font-family: 'Fredoka', 'Inter', sans-serif; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .farm-card h1 {
+    font-size: 30px; font-weight: 700; color: #fff; margin: 6px 0; line-height: 1.15;
+    font-family: 'Fredoka', 'Inter', sans-serif; word-break: break-word;
   }
 
   #harvestBtn{
@@ -856,7 +877,7 @@
 
   /* ---- Floating Family Bubble ---- */
   .family-bubble {
-    position: fixed; right: 16px; bottom: 84px; z-index: 50;
+    position: fixed; right: 16px; bottom: calc(var(--bottomnav-height, 66px) + 18px); z-index: 50;
     width: 58px; height: 58px; border-radius: 50%;
     background: linear-gradient(135deg, #4ecdc4, #3a7bd5);
     display: none; align-items: center; justify-content: center;
