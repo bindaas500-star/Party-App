@@ -709,6 +709,11 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
+<script>
+  window.onerror = function(msg, url, line, col, error) {
+    alert('ERROR: ' + msg + '\nLine: ' + line + '\nFile: ' + url);
+  };
+</script>
 <script src="script.js"></script>
 
 </body>
