@@ -1,330 +1,715 @@
-  .moment-card {
-    background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 16px; padding: 14px; margin-bottom: 14px;
-  }
-  .moment-card .mc-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
-  .moment-card .mc-avatar {
-    width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg,#ff6b9d,#c44dff);
-    display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; font-family: 'Fredoka', 'Inter', sans-serif; flex-shrink: 0;
-  }
-  .moment-card .mc-name { font-family: 'Fredoka', 'Inter', sans-serif; font-weight: 600; font-size: 14px; }
-  .moment-card .mc-time { font-size: 10.5px; color: rgba(255,255,255,0.4); font-weight: 500; }
-  .moment-card .mc-text { font-size: 14px; line-height: 1.5; margin-bottom: 10px; white-space: pre-wrap; }
-  .moment-card .mc-image { width: 100%; border-radius: 12px; display: block; max-height: 320px; object-fit: cover; }
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Party App</title>
+<meta name="description" content="Join Party App — chat live, play games, grow your farm, and hang out with your family in fun social rooms.">
 
-  .moments-fab {
-    position: absolute; right: 18px; bottom: 22px; width: 54px; height: 54px; border-radius: 50%;
-    background: linear-gradient(135deg,#ff6b9d,#c44dff); color: #fff; font-size: 26px; font-weight: 700;
-    display: flex; align-items: center; justify-content: center; cursor: pointer;
-    box-shadow: 0 10px 26px rgba(255,77,157,0.4); z-index: 20;
-  }
-  .games-row { display: flex; gap: 8px; padding: 12px 16px; overflow-x: auto; flex-shrink: 0; }
+<meta property="og:type" content="website">
+<meta property="og:title" content="Party App">
+<meta property="og:description" content="Join Party App — chat live, play games, grow your farm, and hang out with your family in fun social rooms.">
+<meta property="og:image" content="https://bindaas500-star.github.io/Party-App/icon-512.png">
+<meta property="og:url" content="https://bindaas500-star.github.io/Party-App/">
 
-  /* ---- Room Explore ---- */
-  .room-explore-banner {
-    margin: 14px 16px 0; padding: 18px; border-radius: 16px; flex-shrink: 0;
-    background: linear-gradient(135deg, #4a2f8f, #7b2f8f);
-  }
-  .reb-title { font-family: 'Fredoka', 'Inter', sans-serif; font-weight: 700; font-size: 18px; color: #fff; }
-  .reb-sub { font-size: 12px; color: rgba(255,255,255,0.7); margin-top: 4px; font-weight: 500; }
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Party App">
+<meta name="twitter:description" content="Join Party App — chat live, play games, grow your farm, and hang out with your family in fun social rooms.">
+<meta name="twitter:image" content="https://bindaas500-star.github.io/Party-App/icon-512.png">
 
-  .room-explore-tabs { display: flex; gap: 16px; padding: 14px 16px 8px; flex-shrink: 0; }
-  .ret { font-family: 'Fredoka', 'Inter', sans-serif; font-weight: 700; font-size: 14px; color: rgba(255,255,255,0.4); cursor: pointer; padding-bottom: 4px; }
-  .ret.active { color: #ffd76a; border-bottom: 2px solid #ffd76a; }
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1a1030">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
 
-  .create-room-box { display: flex; gap: 8px; padding: 8px 16px 14px; flex-shrink: 0; }
-  .create-room-box input {
-    flex: 1; padding: 11px 14px; border-radius: 12px; border: 1.5px solid rgba(255,255,255,0.12);
-    background: rgba(0,0,0,0.2); color: #fff; font-size: 13px; font-family: 'Inter';
-  }
-  .create-room-box .btn { width: auto; padding: 11px 18px; margin-top: 0; font-size: 13px; }
+<!-- ===== AUTH SCREEN ===== -->
+<div id="splashScreen" style="position:fixed; inset:0; z-index:2000; background:linear-gradient(160deg,#2a1a4a,#1a1030); display:flex; flex-direction:column; align-items:center; justify-content:center;">
+  <div style="width:64px; height:64px; border-radius:50%; background:linear-gradient(135deg,#ff6b9d,#c44dff); display:flex; align-items:center; justify-content:center; font-size:30px; font-weight:700; font-family:'Fredoka','Inter',sans-serif; color:#fff; box-shadow:0 0 0 4px rgba(255,215,106,0.4), 0 10px 30px rgba(0,0,0,0.4); animation: splashPulse 1.4s ease-in-out infinite;">P</div>
+  <div style="margin-top:16px; color:rgba(255,255,255,0.6); font-size:13px; font-family:'Fredoka','Inter',sans-serif; font-weight:600;">Party App</div>
+</div>
 
-  .room-explore-list { flex: 1; overflow-y: auto; padding: 0 16px 20px; }
-  .room-card {
-    display: flex; align-items: center; gap: 12px; background: rgba(255,255,255,0.05);
-    border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 13px; margin-bottom: 10px;
-    cursor: pointer;
-  }
-  .room-card .rc-thumb {
-    width: 50px; height: 50px; border-radius: 14px; flex-shrink: 0;
-    background: linear-gradient(135deg,#ff6b9d,#c44dff); display: flex; align-items: center; justify-content: center;
-    font-size: 22px;
-  }
-  .room-card .rc-info { flex: 1; min-width: 0; }
-  .room-card .rc-name { font-family: 'Fredoka', 'Inter', sans-serif; font-weight: 700; font-size: 14.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .room-card .rc-sub { font-size: 11.5px; color: rgba(255,255,255,0.45); margin-top: 2px; font-weight: 500; }
-  .room-card .rc-heat { font-size: 12px; color: #ff9d5c; font-weight: 700; font-family: 'Fredoka', 'Inter', sans-serif; flex-shrink: 0; }
-  .game-chip {
-    flex-shrink: 0; padding: 8px 14px; border-radius: 16px; font-size: 12.5px; font-weight: 700;
-    font-family: 'Fredoka', 'Inter', sans-serif; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12);
-    cursor: pointer; white-space: nowrap;
-  }
-  .seat-grid {
-    display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; padding: 8px 12px 16px; flex-shrink: 0;
-  }
-  .seat-cell {
-    aspect-ratio: 1; background: transparent; border: none; min-width: 0;
-    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; cursor: pointer;
-  }
-  .seat-cell { position: relative; }
-  .seat-cell .seat-avatar {
-    width: min(58px, 16vw); height: min(58px, 16vw); border-radius: 50%; background: linear-gradient(135deg,#ff6b9d,#c44dff);
-    display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 18px; font-family: 'Fredoka', 'Inter', sans-serif;
-    box-shadow: 0 0 0 3px rgba(255,215,106,0.6), 0 4px 14px rgba(0,0,0,0.4);
-  }
-  .seat-cell .seat-plus {
-    width: min(58px, 16vw); height: min(58px, 16vw); border-radius: 50%; display: flex; align-items: center; justify-content: center;
-    font-size: 20px; color: rgba(255,255,255,0.35); background: rgba(255,255,255,0.05); border: 2px dashed rgba(255,255,255,0.2);
-  }
-  .seat-cell .seat-name { font-size: 10px; color: rgba(255,255,255,0.85); font-weight: 600; max-width: 95%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-shadow: 0 1px 4px rgba(0,0,0,0.6); }
-  .seat-gift-btn {
-    position: absolute; top: 2px; right: 4px; width: 20px; height: 20px; border-radius: 50%;
-    background: linear-gradient(135deg,#ff6b9d,#c44dff); display: flex; align-items: center; justify-content: center;
-    font-size: 11px; box-shadow: 0 2px 6px rgba(0,0,0,0.3); z-index: 2;
-  }
+<div id="authScreen" class="screen active">
+  <div>
+    <div class="auth-logo">
+      <span class="emoji">🎉</span>
+      <span class="brand">Party App</span>
+    </div>
+    <div class="auth-box">
+      <h1 id="authTitle">Welcome Back</h1>
+      <div class="error-msg" id="authError"></div>
+      <input type="text" id="nameInput" placeholder="Your name" maxlength="25" style="display:none;">
+      <input type="email" id="emailInput" placeholder="Email">
+      <input type="password" id="passInput" placeholder="Password">
+      <button class="btn" id="authSubmitBtn" onclick="handleAuth()">Login</button>
+      <div class="toggle-link" id="forgotPasswordLink" onclick="handleForgotPassword()">Forgot password?</div>
+      <div class="toggle-link" id="toggleAuthMode" onclick="toggleAuthMode()">New here? Create an account</div>
+    </div>
+  </div>
+</div>
 
-  .room-header-avatar {
-    width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(135deg,#ff6b9d,#c44dff);
-    display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px;
-    font-family: 'Fredoka', 'Inter', sans-serif; box-shadow: 0 0 0 2px rgba(255,215,106,0.6); flex-shrink: 0;
-  }
+<!-- ===== MAIN APP SCREEN ===== -->
+<div id="mainScreen" class="app-shell" style="display:none; flex-direction: column;">
+  <div id="pullRefreshIndicator">↓ Pull to refresh</div>
+  <div id="toastContainer"></div>
 
-  .floating-hearts { position: absolute; inset: 0; pointer-events: none; overflow: hidden; z-index: 1; }
-  .floating-hearts .fh-heart {
-    position: absolute; bottom: -20px; font-size: 16px; opacity: 0; animation: fhRise 6s linear infinite;
-  }
-  @keyframes fhRise {
-    0% { transform: translateY(0) translateX(0); opacity: 0; }
-    10% { opacity: 0.8; }
-    90% { opacity: 0.5; }
-    100% { transform: translateY(-420px) translateX(14px); opacity: 0; }
-  }
+  <!-- ===== ONBOARDING ===== -->
+  <div class="ttt-overlay" id="onboardingOverlay" style="z-index:900; background:linear-gradient(160deg,#2a1a4a,#1a1030); align-items:stretch; padding:0;">
+    <div id="onboardingSlides" style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:30px;">
+      <div id="onbEmoji" style="font-size:64px; margin-bottom:18px;">🎉</div>
+      <div id="onbTitle" style="font-family:'Fredoka','Inter',sans-serif; font-weight:700; font-size:22px; color:#fff; margin-bottom:12px;">Welcome to Party App!</div>
+      <div id="onbText" style="color:rgba(255,255,255,0.7); font-size:14px; line-height:1.6; max-width:300px;">Let's take a super quick look around before you dive in.</div>
+    </div>
+    <div style="padding:20px 24px 30px;">
+      <div id="onbDots" style="display:flex; justify-content:center; gap:6px; margin-bottom:18px;"></div>
+      <button class="btn" onclick="onboardingNext()" id="onbNextBtn">Next</button>
+      <div onclick="closeOnboarding()" style="text-align:center; margin-top:14px; color:rgba(255,255,255,0.4); font-size:12.5px; cursor:pointer;">Skip</div>
+    </div>
+  </div>
 
-  /* ---- Gift Picker ---- */
-  .gift-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-  .gift-cell {
-    background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 14px;
-    padding: 14px 6px; text-align: center; cursor: pointer;
-  }
-  .gift-cell.selected { border-color: #ffd76a; background: rgba(255,215,106,0.12); }
-  .gift-cell .g-emoji { font-size: 30px; margin-bottom: 6px; }
-  .gift-cell .g-name { font-size: 11.5px; font-weight: 700; font-family: 'Fredoka', 'Inter', sans-serif; margin-bottom: 3px; }
-  .gift-cell .g-cost { font-size: 11px; color: #ffd76a; font-weight: 700; }
-  .gift-flash {
-    position: fixed; top: 40%; left: 50%; transform: translate(-50%,-50%); z-index: 300;
-    font-size: 60px; pointer-events: none; animation: giftPop 1.4s ease-out forwards;
-  }
-  @keyframes giftPop {
-    0% { transform: translate(-50%,-50%) scale(0.3); opacity: 0; }
-    30% { transform: translate(-50%,-50%) scale(1.2); opacity: 1; }
-    70% { transform: translate(-50%,-50%) scale(1); opacity: 1; }
-    100% { transform: translate(-50%,-80%) scale(1); opacity: 0; }
-  }
+  <div class="topbar">
+    <div class="avatar-ring" onclick="openProfile()" style="cursor:pointer;"><div class="avatar" id="userAvatar">?</div></div>
+    <div>
+      <div class="name" id="userName">User</div>
+      <div class="level-badge">🆔 <span id="userLevelLabel">ID Lv. 1</span></div>
+    </div>
+    <button class="logout-btn" onclick="openRankView()">🏆 Rank</button>
+  </div>
 
-  .gift-recipients-row { display: flex; gap: 10px; padding: 4px 16px 8px; overflow-x: auto; flex-shrink: 0; }
-  .gift-recip-chip { display: flex; flex-direction: column; align-items: center; gap: 4px; flex-shrink: 0; cursor: pointer; opacity: 0.5; }
-  .gift-recip-chip.selected { opacity: 1; }
-  .gift-recip-chip .grc-avatar {
-    width: 42px; height: 42px; border-radius: 50%; background: linear-gradient(135deg,#ff6b9d,#c44dff);
-    display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 15px; font-family: 'Fredoka', 'Inter', sans-serif;
-    border: 2px solid transparent;
-  }
-  .gift-recip-chip.selected .grc-avatar { border-color: #ffd76a; }
-  .gift-recip-chip .grc-name { font-size: 9.5px; color: rgba(255,255,255,0.7); max-width: 46px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  <div id="panelsWrap" class="panels-wrap">
+  <!-- ===== HOME / HARVEST PANEL ===== -->
+  <div class="panel active" id="homePanel">
+    <div class="home-content">
+      <div class="home-decor">
+        <span style="top:6%; left:4%; font-size:34px;">🌳</span>
+        <span style="top:14%; right:8%; font-size:26px;">🌸</span>
+        <span style="top:38%; left:2%; font-size:22px;">🌿</span>
+        <span style="top:55%; right:4%; font-size:30px;">🌳</span>
+        <span style="top:72%; left:8%; font-size:24px;">🌻</span>
+        <span style="top:85%; right:12%; font-size:20px;">🍃</span>
+        <span style="top:25%; left:45%; font-size:18px;">☁️</span>
+      </div>
 
-  .gift-select-all-btn {
-    margin: 0 16px 12px; align-self: flex-start; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);
-    color: #fff; padding: 6px 14px; border-radius: 14px; font-size: 11.5px; font-weight: 600; cursor: pointer;
-  }
-  .gift-select-all-btn.active { background: rgba(255,215,106,0.2); border-color: #ffd76a; color: #ffd76a; }
+      <!-- Wallet -->
+      <div class="home-header" style="position:relative; z-index:1;">
 
-  .gift-category-tabs { display: flex; gap: 18px; padding: 0 16px 12px; flex-shrink: 0; border-bottom: 1px solid rgba(255,255,255,0.08); }
-  .gct { font-family: 'Fredoka', 'Inter', sans-serif; font-weight: 700; font-size: 13.5px; color: rgba(255,255,255,0.4); cursor: pointer; padding-bottom: 8px; }
-  .gct.active { color: #ffd76a; border-bottom: 2px solid #ffd76a; }
+          <div class="home-title">🌾 Your Farm</div>
 
-  .gift-send-bar {
-    display: flex; align-items: center; gap: 10px; padding: 12px 16px; background: rgba(0,0,0,0.3);
-    border-top: 1px solid rgba(255,255,255,0.1); flex-shrink: 0;
-  }
-  .gsb-wallet { font-family: 'Fredoka', 'Inter', sans-serif; font-weight: 700; font-size: 13px; color: #ffd76a; flex-shrink: 0; }
-  .gsb-qty { display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.06); border-radius: 12px; padding: 4px 8px; }
-  .gsb-qty button { width: 24px; height: 24px; border-radius: 50%; border: none; background: rgba(255,255,255,0.1); color: #fff; font-size: 14px; cursor: pointer; }
-  .gsb-qty span { font-weight: 700; font-size: 13px; min-width: 18px; text-align: center; }
-  .gsb-send-btn {
-    margin-left: auto; background: linear-gradient(90deg,#ff6b9d,#c44dff); border: none; color: #fff;
-    padding: 10px 24px; border-radius: 20px; font-weight: 700; font-family: 'Fredoka', 'Inter', sans-serif; cursor: pointer;
-  }
+          <div class="wallet-box">
 
-  /* ---- Tic-Tac-Toe Overlay ---- */
-  .ttt-overlay {
-    position: fixed; inset: 0; z-index: 250; background: #1a1030;
-    display: none; flex-direction: column; align-items: center; padding: 16px;
-  }
-  .ttt-overlay.show { display: flex; }
-  .ttt-header { width: 100%; display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
-  .ttt-header button {
-    background: rgba(255,255,255,0.08); border: none; color: #fff; width: 36px; height: 36px;
-    border-radius: 50%; font-size: 18px; cursor: pointer;
-  }
-  .ttt-header h2 { font-family: 'Fredoka', 'Inter', sans-serif; font-weight: 700; font-size: 18px; }
-  .ttt-status { font-family: 'Fredoka', 'Inter', sans-serif; font-weight: 600; font-size: 14px; color: #ffd76a; margin-bottom: 18px; text-align: center; }
-  .ttt-board {
-    display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; width: 100%; max-width: 300px; margin-bottom: 20px;
-  }
-  .ttt-cell {
-    aspect-ratio: 1; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12);
-    border-radius: 14px; display: flex; align-items: center; justify-content: center;
-    font-family: 'Fredoka', 'Inter', sans-serif; font-weight: 700; font-size: 34px; cursor: pointer; color: #fff;
-  }
+              <div class="wallet"><span class="wallet-icon-badge" style="background:linear-gradient(135deg,#ffd76a,#ff9d3d);">🪙</span>
+                  <span id="coinsDisplay">0</span>
+              </div>
 
-  /* ---- Family Panel ---- */
-  .family-content { flex: 1; overflow-y: auto; padding: 18px 16px; }
-  .level-card {
-    background: linear-gradient(155deg, rgba(255,215,106,0.14), rgba(196,77,255,0.08));
-    border: 1px solid rgba(255,215,106,0.25);
-    border-radius: 20px; padding: 18px; margin-bottom: 18px;
-  }
-  .level-card .row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-  .level-card .lv-label { font-size: 17px; font-weight: 700; color: #ffd76a; font-family: 'Fredoka', 'Inter', sans-serif; }
-  .level-card .xp-label { font-size: 12px; color: rgba(255,255,255,0.55); font-weight: 600; }
-  .xp-bar-bg { height: 9px; background: rgba(0,0,0,0.3); border-radius: 5px; overflow: hidden; }
-  .xp-bar-fill { height: 100%; background: linear-gradient(90deg,#ffd76a,#ff6b9d); border-radius: 5px; transition: width .3s; }
+              <div class="wallet"><span class="wallet-icon-badge" style="background:linear-gradient(135deg,#7dd3ff,#3a9bd9);">💎</span>
+                  <span id="gemsDisplay">0</span>
+              </div>
 
-  .create-family-box {
-    background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 20px; padding: 18px; margin-bottom: 22px;
-  }
-  .create-family-box h3 { font-size: 16px; margin-bottom: 12px; font-family: 'Fredoka', 'Inter', sans-serif; font-weight: 600; }
-  .create-family-box input {
-    width: 100%; padding: 12px 14px; margin-bottom: 12px; border-radius: 12px;
-    border: 1.5px solid rgba(255,255,255,0.12); background: rgba(0,0,0,0.2); color: #fff; font-size: 14px; font-family: 'Inter';
-  }
-  .lock-msg {
-    font-size: 12px; color: #ffb4b4; margin-top: 8px; text-align: center; font-weight: 600;
-    background: rgba(255,107,107,0.1); padding: 8px; border-radius: 10px;
-  }
+              <div class="wallet"><span class="wallet-icon-badge" style="background:linear-gradient(135deg,#ff9dc4,#ff6b9d);">💕</span>
+                  <span id="loveDisplay">0</span>
+              </div>
 
-  .section-title { font-size: 12.5px; color: rgba(255,255,255,0.4); margin: 18px 0 12px; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; }
+          </div>
 
-  .family-item {
-    display: flex; align-items: center; gap: 13px; background: rgba(255,255,255,0.05);
-    border: 1px solid rgba(255,255,255,0.08);
-    padding: 13px; border-radius: 16px; margin-bottom: 10px;
-  }
-  .family-item .f-avatar {
-    width: 46px; height: 46px; border-radius: 14px; background: linear-gradient(135deg,#4ecdc4,#3a7bd5);
-    display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 18px; flex-shrink: 0;
-    font-family: 'Fredoka', 'Inter', sans-serif;
-  }
-  .family-item .f-info { flex: 1; min-width: 0; }
-  .family-item .f-name { font-weight: 700; font-size: 14.5px; font-family: 'Fredoka', 'Inter', sans-serif; }
-  .family-item .f-members { font-size: 11.5px; color: rgba(255,255,255,0.45); margin-top: 2px; font-weight: 500; }
-  .join-btn {
-    background: linear-gradient(135deg,#ffd76a,#ff9d5c); border: none; color: #2a1a05;
-    padding: 8px 16px; border-radius: 18px; font-size: 12.5px; font-weight: 700; font-family: 'Fredoka', 'Inter', sans-serif;
-    box-shadow: 0 4px 12px rgba(255,215,106,0.3);
-  }
+      </div>
 
-  /* Inside a family view */
-  .family-header {
-    padding: 16px; background: rgba(0,0,0,0.2); display: flex; align-items: center; gap: 13px; flex-shrink: 0;
-    border-bottom: 1px solid rgba(255,255,255,0.08);
-  }
-  .family-header .f-avatar-lg {
-    width: 54px; height: 54px; border-radius: 16px; background: linear-gradient(135deg,#4ecdc4,#3a7bd5);
-    display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 22px; flex-shrink: 0;
-    font-family: 'Fredoka', 'Inter', sans-serif;
-  }
-  .family-header .f-title { font-size: 17px; font-weight: 700; font-family: 'Fredoka', 'Inter', sans-serif; }
-  .family-header .f-sub { font-size: 12px; color: rgba(255,255,255,0.5); margin-top: 2px; font-weight: 500; }
-  .leave-btn {
-    margin-left: auto; background: rgba(255,107,107,0.1); border: 1px solid rgba(255,107,107,0.4); color: #ff8a8a;
-    padding: 7px 14px; border-radius: 18px; font-size: 12px; font-weight: 700; font-family: 'Fredoka', 'Inter', sans-serif;
-  }
-  .members-strip { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; padding: 14px 16px; flex-shrink: 0; background: rgba(0,0,0,0.12); overflow-y: auto; max-height: 180px; }
-  .members-strip-label { padding: 10px 16px 0; font-size: 11.5px; font-weight: 700; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.5px; flex-shrink: 0; }
-  .member-chip {
-    display: flex; flex-direction: column; align-items: center; gap: 5px; cursor: pointer;
-    background: rgba(255,255,255,0.04); border-radius: 12px; padding: 8px 4px;
-  }
-  .member-chip .m-avatar {
-    width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg,#ff6b9d,#c44dff);
-    display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; font-family: 'Fredoka', 'Inter', sans-serif;
-  }
-  .member-chip .m-name { font-size: 10px; color: rgba(255,255,255,0.65); text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%; font-weight: 500; }
-  .member-chip { position: relative; }
-  .member-kick-btn {
-    position: absolute; top: -3px; right: 4px; width: 16px; height: 16px; border-radius: 50%;
-    background: #ff6b6b; color: #fff; font-size: 10px; display: flex; align-items: center; justify-content: center;
-    cursor: pointer; z-index: 2;
-  }
+      <!-- Withdraw Card -->
 
-  .notice-banner {
-    margin: 10px 16px 0; padding: 10px 14px; border-radius: 12px; font-size: 12.5px; font-weight: 600;
-    background: rgba(255,215,106,0.12); border: 1px solid rgba(255,215,106,0.3); color: #ffe9a8;
-  }
+      <div class="withdraw-card" style="position:relative; z-index:1;">
 
-  .owner-menu-list { padding: 0 16px; display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 320px; }
-  .owner-menu-item {
-    display: flex; align-items: center; gap: 12px; background: rgba(255,255,255,0.06);
-    border: 1px solid rgba(255,255,255,0.1); border-radius: 14px; padding: 14px 16px; cursor: pointer;
-    font-family: 'Fredoka', 'Inter', sans-serif; font-weight: 600; font-size: 14px;
-  }
-  .owner-menu-item.danger { color: #ff8a8a; border-color: rgba(255,107,107,0.3); }
+          <div>
 
-  /* ---- Seat Profile Popup ---- */
-  .seat-prof-banner {
-    margin: 0 16px 10px; padding: 14px 16px; border-radius: 16px; cursor: pointer;
-    font-family: 'Fredoka', 'Inter', sans-serif; font-weight: 700; font-size: 14px; color: #fff;
-    display: flex; align-items: center;
-  }
-  .seat-prof-banner.soulmate { background: linear-gradient(90deg, #ff6b9d, #ffb347); }
-  .seat-prof-banner.bff { background: linear-gradient(90deg, #4ecdc4, #a78bfa); }
+              <h2>Withdraw</h2>
 
-  .seat-prof-tiles { display: flex; gap: 10px; padding: 4px 16px 16px; }
-  .seat-prof-tile {
-    flex: 1; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 14px; padding: 12px 10px; text-align: center; cursor: pointer;
-  }
-  .spt-label { font-size: 11px; color: rgba(255,255,255,0.5); font-weight: 700; margin-bottom: 5px; }
-  .spt-value { font-size: 13px; font-weight: 700; font-family: 'Fredoka', 'Inter', sans-serif; color: #ffd76a; }
+              <p>Available Balance</p>
 
-  .seat-prof-actions { display: flex; gap: 8px; padding: 6px 16px 24px; }
-  .spa-btn {
-    flex: 1; padding: 13px 4px; border: none; border-radius: 14px; font-family: 'Fredoka', 'Inter', sans-serif;
-    font-weight: 700; font-size: 12px; cursor: pointer;
-  }
-  .spa-btn.gift { background: linear-gradient(90deg,#ff6b9d,#c44dff); color: #fff; }
-  .spa-btn.chat { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: #fff; }
+          </div>
 
-  /* ---- VIP Benefits ---- */
-  .vip-tier-card {
-    margin: 16px; padding: 22px 18px; border-radius: 22px; text-align: center;
-    background: linear-gradient(160deg, rgba(78,205,196,0.15), rgba(58,123,213,0.08));
-    border: 1px solid rgba(78,205,196,0.3);
-  }
-  .vtc-badge {
-    display: inline-block; font-family: 'Fredoka', 'Inter', sans-serif; font-weight: 700; font-size: 20px;
-    color: #ffd76a; margin-bottom: 14px; letter-spacing: 1px;
-  }
-  .vtc-topup-text { font-size: 13.5px; color: rgba(255,255,255,0.75); font-weight: 500; margin-bottom: 6px; }
-  .vtc-topup-text span { color: #ffd76a; font-weight: 700; }
-  .vtc-progress-text { font-size: 11.5px; color: rgba(255,255,255,0.4); font-weight: 600; margin-bottom: 16px; }
+          <button onclick="toast('Real-money withdrawals are coming soon!')">Withdraw</button>
 
-  .vip-benefits-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 10px 16px 24px; }
-  .vip-benefit-cell {
-    background: rgba(255,255,255,0.05); border: 1px solid rgba(255,215,106,0.2); border-radius: 14px;
-    padding: 16px 6px; text-align: center;
-  }
-  .vbc-icon { font-size: 26px; margin-bottom: 8px; }
-  .vbc-name { font-size: 11px; font-weight: 700; color: #ffd76a; font-family: 'Fredoka', 'Inter', sans-serif; }
+      </div>
 
-  /* ---- Profile Overlay ---- */
-  .profile-overlay {
-    position: fixed; inset: 0; z-index: 200; background: #1a1030;
-    display: none; flex-direction: column; overflow-y: auto;
-  }
-  .profile-overlay.show { display: flex; }
-  .profile-overlay-header { padding: 16px; }
-  .profile-overlay-header button {
-    background: rgba(255,255,255,0.0
+      <!-- Farm Card -->
+
+      <div class="farm-card" style="position:relative; z-index:1;">
+
+          <h2 id="homeFarmLevelTag">🌾 Farm Level 1</h2>
+
+          <div class="rate-label" id="rateLabel">In 30 min: 🪙 0</div>
+
+          <h1 id="prodValue">0 Coins</h1>
+
+          <div id="harvestTimer">
+              Ready
+          </div>
+
+          <button id="harvestBtn" onclick="doHarvest()">
+              Collect
+          </button>
+
+      </div>
+
+      <!-- Farm -->
+
+      <div class="farm-grid" id="plotsGrid10" style="position:relative; z-index:1;">
+
+      </div>
+
+      <!-- Upgrade -->
+      <button class="upgrade-btn" id="upgradeFarmBtn" onclick="upgradeFarm()" style="position:relative; z-index:1;">
+          Upgrade Farm
+      </button>
+
+    </div>
+  </div>
+
+  <!-- ===== CHAT PANEL ===== -->
+  <div class="panel" id="chatPanel">
+    <div class="msg-shortcuts">
+      <div class="msg-shortcut" onclick="openListOverlay('notifications')">
+        <div class="ms-icon">🔔</div><div class="ms-label">Notifications</div>
+      </div>
+      <div class="msg-shortcut" onclick="openListOverlay('activity')">
+        <div class="ms-icon">🎁</div><div class="ms-label">Activity</div>
+      </div>
+      <div class="msg-shortcut" onclick="openListOverlay('friends')">
+        <div class="ms-icon">❤️</div><div class="ms-label">Friends</div>
+      </div>
+    </div>
+    <div class="chat-area" id="chatArea">
+      <div class="loading">Loading messages...</div>
+    </div>
+    <div class="input-bar">
+      <input type="text" id="msgInput" placeholder="Say something..." maxlength="300" onkeypress="if(event.key==='Enter') sendMessage()">
+      <button class="send-btn" onclick="sendMessage()">➤</button>
+    </div>
+  </div>
+
+  <!-- ===== FAMILY PANEL (not in a family) ===== -->
+  <div class="panel" id="familyPanel">
+    <div class="family-content" id="familyBrowseView">
+      <div class="level-card">
+        <div class="row">
+          <span class="lv-label" id="famLevelLabel">Level 1</span>
+          <span class="xp-label" id="famXpLabel">0 / 20 XP</span>
+        </div>
+        <div class="xp-bar-bg"><div class="xp-bar-fill" id="xpBarFill" style="width:0%;"></div></div>
+      </div>
+
+      <div class="create-family-box">
+        <h3>✨ Create Your Own Family</h3>
+        <input type="text" id="familyNameInput" placeholder="Family name" maxlength="30">
+        <button class="btn" id="createFamilyBtn" onclick="createFamily()">Create Family</button>
+        <div class="lock-msg" id="createLockMsg" style="display:none;"></div>
+      </div>
+
+      <div class="section-title">Join a Family</div>
+      <div style="padding: 0 16px 10px;">
+        <input type="text" id="familySearchInput" placeholder="🔍 Search families..." oninput="filterFamilyList()"
+          style="width:100%; padding:11px 14px; border-radius:14px; border:1px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.06); color:#fff; font-size:13px; box-sizing:border-box;">
+      </div>
+      <div id="familyList">
+        <div class="loading">Loading families...</div>
+      </div>
+    </div>
+
+    <!-- ===== FAMILY PANEL (inside a family) ===== -->
+    <div id="familyInsideView" style="display:none; flex-direction: column; flex: 1; overflow: hidden; position:relative;">
+      <div class="floating-hearts" id="familyFloatingHearts"></div>
+      <div class="family-header">
+        <div class="f-avatar-lg" id="insideFamAvatar">F</div>
+        <div>
+          <div class="f-title" id="insideFamName">Family</div>
+          <div class="f-sub" id="insideFamMemberCount">0 members</div>
+        </div>
+        <button onclick="openFamilyOwnerMenu()" style="background:rgba(255,255,255,0.08); border:none; color:#fff; width:32px; height:32px; border-radius:50%; font-size:18px; cursor:pointer; margin-left:auto;">⋮</button>
+      </div>
+      <div class="notice-banner" id="familyNoticeBanner" style="display:none;"></div>
+      <div class="seat-grid" id="familySeatGrid"></div>
+      <div class="members-strip-label">All Members</div>
+      <div class="members-strip" id="membersStrip"></div>
+      <div class="chat-area" id="familyChatArea"></div>
+      <div class="input-bar">
+        <input type="text" id="famMsgInput" placeholder="Message your family..." maxlength="300" onkeypress="if(event.key==='Enter') sendFamilyMessage()">
+        <button class="send-btn" onclick="sendFamilyMessage()">➤</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="family-bubble" id="familyBubble">
+    <span id="familyBubbleAvatar">F</span>
+    <span class="bubble-tag">👨‍👩‍👧</span>
+    <span class="bubble-close-btn" id="familyBubbleClose">✕</span>
+  </div>
+
+  <!-- ===== MOMENTS PANEL (placeholder) ===== -->
+  <div class="panel" id="momentsPanel" style="position: relative; overflow: hidden;">
+    <div class="room-title-bar">🪐 Moments</div>
+    <div class="moments-feed" id="momentsFeed">
+      <div class="loading">Loading moments...</div>
+    </div>
+    <div class="moments-fab" onclick="openNewPostOverlay()">+</div>
+  </div>
+
+  <!-- ===== NEW POST OVERLAY ===== -->
+  <div class="rank-overlay" id="newPostOverlay">
+    <div class="rank-header">
+      <button onclick="closeNewPostOverlay()">←</button>
+      <h2>✏️ New Moment</h2>
+    </div>
+    <div style="padding: 0 16px;">
+      <div class="edit-field">
+        <label>What's on your mind?</label>
+        <textarea id="newPostText" rows="4" placeholder="Share something..."></textarea>
+      </div>
+      <div class="edit-field">
+        <label>Image URL (optional)</label>
+        <input type="text" id="newPostImageUrl" placeholder="https://example.com/photo.jpg">
+      </div>
+      <button class="btn" onclick="submitNewPost()">Post</button>
+    </div>
+  </div>
+
+  <!-- ===== ROOM PANEL ===== -->
+  <div class="panel" id="roomPanel" style="flex-direction: column; overflow: hidden;">
+
+    <!-- ===== ROOM BROWSE VIEW ===== -->
+    <div id="roomBrowseView" style="display:flex; flex-direction:column; flex:1; overflow:hidden;">
+      <div class="room-explore-banner">
+        <div class="reb-title">Create Room Event</div>
+        <div class="reb-sub">Start your own room and invite friends</div>
+      </div>
+
+      <div class="room-explore-tabs">
+        <div class="ret active">Explore</div>
+        <div class="ret" onclick="toast('Followed rooms list is coming soon!')">Followed</div>
+      </div>
+
+      <div class="create-room-box">
+        <input type="text" id="roomNameInput" placeholder="Room name" maxlength="30">
+        <button class="btn" onclick="createLiveRoom()">Create Room</button>
+      </div>
+
+      <div style="padding: 0 16px 10px;">
+        <input type="text" id="roomSearchInput" placeholder="🔍 Search rooms..." oninput="filterRoomList()"
+          style="width:100%; padding:11px 14px; border-radius:14px; border:1px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.06); color:#fff; font-size:13px; box-sizing:border-box;">
+      </div>
+
+      <div class="room-explore-list" id="roomExploreList">
+        <div class="loading">Loading rooms...</div>
+      </div>
+    </div>
+
+    <!-- ===== ROOM INSIDE VIEW ===== -->
+    <div id="roomInsideView" style="display:none; flex-direction:column; flex:1; overflow:hidden; position:relative;">
+      <div class="room-title-bar" style="display:flex; align-items:center; gap:10px;">
+        <button onclick="leaveRoomToBrowse()" style="background:rgba(255,255,255,0.08); border:none; color:#fff; width:32px; height:32px; border-radius:50%; font-size:16px; cursor:pointer;">←</button>
+        <div class="room-header-avatar" id="roomHeaderOwnerAvatar">?</div>
+        <div style="display:flex; flex-direction:column; line-height:1.3;">
+          <span id="roomInsideTitle">Room</span>
+          <span id="roomIdDisplay" style="font-size:10px; color:rgba(255,255,255,0.4); font-weight:500;">ID: —</span>
+        </div>
+        <button onclick="openRoomOwnerMenu()" style="margin-left:auto; background:rgba(255,255,255,0.08); border:none; color:#fff; width:32px; height:32px; border-radius:50%; font-size:18px; cursor:pointer;">⋮</button>
+      </div>
+      <div class="floating-hearts" id="roomFloatingHearts"></div>
+      <div class="notice-banner" id="roomNoticeBanner" style="display:none;"></div>
+
+      <div class="games-row">
+        <div class="game-chip" onclick="openTicTacToe()">⭕ Tic-Tac-Toe</div>
+        <div class="game-chip" onclick="toast('UNO is coming soon!')">🎴 UNO</div>
+        <div class="game-chip" onclick="toast('Pool is coming soon!')">🎱 Pool</div>
+        <div class="game-chip" onclick="toast('Carrom is coming soon!')">🎲 Carrom</div>
+        <div class="game-chip" onclick="toast('Snakes is coming soon!')">🐍 Snakes</div>
+      </div>
+
+      <div class="seat-grid" id="seatGrid"></div>
+
+      <div class="chat-area" id="roomChatArea"></div>
+      <div class="input-bar">
+        <input type="text" id="roomMsgInput" placeholder="Say something..." maxlength="300" onkeypress="if(event.key==='Enter') sendRoomMessage()">
+        <button class="quick-icon-btn" onclick="openQuickGiftPicker()" title="Send Gift">🎁</button>
+        <button class="quick-icon-btn" onclick="openGiftLog()" title="Gift Log">📦</button>
+        <button class="send-btn" onclick="sendRoomMessage()">➤</button>
+      </div>
+    </div>
+  </div>
+  </div> <!-- /panelsWrap -->
+
+  <!-- ===== TIC-TAC-TOE OVERLAY ===== -->
+  <div class="ttt-overlay" id="tttOverlay">
+    <div class="ttt-header">
+      <button onclick="closeTicTacToe()">←</button>
+      <h2>⭕ Tic-Tac-Toe</h2>
+    </div>
+    <div class="ttt-status" id="tttStatus">Waiting for players...</div>
+    <div class="ttt-board" id="tttBoard"></div>
+    <button class="btn" style="max-width:220px;" onclick="resetTicTacToe()">Reset Game</button>
+  </div>
+
+  <!-- ===== GIFT PICKER OVERLAY ===== -->
+  <div class="ttt-overlay" id="giftOverlay" style="align-items: stretch; padding: 0;">
+    <div class="ttt-header" style="padding: 16px 16px 8px;">
+      <button onclick="closeGiftPicker()">←</button>
+      <h2>🎁 Send Gift</h2>
+    </div>
+
+    <div class="gift-recipients-row" id="giftRecipientsRow"></div>
+    <button class="gift-select-all-btn" id="giftSelectAllBtn" onclick="toggleSelectAllRecipients()">Select All</button>
+
+    <div class="gift-category-tabs" id="giftCategoryTabs">
+      <div class="gct active" data-cat="classical" onclick="switchGiftCategory('classical')">Classical</div>
+      <div class="gct" data-cat="premium" onclick="switchGiftCategory('premium')">Premium</div>
+    </div>
+
+    <div class="gift-grid" id="giftGrid" style="flex: 1; overflow-y: auto; padding: 4px 16px 16px;"></div>
+
+    <div class="gift-send-bar">
+      <div class="gsb-wallet">💕 <span id="giftWalletDisplay">0</span></div>
+      <div class="gsb-qty">
+        <button onclick="changeGiftQty(-1)">−</button>
+        <span id="giftQtyDisplay">1</span>
+        <button onclick="changeGiftQty(1)">+</button>
+      </div>
+      <button class="gsb-send-btn" onclick="confirmSendGift()">Send</button>
+    </div>
+  </div>
+
+  <!-- ===== ROOM OWNER MENU ===== -->
+  <!-- ===== SEAT PROFILE POPUP ===== -->
+  <div class="profile-overlay" id="seatProfileOverlay">
+    <div class="profile-overlay-header" style="display:flex; align-items:center; justify-content:space-between;">
+      <button onclick="closeSeatProfile()">←</button>
+      <div style="display:flex; gap:8px;">
+        <button onclick="reportSeatProfileUser()" style="background:rgba(255,255,255,0.08); border:none; color:#ffb4b4; padding:7px 12px; border-radius:16px; font-size:11.5px; font-weight:600; cursor:pointer;">🚩 Report</button>
+        <button onclick="blockSeatProfileUser()" style="background:rgba(255,255,255,0.08); border:none; color:#ff8a8a; padding:7px 12px; border-radius:16px; font-size:11.5px; font-weight:600; cursor:pointer;">🚫 Block</button>
+      </div>
+    </div>
+    <div class="profile-hero">
+      <div class="profile-avatar-ring"><div class="profile-avatar" id="seatProfAvatar">?</div></div>
+      <div class="profile-name" id="seatProfName">User</div>
+      <div class="profile-badges">
+        <span class="badge-pill" id="seatProfIdBadge">🆔 ID Lv. 1</span>
+        <span class="badge-pill vip-pill" id="seatProfVipBadge">👑 VIP 1</span>
+      </div>
+      <div class="profile-id-row">ID: <span id="seatProfIdNumber">—</span></div>
+    </div>
+
+    <div class="seat-prof-banner soulmate" onclick="toast('Soulmate feature is coming soon!')">
+      <span>💞 Become a Soulmate</span>
+    </div>
+    <div class="seat-prof-banner bff" onclick="toast('BFF feature is coming soon!')">
+      <span>🤝 Become BFF</span>
+    </div>
+
+    <div class="seat-prof-tiles">
+      <div class="seat-prof-tile" onclick="toast('Gift Wall is coming soon!')">
+        <div class="spt-label">Gift Wall</div>
+        <div class="spt-value">🎁 —</div>
+      </div>
+      <div class="seat-prof-tile" onclick="toast('Supporter feature is coming soon!')">
+        <div class="spt-label">Supporter</div>
+        <div class="spt-value">Vacant</div>
+      </div>
+      <div class="seat-prof-tile" id="seatProfFamilyTile">
+        <div class="spt-label">Family</div>
+        <div class="spt-value" id="seatProfFamilyValue">None</div>
+      </div>
+    </div>
+
+    <div class="seat-prof-actions">
+      <button class="spa-btn gift" onclick="giftFromSeatProfile()">🎁 Gift</button>
+      <button class="spa-btn chat" onclick="chatFromSeatProfile()">💬 Chat</button>
+      <button class="spa-btn chat" onclick="addFriendFromSeatProfile()">👤+ Add Friend</button>
+    </div>
+  </div>
+
+  <div class="ttt-overlay" id="roomOwnerOverlay">
+    <div class="ttt-header">
+      <button onclick="closeRoomOwnerMenu()">←</button>
+      <h2>Room Menu</h2>
+    </div>
+    <div class="owner-menu-list" id="roomOwnerOnlyItems" style="display:none;">
+      <div class="owner-menu-item" onclick="uploadRoomPhoto()">🖼️ Set Room Photo</div>
+      <div class="owner-menu-item" onclick="uploadRoomWallpaper()">🎨 Set Room Wallpaper</div>
+      <div class="owner-menu-item" onclick="setRoomNotice()">📢 Set Notice</div>
+      <div class="owner-menu-item" onclick="clearRoomMessages()">🧹 Clear Messages</div>
+      <div class="owner-menu-item danger" onclick="deleteRoom()">🗑️ Delete Room</div>
+    </div>
+    <div id="roomMemberNotice" style="display:none; text-align:center; color:rgba(255,255,255,0.4); font-size:13px; padding:20px;">Only the room owner can change these settings.</div>
+  </div>
+
+  <!-- ===== IMAGE URL MODAL ===== -->
+  <div class="ttt-overlay" id="imageUrlOverlay">
+    <div class="ttt-header">
+      <button onclick="closeImageUrlModal()">←</button>
+      <h2 id="imageUrlModalTitle">Set Image</h2>
+    </div>
+    <div style="padding: 8px 20px;">
+      <input type="text" id="imageUrlModalInput" placeholder="Paste image link here..." inputmode="url" autocomplete="off"
+        style="width:100%; padding:14px; border-radius:14px; border:1px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.06); color:#fff; font-size:14px; margin-bottom:10px; box-sizing:border-box;">
+      <button onclick="pasteFromClipboard()" style="width:100%; padding:12px; border-radius:14px; border:1px solid rgba(255,215,106,0.4); background:rgba(255,215,106,0.1); color:#ffd76a; font-size:13px; font-weight:600; cursor:pointer; margin-bottom:14px;">📋 Paste from Clipboard</button>
+      <div style="color:rgba(255,255,255,0.45); font-size:11.5px; margin-bottom:18px;">Best source: upload to <b style="color:rgba(255,255,255,0.7);">imgur.com</b> (no account needed) and copy the direct image link (ends in .jpg/.png). Google Photos share links usually won't work.</div>
+      <button class="btn" onclick="confirmImageUrlModal()">Save</button>
+    </div>
+  </div>
+
+  <!-- ===== FAMILY OWNER MENU ===== -->
+  <div class="ttt-overlay" id="familyOwnerOverlay">
+    <div class="ttt-header">
+      <button onclick="closeFamilyOwnerMenu()">←</button>
+      <h2>Family Menu</h2>
+    </div>
+    <div class="owner-menu-list" id="familyOwnerOnlyItems" style="display:none;">
+      <div class="owner-menu-item" onclick="uploadFamilyPhoto()">🖼️ Set Family Photo</div>
+      <div class="owner-menu-item" onclick="uploadFamilyWallpaper()">🎨 Set Family Wallpaper</div>
+      <div class="owner-menu-item" onclick="setFamilyNotice()">📢 Set Notice</div>
+      <div class="owner-menu-item" onclick="clearFamilyMessages()">🧹 Clear Messages</div>
+      <div class="owner-menu-item danger" onclick="deleteFamily()">🗑️ Delete Family</div>
+    </div>
+    <div class="owner-menu-list" id="familyMemberItems">
+      <div class="owner-menu-item danger" onclick="closeFamilyOwnerMenu(); leaveFamily();">🚪 Leave Family</div>
+    </div>
+  </div>
+
+  <div class="bottom-nav">
+    <div class="nav-item" id="navMessages" onclick="switchTab('messages')"><span class="nav-icon">💬</span>Messages</div>
+    <div class="nav-item" id="navMoments" onclick="switchTab('moments')"><span class="nav-icon">🪐</span>Moments</div>
+    <div class="nav-item active" id="navHifami" onclick="switchTab('hifami')"><span class="nav-icon">🌾</span>Home</div>
+    <div class="nav-item" id="navRoom" onclick="switchTab('room')"><span class="nav-icon">🏠</span>Room</div>
+    <div class="nav-item" id="navFamily" onclick="switchTab('family')"><span class="nav-icon">👨‍👩‍👧</span>Family</div>
+  </div>
+
+  <!-- ===== PROFILE OVERLAY ===== -->
+  <div class="profile-overlay" id="profileOverlay">
+    <div class="profile-overlay-header">
+      <button onclick="handleProfileBack()">←</button>
+    </div>
+
+    <div id="profileMainView">
+      <div class="profile-hero">
+        <div class="profile-avatar-ring"><div class="profile-avatar" id="profileAvatarBig">?</div></div>
+        <div class="profile-name" id="profileNameBig">User</div>
+        <div class="profile-badges">
+          <span class="badge-pill" id="profileIdLevelBadge">🆔 ID Lv. 1</span>
+          <span class="badge-pill vip-pill" id="profileVipLevelBadge">👑 VIP 1</span>
+        </div>
+        <div class="profile-id-row">ID: <span id="profileIdNumber">—</span> <button onclick="copyProfileId()">📋</button></div>
+      </div>
+      <div class="profile-menu">
+        <div class="profile-menu-item" onclick="openVipBenefits()">
+          <span class="pmi-icon">👑</span><span class="pmi-label">VIP Benefits</span>
+          <span class="pmi-arrow">›</span>
+        </div>
+        <div class="profile-menu-item" onclick="goToFamilyFromProfile()">
+          <span class="pmi-icon">🏠</span><span class="pmi-label">Family</span>
+          <span class="pmi-value" id="profileFamilyValue">None</span><span class="pmi-arrow">›</span>
+        </div>
+        <div class="profile-menu-item" onclick="switchTab('hifami'); closeProfile();">
+          <span class="pmi-icon">💰</span><span class="pmi-label">Wallet</span>
+          <span class="pmi-value" id="profileWalletValue">🪙0 💎0</span><span class="pmi-arrow">›</span>
+        </div>
+        <div class="profile-menu-item" onclick="openLanguageView()">
+          <span class="pmi-icon">🌐</span><span class="pmi-label">Language</span>
+          <span class="pmi-value" id="profileLangValue">English</span><span class="pmi-arrow">›</span>
+        </div>
+        <div class="profile-menu-item" onclick="openInviteView()">
+          <span class="pmi-icon">➕</span><span class="pmi-label">Invite Friends</span>
+          <span class="pmi-arrow">›</span>
+        </div>
+        <div class="profile-menu-item" onclick="openSettingsView()">
+          <span class="pmi-icon">⚙️</span><span class="pmi-label">Settings</span>
+          <span class="pmi-arrow">›</span>
+        </div>
+      </div>
+    </div>
+
+    <div id="inviteView" style="display:none; padding: 0 20px;">
+      <div class="invite-title">🎁 Invite Friends</div>
+      <div class="invite-sub">Share your code — you and your friend both get 💎 50 gems!</div>
+
+      <div class="invite-code-box">
+        <div class="invite-code-label">Your Referral Code</div>
+        <div class="invite-code-value" id="myReferralCode">—</div>
+        <button class="invite-copy-btn" onclick="copyReferralCode()">📋 Copy Code</button>
+      </div>
+
+      <div class="invite-redeem-box">
+        <div class="invite-code-label">Have a friend's code?</div>
+        <input type="text" id="redeemCodeInput" placeholder="Enter code">
+        <button class="invite-redeem-btn" onclick="redeemReferralCode()">Redeem</button>
+        <div class="invite-redeem-status" id="referredStatusText"></div>
+      </div>
+
+      <div class="milestone-box">
+        <div class="invite-code-label">Weekly Bonus — Invite Milestones</div>
+        <div class="milestone-progress-text" id="milestoneProgressText">0 friends invited</div>
+        <div class="milestone-row" id="milestoneRow"></div>
+      </div>
+    </div>
+
+    <div id="languageView" style="display:none; padding: 0 20px;">
+      <div class="invite-title">🌐 Language</div>
+      <div class="language-list" id="languageList"></div>
+    </div>
+
+    <div id="settingsView" style="display:none; padding: 0 20px;">
+      <div class="settings-list">
+        <div class="settings-item" onclick="openEditProfileView()">Personal Profile</div>
+        <div class="settings-item" onclick="toast('Push notifications are coming in a future update!')">Notification</div>
+        <div class="settings-item" onclick="openListOverlay('blocked')">Blocked Users</div>
+        <div class="settings-item" onclick="openAccountSecurityView()">Account Security</div>
+        <div class="settings-item" onclick="openInfoPage('terms')">Terms of Use</div>
+        <div class="settings-item" onclick="openInfoPage('privacy')">Privacy Policy</div>
+        <div class="settings-item" onclick="openInfoPage('guidelines')">Community Guidelines</div>
+        <div class="settings-item" onclick="toast('Need help? Message us via Family or Global chat for now.')">Help &amp; Feedback</div>
+        <div class="settings-item no-arrow">Version 1.0.0</div>
+        <button class="sign-out-btn" onclick="handleLogout()">Sign Out</button>
+      </div>
+    </div>
+
+    <div id="accountSecurityView" style="display:none; padding: 0 20px;">
+      <div class="profile-overlay-header" style="padding:0 0 14px;">
+        <button onclick="closeAccountSecurityView()">←</button>
+        <span style="font-weight:700; font-size:16px; margin-left:8px;">Account Security</span>
+      </div>
+      <div style="color:rgba(255,255,255,0.6); font-size:13px; margin-bottom:16px;">Email: <span id="secEmailDisplay" style="color:#fff; font-weight:600;">—</span></div>
+      <button class="btn" onclick="sendChangePasswordEmail()" style="margin-bottom:12px;">Send Password Reset Email</button>
+      <div style="color:rgba(255,255,255,0.45); font-size:11.5px;">We'll email you a secure link to set a new password.</div>
+    </div>
+
+    <div id="infoPageView" style="display:none; padding: 0 20px;">
+      <div class="profile-overlay-header" style="padding:0 0 14px;">
+        <button onclick="closeInfoPage()">←</button>
+        <span id="infoPageTitle" style="font-weight:700; font-size:16px; margin-left:8px;">Terms of Use</span>
+      </div>
+      <div id="infoPageBody" style="color:rgba(255,255,255,0.75); font-size:13px; line-height:1.7; white-space:pre-line;"></div>
+    </div>
+
+    <div id="editProfileView" style="display:none; padding: 0 20px;">
+      <div class="edit-avatar-wrap">
+        <div class="edit-avatar-ring"><div class="edit-avatar-circle" id="editAvatarBig">?</div></div>
+        <div style="margin-top:10px;">
+          <button onclick="uploadMyProfilePhoto()" style="background:rgba(255,255,255,0.08); border:none; color:#ffd76a; padding:8px 16px; border-radius:16px; font-size:12px; font-weight:600; cursor:pointer;">📷 Change Photo</button>
+        </div>
+      </div>
+
+      <div class="edit-field">
+        <label>Personal Profile (Bio)</label>
+        <textarea id="editBioInput" rows="2" maxlength="150" placeholder="Smile first, judge later..."></textarea>
+      </div>
+
+      <div class="edit-field">
+        <label>Name</label>
+        <input type="text" id="editNameInput" placeholder="Your name" maxlength="25">
+      </div>
+
+      <div class="edit-field">
+        <label>Gender</label>
+        <select id="editGenderInput">
+          <option value="Male">Male</option>
+          <option value="Female">Female</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+
+      <div class="edit-field">
+        <label>Date of Birth</label>
+        <input type="date" id="editDobInput">
+      </div>
+
+      <div class="edit-field">
+        <label>Region</label>
+        <input type="text" id="editRegionInput" placeholder="e.g. Arabic-speaking area">
+      </div>
+
+      <button class="btn" onclick="saveEditProfile()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== RANK OVERLAY ===== -->
+<div class="rank-overlay" id="rankOverlay">
+  <div class="rank-header">
+    <button onclick="closeRankView()">←</button>
+    <h2>🏆 Rank</h2>
+  </div>
+
+  <div class="rank-tabs" id="rankTabsRow">
+    <div class="rank-tab active" data-tab="honor" onclick="switchRankTab('honor')">Honor</div>
+    <div class="rank-tab" data-tab="family" onclick="switchRankTab('family')">Family</div>
+    <div class="rank-tab" data-tab="soulmate" onclick="switchRankTab('soulmate')">Soulmate</div>
+    <div class="rank-tab" data-tab="bff" onclick="switchRankTab('bff')">BFF</div>
+    <div class="rank-tab" data-tab="vip" onclick="switchRankTab('vip')">VIP</div>
+  </div>
+
+  <div class="rank-subtabs">
+    <div class="rank-subtab active" data-sub="today" onclick="switchRankSubtab('today')">Today</div>
+    <div class="rank-subtab" data-sub="yesterday" onclick="switchRankSubtab('yesterday')">Yesterday</div>
+    <div class="rank-subtab" data-sub="hall" onclick="switchRankSubtab('hall')">Hall of Fame</div>
+  </div>
+
+  <div class="rank-list" id="rankList">
+    <div class="loading">Loading leaderboard...</div>
+  </div>
+</div>
+
+<!-- ===== VIP BENEFITS OVERLAY ===== -->
+<div class="rank-overlay" id="vipBenefitsOverlay">
+  <div class="rank-header">
+    <button onclick="closeVipBenefits()">←</button>
+    <h2>👑 VIP Benefits</h2>
+  </div>
+
+  <div class="vip-tier-card">
+    <div class="vtc-badge" id="vtcBadge">VIP 1</div>
+    <div class="vtc-topup-text">Top up <span id="vtcAmount">—</span> to unlock <span id="vtcTierLabel">VIP 1</span></div>
+    <div class="xp-bar-bg" style="margin: 12px 0 6px;"><div class="xp-bar-fill" id="vtcProgressFill" style="width:0%;"></div></div>
+    <div class="vtc-progress-text" id="vtcProgressText">0 / 100</div>
+    <button class="btn" onclick="rechargeVip()">Recharge</button>
+  </div>
+
+  <div class="section-title" style="padding: 0 16px;">💎 Buy Gems</div>
+  <div id="gemsPackagesList" style="display:flex; flex-direction:column; gap:10px; padding: 0 16px 16px;"></div>
+
+  <div class="section-title" style="padding: 0 16px;">VIP Exclusive Benefits</div>
+  <div class="vip-benefits-grid">
+    <div class="vip-benefit-cell"><div class="vbc-icon">🏅</div><div class="vbc-name">VIP Badge</div></div>
+    <div class="vip-benefit-cell"><div class="vbc-icon">🖼️</div><div class="vbc-name">Exclusive Frame</div></div>
+    <div class="vip-benefit-cell"><div class="vbc-icon">💬</div><div class="vbc-name">Exclusive Bubble</div></div>
+    <div class="vip-benefit-cell"><div class="vbc-icon">⭐</div><div class="vbc-name">Front-row Avatar</div></div>
+    <div class="vip-benefit-cell"><div class="vbc-icon">⚡</div><div class="vbc-name">Stamina Boost</div></div>
+    <div class="vip-benefit-cell"><div class="vbc-icon">🌾</div><div class="vbc-name">Bonus Farm Land</div></div>
+  </div>
+</div>
+
+<!-- ===== NOTIFICATIONS / ACTIVITY / FRIENDS OVERLAY ===== -->
+<div class="rank-overlay" id="listOverlay">
+  <div class="rank-header">
+    <button onclick="closeListOverlay()">←</button>
+    <h2 id="listOverlayTitle">Notifications</h2>
+  </div>
+
+  <div id="friendsAddBox" style="display:none; padding: 0 16px 14px;">
+    <div class="invite-redeem-box" style="margin-bottom:0;">
+      <div class="invite-code-label">Add a friend by ID</div>
+      <input type="text" id="addFriendIdInput" placeholder="Enter friend's ID">
+      <button class="invite-redeem-btn" onclick="addFriendById()">Add Friend</button>
+      <div class="invite-redeem-status" id="addFriendStatus"></div>
+    </div>
+  </div>
+
+  <div class="rank-list" id="listOverlayContent">
+    <div class="loading">Loading...</div>
+  </div>
+</div>
+
+<!-- Firebase SDKs -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+<script src="script.js"></script>
+
+</body>
+</html>
