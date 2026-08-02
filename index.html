@@ -1057,6 +1057,10 @@
       </div>
 
       <div class="section-title">Join a Family</div>
+      <div style="padding: 0 16px 10px;">
+        <input type="text" id="familySearchInput" placeholder="🔍 Search families..." oninput="filterFamilyList()"
+          style="width:100%; padding:11px 14px; border-radius:14px; border:1px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.06); color:#fff; font-size:13px; box-sizing:border-box;">
+      </div>
       <div id="familyList">
         <div class="loading">Loading families...</div>
       </div>
@@ -1137,6 +1141,11 @@
       <div class="create-room-box">
         <input type="text" id="roomNameInput" placeholder="Room name" maxlength="30">
         <button class="btn" onclick="createLiveRoom()">Create Room</button>
+      </div>
+
+      <div style="padding: 0 16px 10px;">
+        <input type="text" id="roomSearchInput" placeholder="🔍 Search rooms..." oninput="filterRoomList()"
+          style="width:100%; padding:11px 14px; border-radius:14px; border:1px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.06); color:#fff; font-size:13px; box-sizing:border-box;">
       </div>
 
       <div class="room-explore-list" id="roomExploreList">
@@ -2795,10 +2804,16 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
   const LOVE_PER_DAY = 20;
   const LOVE_INTERVAL_MS = (24 * 60 * 60 * 1000) / LOVE_PER_DAY;
 
+  let harvestInProgress = false;
+
   function doHarvest() {
     if (!currentUser || !currentUserData) return;
+    if (harvestInProgress) return;
     const accumulated = getAccumulatedCoins();
     if (accumulated < 1) return;
+    harvestInProgress = true;
+    const harvestBtnEl = document.getElementById('harvestBtn');
+    if (harvestBtnEl) harvestBtnEl.disabled = true;
 
     const newCoins = (currentUserData.coins || 0) + accumulated;
     const update = {
@@ -2845,6 +2860,10 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
       } else if (loveAwarded > 0) {
         showGiftFlash('💕');
       }
+    }).finally(() => {
+      harvestInProgress = false;
+      const harvestBtnEl = document.getElementById('harvestBtn');
+      if (harvestBtnEl) harvestBtnEl.disabled = false;
     });
   }
 
@@ -2906,33 +2925,48 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
   }
 
   // ---------- FAMILY LIST (browse) ----------
+  let familyListCache = null;
+
   function listenToFamilyList() {
     if (familyListListenerAttached) return;
     familyListListenerAttached = true;
     db.ref('families').on('value', (snap) => {
-      const listEl = document.getElementById('familyList');
-      const families = snap.val();
-      if (!families) {
-        listEl.innerHTML = '<div class="loading">No families yet. Be the first to create one! 🎊</div>';
-        return;
-      }
-      listEl.innerHTML = '';
-      Object.entries(families).forEach(([famId, fam]) => {
-        const memberCount = fam.members ? Object.keys(fam.members).length : 0;
-        const div = document.createElement('div');
-        div.className = 'family-item';
-        div.innerHTML = `
-          <div class="f-avatar">${escapeHtml(fam.name.charAt(0).toUpperCase())}</div>
-          <div class="f-info">
-            <div class="f-name">${escapeHtml(fam.name)}</div>
-            <div class="f-members">👥 ${memberCount} member${memberCount !== 1 ? 's' : ''}</div>
-          </div>
-          <button class="join-btn" onclick="joinFamily('${famId}')">Join</button>
-        `;
-        listEl.appendChild(div);
-      });
+      familyListCache = snap.val();
+      renderFamilyList();
     });
   }
+
+  function renderFamilyList() {
+    const listEl = document.getElementById('familyList');
+    const families = familyListCache;
+    if (!families) {
+      listEl.innerHTML = '<div class="loading">No families yet. Be the first to create one! 🎊</div>';
+      return;
+    }
+    const query = (document.getElementById('familySearchInput').value || '').trim().toLowerCase();
+    const entries = Object.entries(families).filter(([, fam]) => !query || fam.name.toLowerCase().includes(query));
+    if (!entries.length) {
+      listEl.innerHTML = `<div class="loading">No families match "${escapeHtml(query)}".</div>`;
+      return;
+    }
+    listEl.innerHTML = '';
+    entries.forEach(([famId, fam]) => {
+      const memberCount = fam.members ? Object.keys(fam.members).length : 0;
+      const div = document.createElement('div');
+      div.className = 'family-item';
+      div.innerHTML = `
+        <div class="f-avatar">${escapeHtml(fam.name.charAt(0).toUpperCase())}</div>
+        <div class="f-info">
+          <div class="f-name">${escapeHtml(fam.name)}</div>
+          <div class="f-members">👥 ${memberCount} member${memberCount !== 1 ? 's' : ''}</div>
+        </div>
+        <button class="join-btn" onclick="joinFamily('${famId}')">Join</button>
+      `;
+      listEl.appendChild(div);
+    });
+  }
+
+  function filterFamilyList() { renderFamilyList(); }
 
   function showBrowseFamilies() {
     document.getElementById('familyBrowseView').style.display = 'block';
@@ -3424,34 +3458,49 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
   let currentSeatsListener = null;
   let currentRoomChatListener = null;
 
+  let roomListCache = null;
+
   function listenToRoomList() {
     if (roomListListenerAttached) return;
     roomListListenerAttached = true;
     db.ref('liveRooms').on('value', (snap) => {
-      const listEl = document.getElementById('roomExploreList');
-      const rooms = snap.val();
-      if (!rooms) {
-        listEl.innerHTML = '<div class="loading">No rooms yet. Be the first to create one!</div>';
-        return;
-      }
-      listEl.innerHTML = '';
-      Object.entries(rooms).forEach(([roomId, room]) => {
-        const memberCount = room.seats ? Object.keys(room.seats).length : 0;
-        const card = document.createElement('div');
-        card.className = 'room-card';
-        card.innerHTML = `
-          <div class="rc-thumb">🏠</div>
-          <div class="rc-info">
-            <div class="rc-name">${escapeHtml(room.name)}</div>
-            <div class="rc-sub">👥 ${memberCount} in room</div>
-          </div>
-          <div class="rc-heat">🔥 ${memberCount}</div>
-        `;
-        card.onclick = () => enterRoom(roomId, room.name);
-        listEl.appendChild(card);
-      });
+      roomListCache = snap.val();
+      renderRoomList();
     });
   }
+
+  function renderRoomList() {
+    const listEl = document.getElementById('roomExploreList');
+    const rooms = roomListCache;
+    if (!rooms) {
+      listEl.innerHTML = '<div class="loading">No rooms yet. Be the first to create one!</div>';
+      return;
+    }
+    const query = (document.getElementById('roomSearchInput').value || '').trim().toLowerCase();
+    const entries = Object.entries(rooms).filter(([, room]) => !query || room.name.toLowerCase().includes(query));
+    if (!entries.length) {
+      listEl.innerHTML = `<div class="loading">No rooms match "${escapeHtml(query)}".</div>`;
+      return;
+    }
+    listEl.innerHTML = '';
+    entries.forEach(([roomId, room]) => {
+      const memberCount = room.seats ? Object.keys(room.seats).length : 0;
+      const card = document.createElement('div');
+      card.className = 'room-card';
+      card.innerHTML = `
+        <div class="rc-thumb">🏠</div>
+        <div class="rc-info">
+          <div class="rc-name">${escapeHtml(room.name)}</div>
+          <div class="rc-sub">👥 ${memberCount} in room</div>
+        </div>
+        <div class="rc-heat">🔥 ${memberCount}</div>
+      `;
+      card.onclick = () => enterRoom(roomId, room.name);
+      listEl.appendChild(card);
+    });
+  }
+
+  function filterRoomList() { renderRoomList(); }
 
   function createLiveRoom() {
     const input = document.getElementById('roomNameInput');
@@ -3912,6 +3961,7 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
 
   function openGiftPicker(preselectUid, preselectName) {
     if (!currentRoomId) { alert('Join a room first to send gifts.'); return; }
+    giftSendInProgress = false;
     giftSelectedRecipients = new Set();
     giftSelectedItem = null;
     giftQty = 1;
@@ -3993,14 +4043,20 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
     document.getElementById('giftQtyDisplay').textContent = giftQty;
   }
 
+  let giftSendInProgress = false;
+
   function confirmSendGift() {
     if (!currentUser || !currentUserData || !currentRoomId) return;
+    if (giftSendInProgress) return;
     if (giftSelectedRecipients.size === 0) { alert('Pick at least one recipient.'); return; }
     if (!giftSelectedItem) { alert('Pick a gift first.'); return; }
 
     const totalCost = giftSelectedItem.cost * giftQty * giftSelectedRecipients.size;
     const myLove = currentUserData.love || 0;
     if (myLove < totalCost) { alert('Not enough Love Coins for this gift.'); return; }
+    giftSendInProgress = true;
+    const sendBtnEl = document.querySelector('.gsb-send-btn');
+    if (sendBtnEl) sendBtnEl.disabled = true;
 
     const recipientUids = Array.from(giftSelectedRecipients);
     const perRecipientCost = giftSelectedItem.cost * giftQty;
@@ -4042,6 +4098,9 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
 
     showGiftFlash(giftSelectedItem.emoji);
     closeGiftPicker();
+    giftSendInProgress = false;
+    const sendBtnEl = document.querySelector('.gsb-send-btn');
+    if (sendBtnEl) sendBtnEl.disabled = false;
   }
 
   function showGiftFlash(emoji) {
