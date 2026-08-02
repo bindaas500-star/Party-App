@@ -90,6 +90,11 @@
   .avatar-ring {
     width: 46px; height: 46px; border-radius: 50%; padding: 2.5px; flex-shrink: 0;
     background: linear-gradient(135deg, #ffd76a, #ff6b9d, #a78bfa);
+    animation: avatarGlow 3s ease-in-out infinite;
+  }
+  @keyframes avatarGlow {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(255,215,106,0.35); }
+    50% { box-shadow: 0 0 0 6px rgba(255,215,106,0); }
   }
   .avatar {
     width: 100%; height: 100%; border-radius: 50%; background: #241539;
@@ -115,10 +120,14 @@
   }
   .nav-item {
     flex: 1; text-align: center; padding: 7px 2px; font-size: 9.5px; color: rgba(255,255,255,0.45); cursor: pointer;
-    font-weight: 600; border-radius: 12px; transition: color .15s; white-space: nowrap;
+    font-weight: 600; border-radius: 12px; transition: color .2s, background .2s, box-shadow .2s; white-space: nowrap;
   }
-  .nav-item .nav-icon { display: block; font-size: 18px; margin-bottom: 2px; }
-  .nav-item.active { color: #ffd76a; background: rgba(255,215,106,0.08); }
+  .nav-item .nav-icon { display: block; font-size: 18px; margin-bottom: 2px; transition: transform .2s; }
+  .nav-item.active {
+    color: #ffd76a; background: rgba(255,215,106,0.1);
+    box-shadow: 0 0 14px rgba(255,215,106,0.25), inset 0 0 0 1px rgba(255,215,106,0.2);
+  }
+  .nav-item.active .nav-icon { transform: translateY(-2px) scale(1.08); filter: drop-shadow(0 2px 6px rgba(255,215,106,0.5)); }
 
   /* ---- Content Panels ---- */
   .panel { display: none; flex-direction: column; flex: 1; overflow: hidden; }
@@ -709,7 +718,7 @@
     background: rgba(255,255,255,0.12);
     backdrop-filter: blur(8px);
     padding: 12px 14px;
-    border-radius: 18px;
+    border-radius: 20px;
     border: 1px solid rgba(255,255,255,0.15);
     box-shadow: 0 8px 24px rgba(0,0,0,0.25);
   }
@@ -765,14 +774,17 @@
   }
 
   .withdraw-card button{
-    background:#fff;
+    background: linear-gradient(135deg, #fff, #eafff5);
     color:#18a558;
     border:none;
     padding:10px 20px;
     border-radius:15px;
     font-weight:bold;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    flex-shrink: 0;
+    box-shadow: 0 4px 14px rgba(255,255,255,0.35), 0 6px 18px rgba(0,0,0,0.25);
+    transition: transform .15s;
   }
+  .withdraw-card button:active { transform: scale(0.95); }
 
   .farm-card{
     background: linear-gradient(160deg, #2f7d38, #1e5825);
