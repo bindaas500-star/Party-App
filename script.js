@@ -30,22 +30,14 @@
   setTimeout(setAppHeight, 1000);
 
   (function setupBannerSlider() {
-    const track = document.getElementById('bannerTrack');
-    const dotsEl = document.getElementById('bannerDots');
-    if (!track || !dotsEl) return;
+    const track = document.getElementById('topbarBannerTrack');
+    if (!track) return;
     const slideCount = track.children.length;
     let current = 0;
-
-    for (let i = 0; i < slideCount; i++) {
-      const dot = document.createElement('span');
-      if (i === 0) dot.className = 'active';
-      dotsEl.appendChild(dot);
-    }
 
     function goToSlide(i) {
       current = i;
       track.style.transform = `translateX(-${i * 100}%)`;
-      Array.from(dotsEl.children).forEach((d, idx) => d.classList.toggle('active', idx === i));
     }
 
     setInterval(() => {
