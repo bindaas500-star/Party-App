@@ -122,27 +122,34 @@ const firebaseConfig = {
     });
   }
 
-  // Instant Guest Login (1-Click without password)
+  // Guaranteed 1-Click Guest Login (Instant Entrance)
   function handleGuestLogin() {
-    const namePrompt = prompt("Apna Naam likhein (Guest Login):", "User" + Math.floor(Math.random() * 9000 + 1000));
-    if (!namePrompt) return;
+    const nameInput = document.getElementById('nameInput');
+    const enteredName = (nameInput && nameInput.value.trim()) ? nameInput.value.trim() : "";
+    const guestName = enteredName || ("Guest_" + Math.floor(Math.random() * 8999 + 1000));
     
     currentUser = { uid: "guest_" + Date.now(), isGuest: true };
     currentUserData = {
-      name: namePrompt.trim(),
-      coins: 5000,
-      gems: 100,
-      love: 50,
+      name: guestName,
+      coins: 10000,
+      gems: 500,
+      love: 200,
       level: 1,
       farmLevel: 1,
       profileId: String(Math.floor(10000000 + Math.random() * 90000000))
     };
 
-    renderUserHeader();
-    renderHome();
+    hideSplashScreen();
     document.getElementById('authScreen').classList.remove('active');
     document.getElementById('mainScreen').style.display = 'flex';
-    toast("Welcome " + namePrompt + "! 🎉");
+    
+    renderUserHeader();
+    renderHome();
+    listenToChat();
+    listenToFamilyList();
+    listenToRoomList();
+    
+    toast("Welcome " + guestName + "! 🎉 (Guest Mode)");
   }
 
   function handleAuth() {
@@ -216,9 +223,10 @@ const firebaseConfig = {
   }
 
   function handleLogout() {
-    auth.signOut().then(() => {
-      location.reload();
-    });
+    currentUser = null;
+    currentUserData = null;
+    if (auth.currentUser) auth.signOut();
+    location.reload();
   }
 
   let initialRestoreDone = false;
@@ -233,6 +241,11 @@ const firebaseConfig = {
 
   auth.onAuthStateChanged((user) => {
     hideSplashScreen();
+
+    // Prevent Firebase Auth from kicking out Guest Users
+    if (currentUser && currentUser.isGuest) {
+      return;
+    }
 
     if (user && !currentUser) {
       currentUser = user;
@@ -390,4 +403,122 @@ const firebaseConfig = {
     gridEl.innerHTML = '';
     PLOTS.forEach((plot, i) => {
       const isUnlocked = farmLevel >= plot.requiredLevel;
-      const cell = document.c
+      const cell = document.createElement('div');
+      cell.className = 'plot10-cell ' + (isUnlocked ? 'unlocked' : 'locked');
+      cell.innerHTML = isUnlocked
+        ? `<div class="p-emoji">${CROP_EMOJIS[i % CROP_EMOJIS.length]}</div><div class="p-bonus">+${plot.bonus}</div>`
+        : `<div class="p-emoji">🔒</div><div class="p-label">${plot.label}</div>`;
+      gridEl.appendChild(cell);
+    });
+  }
+
+  function doHarvest() {
+    if (!currentUser || !currentUserData) return;
+    const gained = getProductionAmount();
+    if (!currentUser.isGuest) {
+      db.ref('users/' + currentUser.uid).update({
+        coins: (currentUserData.coins || 0) + gained,
+        lastHarvestAt: Date.now()
+      });
+    } else {
+      currentUserData.coins = (currentUserData.coins || 0) + gained;
+      renderHome();
+    }
+    toast('Collected 🪙 ' + formatNum(gained));
+  }
+
+  function upgradeFarm() {
+    if (!currentUser || !currentUserData) return;
+    const cost = getFarmLevel() * UPGRADE_INCREMENT;
+    if ((currentUserData.gems || 0) < cost) { toast('Not enough Gems!', 'error'); return; }
+    
+    if (!currentUser.isGuest) {
+      db.ref('users/' + currentUser.uid).update({
+        gems: currentUserData.gems - cost,
+        farmLevel: getFarmLevel() + 1
+      });
+    } else {
+      currentUserData.gems -= cost;
+      currentUserData.farmLevel += 1;
+      renderHome();
+    }
+    toast('Farm Upgraded! 👑');
+  }
+
+  let currentRoomId = null;
+  let roomListCache = null;
+
+  function listenToRoomList() {
+    db.ref('liveRooms').on('value', (snap) => {
+      roomListCache = snap.val();
+      renderRoomList();
+    });
+  }
+
+  function renderRoomList() {
+    const listEl = document.getElementById('roomExploreList');
+    if (!listEl) return;
+    if (!roomListCache) { listEl.innerHTML = '<div class="loading">No rooms available.</div>'; return; }
+    listEl.innerHTML = '';
+    Object.entries(roomListCache).forEach(([id, r]) => {
+      const card = document.createElement('div');
+      card.className = 'room-card';
+      card.innerHTML = `<div class="rc-thumb">🏠</div><div class="rc-info"><div class="rc-name">${escapeHtml(r.name)}</div></div>`;
+      card.onclick = () => enterRoom(id, r.name);
+      listEl.appendChild(card);
+    });
+  }
+
+  function createLiveRoom() {
+    const name = document.getElementById('roomNameInput').value.trim();
+    if (!name || !currentUser) return;
+    const ref = db.ref('liveRooms').push();
+    ref.set({ name: name, ownerUid: currentUser.uid, createdAt: Date.now() }).then(() => enterRoom(ref.key, name));
+  }
+
+  function enterRoom(id, name) {
+    currentRoomId = id;
+    document.getElementById('roomInsideTitle').textContent = name;
+    document.getElementById('roomBrowseView').style.display = 'none';
+    document.getElementById('roomInsideView').style.display = 'flex';
+    listenToSeats(id);
+    listenToRoomChat(id);
+  }
+
+  function leaveRoomToBrowse() {
+    currentRoomId = null;
+    document.getElementById('roomInsideView').style.display = 'none';
+    document.getElementById('roomBrowseView').style.display = 'flex';
+  }
+
+  function listenToSeats(roomId) {
+    db.ref('liveRooms/' + roomId + '/seats').on('value', (snap) => {
+      const seats = snap.val() || {};
+      const grid = document.getElementById('seatGrid');
+      if (!grid) return;
+      grid.innerHTML = '';
+      for (let i = 0; i < 8; i++) {
+        const s = seats[i];
+        const cell = document.createElement('div');
+        cell.className = 'seat-cell';
+        if (s) {
+          cell.innerHTML = `
+            <div class="seat-vip-pill">VIP ${s.vip || 1}</div>
+            <div class="seat-avatar-wrap frame-sparkle">
+              <div class="seat-avatar">${escapeHtml((s.name || 'U').charAt(0).toUpperCase())}</div>
+              <div class="seat-mic-badge ${s.muted ? 'muted' : ''}">${s.muted ? '🔇' : '🎙️'}</div>
+            </div>
+            <div class="seat-name">${escapeHtml(s.name)}</div>
+          `;
+          cell.onclick = () => openSeatProfile(s.uid, s.name);
+        } else {
+          cell.innerHTML = `<div class="seat-plus">+</div><div class="seat-name">${i + 1}</div>`;
+          cell.onclick = () => sitOnSeat(i);
+        }
+        grid.appendChild(cell);
+      }
+    });
+  }
+
+  function sitOnSeat(index) {
+    if (!currentUser || !cur
