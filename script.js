@@ -1,4 +1,8 @@
-const firebaseConfig = {
+// Bulletproof Safety Guard for Firebase
+  let auth = null;
+  let db = null;
+
+  const firebaseConfig = {
     apiKey: "AIzaSyCWFsDRzavLObytahjDj3cRYwsoSNuttaA",
     authDomain: "party-app-f2413.firebaseapp.com",
     databaseURL: "https://party-app-f2413-default-rtdb.firebaseio.com",
@@ -9,7 +13,17 @@ const firebaseConfig = {
     measurementId: "G-9QEVZLLM1Y"
   };
 
-  firebase.initializeApp(firebaseConfig);
+  try {
+    if (typeof firebase !== 'undefined') {
+      if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+      }
+      auth = firebase.auth();
+      db = firebase.database();
+    }
+  } catch (e) {
+    console.warn("Firebase Load Warning:", e);
+  }
 
   function setAppHeight() {
     document.documentElement.style.setProperty('--app-height', window.innerHeight + 'px');
@@ -73,9 +87,6 @@ const firebaseConfig = {
     }, { passive: true });
   })();
 
-  const auth = firebase.auth();
-  const db = firebase.database();
-
   const LEVEL_REQUIRED_TO_CREATE = 5;
   const XP_PER_LEVEL = 150;
   const XP_PER_MESSAGE = 5;
@@ -99,30 +110,43 @@ const firebaseConfig = {
   let currentUserData = null;
   let currentFamilyId = null;
 
+  // Working Toggle Mode (Login <-> Create Account)
   function toggleAuthMode() {
     isSignupMode = !isSignupMode;
-    document.getElementById('authTitle').textContent = isSignupMode ? "Create Account" : "Welcome Back";
-    document.getElementById('authSubmitBtn').textContent = isSignupMode ? "Sign Up" : "Login";
-    document.getElementById('toggleAuthMode').textContent = isSignupMode ? "Already have an account? Login" : "New here? Create an account";
-    document.getElementById('nameInput').style.display = isSignupMode ? "block" : "none";
-    document.getElementById('forgotPasswordLink').style.display = isSignupMode ? "none" : "block";
-    document.getElementById('authError').textContent = "";
+    const title = document.getElementById('authTitle');
+    const submitBtn = document.getElementById('authSubmitBtn');
+    const toggleBtn = document.getElementById('toggleAuthMode');
+    const nameInput = document.getElementById('nameInput');
+    const forgotLink = document.getElementById('forgotPasswordLink');
+    const errorEl = document.getElementById('authError');
+
+    if (title) title.textContent = isSignupMode ? "Create Account" : "Welcome Back";
+    if (submitBtn) submitBtn.textContent = isSignupMode ? "Sign Up" : "Login";
+    if (toggleBtn) toggleBtn.textContent = isSignupMode ? "Already have an account? Login" : "New here? Create an account";
+    if (nameInput) nameInput.style.display = isSignupMode ? "block" : "none";
+    if (forgotLink) forgotLink.style.display = isSignupMode ? "none" : "block";
+    if (errorEl) errorEl.textContent = "";
   }
 
   function handleForgotPassword() {
-    const email = document.getElementById('emailInput').value.trim();
+    const emailEl = document.getElementById('emailInput');
+    const email = emailEl ? emailEl.value.trim() : "";
     if (!email) {
-      alert("⚠️ Pehle apna Email box me likhein.");
+      alert("⚠️ Pehle uper wale box mein apna Email likhein.");
       return;
     }
-    auth.sendPasswordResetEmail(email).then(() => {
-      alert("✅ Password reset link aap ke Email par bhej diya gaya hai!");
-    }).catch((err) => {
-      alert("⚠️ " + err.message);
-    });
+    if (auth) {
+      auth.sendPasswordResetEmail(email).then(() => {
+        alert("✅ Password reset link aap ke Email par bhej diya gaya hai!");
+      }).catch((err) => {
+        alert("⚠️ " + err.message);
+      });
+    } else {
+      alert("⚠️ Network Issue: Password reset request abhi send nahi ho saki.");
+    }
   }
 
-  // Guaranteed 1-Click Guest Login (Instant Entrance)
+  // Instant 1-Click Guest Login
   function handleGuestLogin() {
     const nameInput = document.getElementById('nameInput');
     const enteredName = (nameInput && nameInput.value.trim()) ? nameInput.value.trim() : "";
@@ -140,84 +164,100 @@ const firebaseConfig = {
     };
 
     hideSplashScreen();
-    document.getElementById('authScreen').classList.remove('active');
-    document.getElementById('mainScreen').style.display = 'flex';
+    const authScr = document.getElementById('authScreen');
+    const mainScr = document.getElementById('mainScreen');
+    if (authScr) authScr.classList.remove('active');
+    if (mainScr) mainScr.style.display = 'flex';
     
     renderUserHeader();
     renderHome();
-    listenToChat();
-    listenToFamilyList();
-    listenToRoomList();
+    if (db) {
+      listenToChat();
+      listenToFamilyList();
+      listenToRoomList();
+    }
     
     toast("Welcome " + guestName + "! 🎉 (Guest Mode)");
   }
 
   function handleAuth() {
-    const email = document.getElementById('emailInput').value.trim();
-    const pass = document.getElementById('passInput').value;
-    const name = document.getElementById('nameInput').value.trim();
+    const emailEl = document.getElementById('emailInput');
+    const passEl = document.getElementById('passInput');
+    const nameEl = document.getElementById('nameInput');
     const errorEl = document.getElementById('authError');
     const btn = document.getElementById('authSubmitBtn');
-    errorEl.textContent = "";
+
+    const email = emailEl ? emailEl.value.trim() : "";
+    const pass = passEl ? passEl.value : "";
+    const name = nameEl ? nameEl.value.trim() : "";
+
+    if (errorEl) errorEl.textContent = "";
 
     if (!email || !pass) {
       const msg = "⚠️ Email aur Password donon likhna zaroori hai.";
-      errorEl.textContent = msg;
+      if (errorEl) errorEl.textContent = msg;
       alert(msg);
       return;
     }
     if (isSignupMode && !name) {
       const msg = "⚠️ Apna Naam zaroor likhein.";
-      errorEl.textContent = msg;
+      if (errorEl) errorEl.textContent = msg;
       alert(msg);
       return;
     }
     if (pass.length < 6) {
       const msg = "⚠️ Password kam se kam 6 huroof ka hona chahiye.";
-      errorEl.textContent = msg;
+      if (errorEl) errorEl.textContent = msg;
       alert(msg);
       return;
     }
 
-    btn.disabled = true;
-    btn.textContent = isSignupMode ? "Account Ban Raha Hai..." : "Login Ho Raha Hai...";
+    if (!auth) {
+      alert("⚠️ Firebase Auth ready nahi hai. Aap 'Quick Guest Login' ka neela button dabayein!");
+      return;
+    }
+
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = isSignupMode ? "Account Ban Raha Hai..." : "Login Ho Raha Hai...";
+    }
 
     if (isSignupMode) {
       auth.createUserWithEmailAndPassword(email, pass)
         .then((cred) => {
-          return db.ref('users/' + cred.user.uid).set({
-            name: name,
-            email: email,
-            vip: 1, coins: 0, gems: 0, love: 0, xp: 0, level: 1, farmLevel: 1,
-            profileId: String(Math.floor(10000000 + Math.random() * 90000000)),
-            lastHarvestAt: Date.now()
-          });
+          if (db) {
+            return db.ref('users/' + cred.user.uid).set({
+              name: name,
+              email: email,
+              vip: 1, coins: 0, gems: 0, love: 0, xp: 0, level: 1, farmLevel: 1,
+              profileId: String(Math.floor(10000000 + Math.random() * 90000000)),
+              lastHarvestAt: Date.now()
+            });
+          }
         })
         .catch((err) => {
-          btn.disabled = false;
-          btn.textContent = "Sign Up";
+          if (btn) { btn.disabled = false; btn.textContent = "Sign Up"; }
           let errMsg = err.message;
           if (err.code === 'auth/email-already-in-use') {
-            errMsg = "Yeh Email pehle se registered hai. 'Login' par click karein!";
+            errMsg = "Yeh Email pehle se registered hai. Login karein!";
           } else if (err.code === 'auth/invalid-email') {
             errMsg = "Sahi Email address darj karein.";
           }
-          errorEl.textContent = "⚠️ " + errMsg;
-          alert("⚠️ Sign Up Failed: " + errMsg);
+          if (errorEl) errorEl.textContent = "⚠️ " + errMsg;
+          alert("⚠️ Sign Up Error: " + errMsg);
         });
     } else {
       auth.signInWithEmailAndPassword(email, pass)
         .catch((err) => {
-          btn.disabled = false;
-          btn.textContent = "Login";
+          if (btn) { btn.disabled = false; btn.textContent = "Login"; }
           let errMsg = err.message;
           if (err.code === 'auth/user-not-found' || err.code === 'auth/invalid-credential') {
             errMsg = "Account nahi mila ya Password galat hai! Pehle 'New here? Create an account' par click karein.";
           } else if (err.code === 'auth/wrong-password') {
             errMsg = "Password galat hai!";
           }
-          errorEl.textContent = "⚠️ " + errMsg;
-          alert("⚠️ Login Failed: " + errMsg);
+          if (errorEl) errorEl.textContent = "⚠️ " + errMsg;
+          alert("⚠️ Login Error: " + errMsg);
         });
     }
   }
@@ -225,7 +265,7 @@ const firebaseConfig = {
   function handleLogout() {
     currentUser = null;
     currentUserData = null;
-    if (auth.currentUser) auth.signOut();
+    if (auth && auth.currentUser) auth.signOut();
     location.reload();
   }
 
@@ -239,56 +279,64 @@ const firebaseConfig = {
     }
   }
 
-  auth.onAuthStateChanged((user) => {
-    hideSplashScreen();
+  if (auth) {
+    auth.onAuthStateChanged((user) => {
+      hideSplashScreen();
 
-    // Prevent Firebase Auth from kicking out Guest Users
-    if (currentUser && currentUser.isGuest) {
-      return;
-    }
+      if (currentUser && currentUser.isGuest) return;
 
-    if (user && !currentUser) {
-      currentUser = user;
-      db.ref('users/' + user.uid).on('value', (snap) => {
-        currentUserData = snap.val() || { name: "User", level: 1, xp: 0, coins: 0, gems: 0, lastHarvestAt: Date.now() };
-        renderUserHeader();
-        renderLevelCard();
-        renderHome();
-        if (currentUserData.familyId) {
-          currentFamilyId = currentUserData.familyId;
-          showInsideFamily(currentFamilyId);
-        } else {
-          currentFamilyId = null;
-          showBrowseFamilies();
+      if (user && !currentUser) {
+        currentUser = user;
+        if (db) {
+          db.ref('users/' + user.uid).on('value', (snap) => {
+            currentUserData = snap.val() || { name: "User", level: 1, xp: 0, coins: 0, gems: 0, lastHarvestAt: Date.now() };
+            renderUserHeader();
+            renderLevelCard();
+            renderHome();
+            if (currentUserData.familyId) {
+              currentFamilyId = currentUserData.familyId;
+              showInsideFamily(currentFamilyId);
+            } else {
+              currentFamilyId = null;
+              showBrowseFamilies();
+            }
+            updateFamilyBubble(getActiveTab());
+
+            if (!initialRestoreDone) {
+              initialRestoreDone = true;
+              switchTab(localStorage.getItem('lastTab') || 'hifami');
+            }
+          });
         }
-        updateFamilyBubble(getActiveTab());
 
-        if (!initialRestoreDone) {
-          initialRestoreDone = true;
-          switchTab(localStorage.getItem('lastTab') || 'hifami');
-        }
-      });
-
-      document.getElementById('authScreen').classList.remove('active');
-      document.getElementById('mainScreen').style.display = 'flex';
-      listenToChat();
-      listenToFamilyList();
-      listenToRoomList();
-      listenToMoments();
-    } else if (!currentUser) {
-      currentUser = null;
-      document.getElementById('mainScreen').style.display = 'none';
-      document.getElementById('authScreen').classList.add('active');
-      const btn = document.getElementById('authSubmitBtn');
-      if (btn) { btn.disabled = false; btn.textContent = isSignupMode ? "Sign Up" : "Login"; }
-    }
-  });
+        const authScr = document.getElementById('authScreen');
+        const mainScr = document.getElementById('mainScreen');
+        if (authScr) authScr.classList.remove('active');
+        if (mainScr) mainScr.style.display = 'flex';
+        
+        listenToChat();
+        listenToFamilyList();
+        listenToRoomList();
+        listenToMoments();
+      } else if (!currentUser) {
+        currentUser = null;
+        const mainScr = document.getElementById('mainScreen');
+        const authScr = document.getElementById('authScreen');
+        if (mainScr) mainScr.style.display = 'none';
+        if (authScr) authScr.classList.add('active');
+        const btn = document.getElementById('authSubmitBtn');
+        if (btn) { btn.disabled = false; btn.textContent = isSignupMode ? "Sign Up" : "Login"; }
+      }
+    });
+  }
 
   function renderUserHeader() {
     if (!currentUserData) return;
-    document.getElementById('userName').textContent = currentUserData.name || 'User';
+    const nameEl = document.getElementById('userName');
+    const lvlEl = document.getElementById('userLevelLabel');
+    if (nameEl) nameEl.textContent = currentUserData.name || 'User';
     applyAvatarPhoto(document.getElementById('userAvatar'), currentUserData);
-    document.getElementById('userLevelLabel').textContent = "ID Lv. " + (currentUserData.level || 1);
+    if (lvlEl) lvlEl.textContent = "ID Lv. " + (currentUserData.level || 1);
     renderProfile();
   }
 
@@ -308,62 +356,73 @@ const firebaseConfig = {
   function renderProfile() {
     if (!currentUserData) return;
     applyAvatarPhoto(document.getElementById('profileAvatarBig'), currentUserData);
-    document.getElementById('profileNameBig').textContent = currentUserData.name || 'User';
-    document.getElementById('profileIdLevelBadge').textContent = "🆔 ID Lv. " + (currentUserData.level || 1);
-    document.getElementById('profileVipLevelBadge').textContent = "👑 VIP " + (currentUserData.farmLevel || 1);
-    document.getElementById('profileWalletValue').textContent = "🪙" + formatNum(currentUserData.coins || 0) + " 💎" + formatNum(currentUserData.gems || 0);
-    document.getElementById('profileFamilyValue').textContent = currentFamilyId ? 'Joined' : 'None';
-    document.getElementById('profileIdNumber').textContent = currentUserData.profileId || '—';
-    document.getElementById('myReferralCode').textContent = currentUserData.profileId || '—';
+    const pName = document.getElementById('profileNameBig');
+    const pIdLvl = document.getElementById('profileIdLevelBadge');
+    const pVipLvl = document.getElementById('profileVipLevelBadge');
+    const pWallet = document.getElementById('profileWalletValue');
+    const pFam = document.getElementById('profileFamilyValue');
+    const pIdNum = document.getElementById('profileIdNumber');
+    const pRef = document.getElementById('myReferralCode');
+
+    if (pName) pName.textContent = currentUserData.name || 'User';
+    if (pIdLvl) pIdLvl.textContent = "🆔 ID Lv. " + (currentUserData.level || 1);
+    if (pVipLvl) pVipLvl.textContent = "👑 VIP " + (currentUserData.farmLevel || 1);
+    if (pWallet) pWallet.textContent = "🪙" + formatNum(currentUserData.coins || 0) + " 💎" + formatNum(currentUserData.gems || 0);
+    if (pFam) pFam.textContent = currentFamilyId ? 'Joined' : 'None';
+    if (pIdNum) pIdNum.textContent = currentUserData.profileId || '—';
+    if (pRef) pRef.textContent = currentUserData.profileId || '—';
   }
 
   function openProfile() {
     renderProfile();
-    document.getElementById('profileOverlay').classList.add('show');
+    const profOv = document.getElementById('profileOverlay');
+    if (profOv) profOv.classList.add('show');
   }
 
   function closeProfile() {
-    document.getElementById('profileOverlay').classList.remove('show');
+    const profOv = document.getElementById('profileOverlay');
+    if (profOv) profOv.classList.remove('show');
     hideAllProfileSubViews();
   }
 
   function hideAllProfileSubViews() {
-    document.getElementById('inviteView').style.display = 'none';
-    document.getElementById('languageView').style.display = 'none';
-    document.getElementById('settingsView').style.display = 'none';
-    document.getElementById('editProfileView').style.display = 'none';
-    document.getElementById('accountSecurityView').style.display = 'none';
-    document.getElementById('infoPageView').style.display = 'none';
-    document.getElementById('profileMainView').style.display = 'block';
+    const ids = ['inviteView','languageView','settingsView','editProfileView','accountSecurityView','infoPageView'];
+    ids.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
+    const mainV = document.getElementById('profileMainView');
+    if (mainV) mainV.style.display = 'block';
   }
 
   function copyProfileId() {
-    const id = document.getElementById('profileIdNumber').textContent;
+    const idEl = document.getElementById('profileIdNumber');
+    const id = idEl ? idEl.textContent : '';
     if (navigator.clipboard) navigator.clipboard.writeText(id).then(() => toast('ID copied: ' + id));
   }
 
   function switchTab(tab) {
-    document.getElementById('homePanel').classList.toggle('active', tab === 'hifami');
-    document.getElementById('chatPanel').classList.toggle('active', tab === 'messages');
-    document.getElementById('familyPanel').classList.toggle('active', tab === 'family');
-    document.getElementById('momentsPanel').classList.toggle('active', tab === 'moments');
-    document.getElementById('roomPanel').classList.toggle('active', tab === 'room');
+    ['homePanel','chatPanel','familyPanel','momentsPanel','roomPanel'].forEach(p => {
+      const el = document.getElementById(p);
+      if (el) el.classList.remove('active');
+    });
+    ['navHifami','navMessages','navFamily','navMoments','navRoom'].forEach(n => {
+      const el = document.getElementById(n);
+      if (el) el.classList.remove('active');
+    });
 
-    document.getElementById('navHifami').classList.toggle('active', tab === 'hifami');
-    document.getElementById('navMessages').classList.toggle('active', tab === 'messages');
-    document.getElementById('navFamily').classList.toggle('active', tab === 'family');
-    document.getElementById('navMoments').classList.toggle('active', tab === 'moments');
-    document.getElementById('navRoom').classList.toggle('active', tab === 'room');
+    const targetPanel = document.getElementById(tab === 'hifami' ? 'homePanel' : (tab === 'messages' ? 'chatPanel' : (tab === 'family' ? 'familyPanel' : (tab === 'moments' ? 'momentsPanel' : 'roomPanel'))));
+    const targetNav = document.getElementById(tab === 'hifami' ? 'navHifami' : (tab === 'messages' ? 'navMessages' : (tab === 'family' ? 'navFamily' : (tab === 'moments' ? 'navMoments' : 'navRoom'))));
+    
+    if (targetPanel) targetPanel.classList.add('active');
+    if (targetNav) targetNav.classList.add('active');
 
     updateFamilyBubble(tab);
     localStorage.setItem('lastTab', tab);
   }
 
   function getActiveTab() {
-    if (document.getElementById('homePanel').classList.contains('active')) return 'hifami';
-    if (document.getElementById('familyPanel').classList.contains('active')) return 'family';
-    if (document.getElementById('momentsPanel').classList.contains('active')) return 'moments';
-    if (document.getElementById('roomPanel').classList.contains('active')) return 'room';
+    if (document.getElementById('homePanel') && document.getElementById('homePanel').classList.contains('active')) return 'hifami';
+    if (document.getElementById('familyPanel') && document.getElementById('familyPanel').classList.contains('active')) return 'family';
+    if (document.getElementById('momentsPanel') && document.getElementById('momentsPanel').classList.contains('active')) return 'moments';
+    if (document.getElementById('roomPanel') && document.getElementById('roomPanel').classList.contains('active')) return 'room';
     return 'messages';
   }
 
@@ -387,11 +446,17 @@ const firebaseConfig = {
 
   function renderHome() {
     if (!currentUserData) return;
-    document.getElementById('coinsDisplay').textContent = formatNum(currentUserData.coins || 0);
-    document.getElementById('gemsDisplay').textContent = formatNum(currentUserData.gems || 0);
-    document.getElementById('loveDisplay').textContent = formatNum(currentUserData.love || 0);
-    document.getElementById('homeFarmLevelTag').textContent = "🌾 Farm Level " + getFarmLevel();
-    document.getElementById('rateLabel').textContent = "In 30 min: 🪙 " + formatNum(getProductionAmount());
+    const cEl = document.getElementById('coinsDisplay');
+    const gEl = document.getElementById('gemsDisplay');
+    const lEl = document.getElementById('loveDisplay');
+    const tagEl = document.getElementById('homeFarmLevelTag');
+    const rateEl = document.getElementById('rateLabel');
+
+    if (cEl) cEl.textContent = formatNum(currentUserData.coins || 0);
+    if (gEl) gEl.textContent = formatNum(currentUserData.gems || 0);
+    if (lEl) lEl.textContent = formatNum(currentUserData.love || 0);
+    if (tagEl) tagEl.textContent = "🌾 Farm Level " + getFarmLevel();
+    if (rateEl) rateEl.textContent = "In 30 min: 🪙 " + formatNum(getProductionAmount());
     renderPlots();
   }
 
@@ -415,7 +480,7 @@ const firebaseConfig = {
   function doHarvest() {
     if (!currentUser || !currentUserData) return;
     const gained = getProductionAmount();
-    if (!currentUser.isGuest) {
+    if (db && !currentUser.isGuest) {
       db.ref('users/' + currentUser.uid).update({
         coins: (currentUserData.coins || 0) + gained,
         lastHarvestAt: Date.now()
@@ -432,7 +497,7 @@ const firebaseConfig = {
     const cost = getFarmLevel() * UPGRADE_INCREMENT;
     if ((currentUserData.gems || 0) < cost) { toast('Not enough Gems!', 'error'); return; }
     
-    if (!currentUser.isGuest) {
+    if (db && !currentUser.isGuest) {
       db.ref('users/' + currentUser.uid).update({
         gems: currentUserData.gems - cost,
         farmLevel: getFarmLevel() + 1
@@ -449,6 +514,7 @@ const firebaseConfig = {
   let roomListCache = null;
 
   function listenToRoomList() {
+    if (!db) return;
     db.ref('liveRooms').on('value', (snap) => {
       roomListCache = snap.val();
       renderRoomList();
@@ -463,62 +529,4 @@ const firebaseConfig = {
     Object.entries(roomListCache).forEach(([id, r]) => {
       const card = document.createElement('div');
       card.className = 'room-card';
-      card.innerHTML = `<div class="rc-thumb">🏠</div><div class="rc-info"><div class="rc-name">${escapeHtml(r.name)}</div></div>`;
-      card.onclick = () => enterRoom(id, r.name);
-      listEl.appendChild(card);
-    });
-  }
-
-  function createLiveRoom() {
-    const name = document.getElementById('roomNameInput').value.trim();
-    if (!name || !currentUser) return;
-    const ref = db.ref('liveRooms').push();
-    ref.set({ name: name, ownerUid: currentUser.uid, createdAt: Date.now() }).then(() => enterRoom(ref.key, name));
-  }
-
-  function enterRoom(id, name) {
-    currentRoomId = id;
-    document.getElementById('roomInsideTitle').textContent = name;
-    document.getElementById('roomBrowseView').style.display = 'none';
-    document.getElementById('roomInsideView').style.display = 'flex';
-    listenToSeats(id);
-    listenToRoomChat(id);
-  }
-
-  function leaveRoomToBrowse() {
-    currentRoomId = null;
-    document.getElementById('roomInsideView').style.display = 'none';
-    document.getElementById('roomBrowseView').style.display = 'flex';
-  }
-
-  function listenToSeats(roomId) {
-    db.ref('liveRooms/' + roomId + '/seats').on('value', (snap) => {
-      const seats = snap.val() || {};
-      const grid = document.getElementById('seatGrid');
-      if (!grid) return;
-      grid.innerHTML = '';
-      for (let i = 0; i < 8; i++) {
-        const s = seats[i];
-        const cell = document.createElement('div');
-        cell.className = 'seat-cell';
-        if (s) {
-          cell.innerHTML = `
-            <div class="seat-vip-pill">VIP ${s.vip || 1}</div>
-            <div class="seat-avatar-wrap frame-sparkle">
-              <div class="seat-avatar">${escapeHtml((s.name || 'U').charAt(0).toUpperCase())}</div>
-              <div class="seat-mic-badge ${s.muted ? 'muted' : ''}">${s.muted ? '🔇' : '🎙️'}</div>
-            </div>
-            <div class="seat-name">${escapeHtml(s.name)}</div>
-          `;
-          cell.onclick = () => openSeatProfile(s.uid, s.name);
-        } else {
-          cell.innerHTML = `<div class="seat-plus">+</div><div class="seat-name">${i + 1}</div>`;
-          cell.onclick = () => sitOnSeat(i);
-        }
-        grid.appendChild(cell);
-      }
-    });
-  }
-
-  function sitOnSeat(index) {
-    if (!currentUser || !cur
+      card.innerHTML = `<div class="rc-thumb">🏠</div><div 
