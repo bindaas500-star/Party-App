@@ -24,12 +24,13 @@
 </head>
 <body>
 
-<!-- ===== AUTH SCREEN ===== -->
+<!-- ===== SPLASH SCREEN ===== -->
 <div id="splashScreen" style="position:fixed; inset:0; z-index:2000; background:linear-gradient(160deg,#2a1a4a,#1a1030); display:flex; flex-direction:column; align-items:center; justify-content:center;">
-  <div style="width:64px; height:64px; border-radius:50%; background:linear-gradient(135deg,#ff6b9d,#c44dff); display:flex; align-items:center; justify-content:center; font-size:30px; font-weight:700; font-family:'Fredoka','Inter',sans-serif; color:#fff; box-shadow:0 0 0 4px rgba(255,215,106,0.4), 0 10px 30px rgba(0,0,0,0.4); animation: splashPulse 1.4s ease-in-out infinite;">P</div>
+  <div class="splash-logo">P</div>
   <div style="margin-top:16px; color:rgba(255,255,255,0.6); font-size:13px; font-family:'Fredoka','Inter',sans-serif; font-weight:600;">Party App</div>
 </div>
 
+<!-- ===== AUTH SCREEN ===== -->
 <div id="authScreen" class="screen active">
   <div>
     <div class="auth-logo">
@@ -69,7 +70,7 @@
   </div>
 
   <div class="topbar">
-    <div class="avatar-ring" onclick="openProfile()" style="cursor:pointer;"><div class="avatar" id="userAvatar">?</div></div>
+    <div class="avatar-ring" onclick="openProfile()"><div class="avatar" id="userAvatar">?</div></div>
     <div>
       <div class="name" id="userName">User</div>
       <div class="level-badge">🆔 <span id="userLevelLabel">ID Lv. 1</span></div>
@@ -101,8 +102,7 @@
         <span class="hd-particle" style="top:80%; left:60%; animation-delay:2s;"></span>
       </div>
 
-      <!-- VIP / Rank / Family quick row -->
-      <div class="quick-actions-row" style="position:relative; z-index:1;">
+      <div class="quick-actions-row">
         <div class="qa-btn" onclick="openVipBenefits()">
           <div class="qa-icon">👑</div>
           <div class="qa-label">VIP</div>
@@ -117,82 +117,38 @@
         </div>
       </div>
 
-      <!-- Popular Rooms Preview -->
-      <div class="home-section-label" style="position:relative; z-index:1;">🔥 Popular Rooms</div>
-      <div class="popular-rooms-row" id="popularRoomsRow" style="position:relative; z-index:1;">
-        <div class="loading" style="padding:16px; color:rgba(255,255,255,0.4); font-size:12.5px;">Loading rooms...</div>
+      <div class="home-section-label">🔥 Popular Rooms</div>
+      <div class="popular-rooms-row" id="popularRoomsRow">
+        <div class="loading">Loading rooms...</div>
       </div>
 
-      <!-- Wallet -->
-      <div class="home-header" style="position:relative; z-index:1;">
-
-          <div class="home-title">🌾 Your Farm</div>
-
-          <div class="wallet-box">
-
-              <div class="wallet"><span class="wallet-icon-badge" style="background:linear-gradient(135deg,#ffd76a,#ff9d3d);">🪙</span>
-                  <span id="coinsDisplay">0</span>
-              </div>
-
-              <div class="wallet"><span class="wallet-icon-badge" style="background:linear-gradient(135deg,#7dd3ff,#3a9bd9);">💎</span>
-                  <span id="gemsDisplay">0</span>
-              </div>
-
-              <div class="wallet"><span class="wallet-icon-badge" style="background:linear-gradient(135deg,#ff9dc4,#ff6b9d);">💕</span>
-                  <span id="loveDisplay">0</span>
-              </div>
-
-          </div>
-
+      <div class="home-header">
+        <div class="home-title">🌾 Your Farm</div>
+        <div class="wallet-box">
+          <div class="wallet"><span class="wallet-icon-badge" style="background:linear-gradient(135deg,#ffd76a,#ff9d3d);">🪙</span><span id="coinsDisplay">0</span></div>
+          <div class="wallet"><span class="wallet-icon-badge" style="background:linear-gradient(135deg,#7dd3ff,#3a9bd9);">💎</span><span id="gemsDisplay">0</span></div>
+          <div class="wallet"><span class="wallet-icon-badge" style="background:linear-gradient(135deg,#ff9dc4,#ff6b9d);">💕</span><span id="loveDisplay">0</span></div>
+        </div>
       </div>
 
-      <!-- Withdraw Card -->
-
-      <div class="withdraw-card" style="position:relative; z-index:1;">
-
-          <div>
-
-              <h2>Withdraw</h2>
-
-              <p>Available Balance</p>
-
-          </div>
-
-          <button onclick="toast('Real-money withdrawals are coming soon!')">Withdraw</button>
-
+      <div class="withdraw-card">
+        <div>
+          <h2>Withdraw</h2>
+          <p>Available Balance</p>
+        </div>
+        <button onclick="toast('Real-money withdrawals are coming soon!')">Withdraw</button>
       </div>
 
-      <!-- Farm Card -->
-
-      <div class="farm-card" style="position:relative; z-index:1;">
-
-          <h2 id="homeFarmLevelTag">🌾 Farm Level 1</h2>
-
-          <div class="rate-label" id="rateLabel">In 30 min: 🪙 0</div>
-
-          <h1 id="prodValue">0 Coins</h1>
-
-          <div id="harvestTimer">
-              Ready
-          </div>
-
-          <button id="harvestBtn" onclick="doHarvest()">
-              Collect
-          </button>
-
+      <div class="farm-card">
+        <h2 id="homeFarmLevelTag">🌾 Farm Level 1</h2>
+        <div class="rate-label" id="rateLabel">In 30 min: 🪙 0</div>
+        <h1 id="prodValue">0 Coins</h1>
+        <div id="harvestTimer">Ready</div>
+        <button id="harvestBtn" onclick="doHarvest()">Collect</button>
       </div>
 
-      <!-- Farm -->
-
-      <div class="farm-grid" id="plotsGrid10" style="position:relative; z-index:1;">
-
-      </div>
-
-      <!-- Upgrade -->
-      <button class="upgrade-btn" id="upgradeFarmBtn" onclick="upgradeFarm()" style="position:relative; z-index:1;">
-          Upgrade Farm
-      </button>
-
+      <div class="farm-grid" id="plotsGrid10"></div>
+      <button class="upgrade-btn" id="upgradeFarmBtn" onclick="upgradeFarm()">Upgrade Farm</button>
     </div>
   </div>
 
@@ -218,8 +174,9 @@
     </div>
   </div>
 
-  <!-- ===== FAMILY PANEL (not in a family) ===== -->
+  <!-- ===== FAMILY PANEL ===== -->
   <div class="panel" id="familyPanel">
+    <!-- Browse View -->
     <div class="family-content" id="familyBrowseView">
       <div class="level-card">
         <div class="row">
@@ -238,29 +195,37 @@
 
       <div class="section-title">Join a Family</div>
       <div style="padding: 0 16px 10px;">
-        <input type="text" id="familySearchInput" placeholder="🔍 Search families..." oninput="filterFamilyList()"
-          style="width:100%; padding:11px 14px; border-radius:14px; border:1px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.06); color:#fff; font-size:13px; box-sizing:border-box;">
+        <input type="text" id="familySearchInput" placeholder="🔍 Search families..." oninput="filterFamilyList()" class="styled-search-input">
       </div>
       <div id="familyList">
         <div class="loading">Loading families...</div>
       </div>
     </div>
 
-    <!-- ===== FAMILY PANEL (inside a family) ===== -->
+    <!-- Inside Family View -->
     <div id="familyInsideView" style="display:none; flex-direction: column; flex: 1; overflow: hidden; position:relative;">
       <div class="floating-hearts" id="familyFloatingHearts"></div>
-      <div class="family-header">
+      
+      <!-- Redesigned Family Header -->
+      <div class="premium-header" onclick="openFamilyDetailsModal()">
         <div class="f-avatar-lg" id="insideFamAvatar">F</div>
-        <div>
-          <div class="f-title" id="insideFamName">Family</div>
-          <div class="f-sub" id="insideFamMemberCount">0 members</div>
+        <div class="ph-info">
+          <div class="ph-title" id="insideFamName">Family</div>
+          <div class="ph-sub">
+            <span id="insideFamMemberCount">👥 0 members</span> • <span id="insideFamLevel">Level 1</span>
+          </div>
         </div>
-        <button onclick="openFamilyOwnerMenu()" style="background:rgba(255,255,255,0.08); border:none; color:#fff; width:32px; height:32px; border-radius:50%; font-size:18px; cursor:pointer; margin-left:auto;">⋮</button>
+        <div class="ph-actions" onclick="event.stopPropagation()">
+          <button class="hdr-btn" onclick="openFamilyOwnerMenu()">⋮</button>
+        </div>
       </div>
+
       <div class="notice-banner" id="familyNoticeBanner" style="display:none;"></div>
+
+      <!-- Family Seat Grid -->
       <div class="seat-grid" id="familySeatGrid"></div>
-      <div class="members-strip-label">All Members</div>
-      <div class="members-strip" id="membersStrip"></div>
+
+      <!-- Family Chat -->
       <div class="chat-area" id="familyChatArea"></div>
       <div class="input-bar">
         <input type="text" id="famMsgInput" placeholder="Message your family..." maxlength="300" onkeypress="if(event.key==='Enter') sendFamilyMessage()">
@@ -275,7 +240,7 @@
     <span class="bubble-close-btn" id="familyBubbleClose">✕</span>
   </div>
 
-  <!-- ===== MOMENTS PANEL (placeholder) ===== -->
+  <!-- ===== MOMENTS PANEL ===== -->
   <div class="panel" id="momentsPanel" style="position: relative; overflow: hidden;">
     <div class="room-title-bar">🪐 Moments</div>
     <div class="moments-feed" id="momentsFeed">
@@ -306,7 +271,7 @@
   <!-- ===== ROOM PANEL ===== -->
   <div class="panel" id="roomPanel" style="flex-direction: column; overflow: hidden;">
 
-    <!-- ===== ROOM BROWSE VIEW ===== -->
+    <!-- Browse View -->
     <div id="roomBrowseView" style="display:flex; flex-direction:column; flex:1; overflow:hidden;">
       <div class="room-explore-banner">
         <div class="reb-title">Create Room Event</div>
@@ -324,8 +289,7 @@
       </div>
 
       <div style="padding: 0 16px 10px;">
-        <input type="text" id="roomSearchInput" placeholder="🔍 Search rooms..." oninput="filterRoomList()"
-          style="width:100%; padding:11px 14px; border-radius:14px; border:1px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.06); color:#fff; font-size:13px; box-sizing:border-box;">
+        <input type="text" id="roomSearchInput" placeholder="🔍 Search rooms..." oninput="filterRoomList()" class="styled-search-input">
       </div>
 
       <div class="room-explore-list" id="roomExploreList">
@@ -333,21 +297,26 @@
       </div>
     </div>
 
-    <!-- ===== ROOM INSIDE VIEW ===== -->
+    <!-- Inside View (Redesigned Header & Layout) -->
     <div id="roomInsideView" style="display:none; flex-direction:column; flex:1; overflow:hidden; position:relative;">
-      <div class="room-title-bar">
-        <button class="room-back-btn" onclick="leaveRoomToBrowse()">←</button>
+      
+      <!-- Premium Room Header -->
+      <div class="premium-header" onclick="openRoomDetailsModal()">
+        <button class="room-back-btn" onclick="event.stopPropagation(); leaveRoomToBrowse();">←</button>
         <div class="room-header-avatar" id="roomHeaderOwnerAvatar">?</div>
-        <div class="room-title-text">
-          <span id="roomInsideTitle">Room</span>
-          <span class="room-meta-row">
-            <span id="roomIdDisplay">ID: —</span>
-            <span class="room-online-dot"></span>
-            <span id="roomOnlineCount">0 online</span>
-          </span>
+        <div class="ph-info">
+          <div class="ph-title" id="roomInsideTitle">Room</div>
+          <div class="ph-sub">
+            <span id="roomIdDisplay">ID: —</span> • <span class="room-online-dot"></span> <span id="roomOnlineCount">0 online</span>
+          </div>
         </div>
-        <button class="room-menu-btn" onclick="openRoomOwnerMenu()">⋮</button>
+        <div class="ph-actions" onclick="event.stopPropagation()">
+          <button class="hdr-btn" onclick="followCurrentRoom()" title="Follow Room">⭐</button>
+          <button class="hdr-btn" onclick="shareCurrentRoom()" title="Share Room">🔗</button>
+          <button class="hdr-btn" onclick="openRoomOwnerMenu()" title="Menu">⋮</button>
+        </div>
       </div>
+
       <div class="floating-hearts" id="roomFloatingHearts"></div>
       <div class="notice-banner" id="roomNoticeBanner" style="display:none;"></div>
 
@@ -359,8 +328,10 @@
         <div class="game-chip" onclick="toast('Snakes is coming soon!')">🐍 Snakes</div>
       </div>
 
+      <!-- Redesigned Seat Grid -->
       <div class="seat-grid" id="seatGrid"></div>
 
+      <!-- Room Chat Area -->
       <div class="chat-area" id="roomChatArea"></div>
       <div class="input-bar">
         <input type="text" id="roomMsgInput" placeholder="Say something..." maxlength="300" onkeypress="if(event.key==='Enter') sendRoomMessage()">
@@ -411,346 +382,53 @@
     </div>
   </div>
 
-  <!-- ===== ROOM OWNER MENU ===== -->
-  <!-- ===== SEAT PROFILE POPUP ===== -->
-  <div class="profile-overlay" id="seatProfileOverlay">
-    <div class="profile-overlay-header" style="display:flex; align-items:center; justify-content:space-between;">
-      <button onclick="closeSeatProfile()">←</button>
-      <div style="display:flex; gap:8px;">
-        <button onclick="reportSeatProfileUser()" style="background:rgba(255,255,255,0.08); border:none; color:#ffb4b4; padding:7px 12px; border-radius:16px; font-size:11.5px; font-weight:600; cursor:pointer;">🚩 Report</button>
-        <button onclick="blockSeatProfileUser()" style="background:rgba(255,255,255,0.08); border:none; color:#ff8a8a; padding:7px 12px; border-radius:16px; font-size:11.5px; font-weight:600; cursor:pointer;">🚫 Block</button>
+  <!-- ===== ROOM DETAILS OVERLAY (Phase 2) ===== -->
+  <div class="rank-overlay" id="roomDetailsModal">
+    <div class="rank-header">
+      <button onclick="closeRoomDetailsModal()">←</button>
+      <h2>Room Info</h2>
+    </div>
+    <div class="modal-body-scroll">
+      <div class="details-cover-card" id="rdCoverCard">
+        <div class="details-avatar-lg" id="rdAvatar">🏠</div>
+        <div class="details-title" id="rdName">Room Name</div>
+        <div class="details-sub" id="rdNumericId">ID: —</div>
       </div>
-    </div>
-    <div class="profile-hero">
-      <div class="profile-avatar-ring"><div class="profile-avatar" id="seatProfAvatar">?</div></div>
-      <div class="profile-name" id="seatProfName">User</div>
-      <div class="profile-badges">
-        <span class="badge-pill" id="seatProfIdBadge">🆔 ID Lv. 1</span>
-        <span class="badge-pill vip-pill" id="seatProfVipBadge">👑 VIP 1</span>
-      </div>
-      <div class="profile-id-row">ID: <span id="seatProfIdNumber">—</span></div>
-    </div>
-
-    <div class="seat-prof-banner soulmate" onclick="toast('Soulmate feature is coming soon!')">
-      <span>💞 Become a Soulmate</span>
-    </div>
-    <div class="seat-prof-banner bff" onclick="toast('BFF feature is coming soon!')">
-      <span>🤝 Become BFF</span>
-    </div>
-
-    <div class="seat-prof-tiles">
-      <div class="seat-prof-tile" onclick="toast('Gift Wall is coming soon!')">
-        <div class="spt-label">Gift Wall</div>
-        <div class="spt-value">🎁 —</div>
-      </div>
-      <div class="seat-prof-tile" onclick="toast('Supporter feature is coming soon!')">
-        <div class="spt-label">Supporter</div>
-        <div class="spt-value">Vacant</div>
-      </div>
-      <div class="seat-prof-tile" id="seatProfFamilyTile">
-        <div class="spt-label">Family</div>
-        <div class="spt-value" id="seatProfFamilyValue">None</div>
-      </div>
-    </div>
-
-    <div class="seat-prof-actions">
-      <button class="spa-btn gift" onclick="giftFromSeatProfile()">🎁 Gift</button>
-      <button class="spa-btn chat" onclick="chatFromSeatProfile()">💬 Chat</button>
-      <button class="spa-btn chat" onclick="addFriendFromSeatProfile()">👤+ Add Friend</button>
-    </div>
-  </div>
-
-  <div class="ttt-overlay" id="roomOwnerOverlay">
-    <div class="ttt-header">
-      <button onclick="closeRoomOwnerMenu()">←</button>
-      <h2>Room Menu</h2>
-    </div>
-    <div class="owner-menu-list" id="roomOwnerOnlyItems" style="display:none;">
-      <div class="owner-menu-item" onclick="uploadRoomPhoto()">🖼️ Set Room Photo</div>
-      <div class="owner-menu-item" onclick="uploadRoomWallpaper()">🎨 Set Room Wallpaper</div>
-      <div class="owner-menu-item" onclick="setRoomNotice()">📢 Set Notice</div>
-      <div class="owner-menu-item" onclick="clearRoomMessages()">🧹 Clear Messages</div>
-      <div class="owner-menu-item danger" onclick="deleteRoom()">🗑️ Delete Room</div>
-    </div>
-    <div id="roomMemberNotice" style="display:none; text-align:center; color:rgba(255,255,255,0.4); font-size:13px; padding:20px;">Only the room owner can change these settings.</div>
-  </div>
-
-  <!-- ===== IMAGE URL MODAL ===== -->
-  <div class="ttt-overlay" id="imageUrlOverlay">
-    <div class="ttt-header">
-      <button onclick="closeImageUrlModal()">←</button>
-      <h2 id="imageUrlModalTitle">Set Image</h2>
-    </div>
-    <div style="padding: 8px 20px;">
-      <input type="text" id="imageUrlModalInput" placeholder="Paste image link here..." inputmode="url" autocomplete="off"
-        style="width:100%; padding:14px; border-radius:14px; border:1px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.06); color:#fff; font-size:14px; margin-bottom:10px; box-sizing:border-box;">
-      <button onclick="pasteFromClipboard()" style="width:100%; padding:12px; border-radius:14px; border:1px solid rgba(255,215,106,0.4); background:rgba(255,215,106,0.1); color:#ffd76a; font-size:13px; font-weight:600; cursor:pointer; margin-bottom:14px;">📋 Paste from Clipboard</button>
-      <div style="color:rgba(255,255,255,0.45); font-size:11.5px; margin-bottom:18px;">Best source: upload to <b style="color:rgba(255,255,255,0.7);">imgur.com</b> (no account needed) and copy the direct image link (ends in .jpg/.png). Google Photos share links usually won't work.</div>
-      <button class="btn" onclick="confirmImageUrlModal()">Save</button>
-    </div>
-  </div>
-
-  <!-- ===== FAMILY OWNER MENU ===== -->
-  <div class="ttt-overlay" id="familyOwnerOverlay">
-    <div class="ttt-header">
-      <button onclick="closeFamilyOwnerMenu()">←</button>
-      <h2>Family Menu</h2>
-    </div>
-    <div class="owner-menu-list" id="familyOwnerOnlyItems" style="display:none;">
-      <div class="owner-menu-item" onclick="uploadFamilyPhoto()">🖼️ Set Family Photo</div>
-      <div class="owner-menu-item" onclick="uploadFamilyWallpaper()">🎨 Set Family Wallpaper</div>
-      <div class="owner-menu-item" onclick="setFamilyNotice()">📢 Set Notice</div>
-      <div class="owner-menu-item" onclick="clearFamilyMessages()">🧹 Clear Messages</div>
-      <div class="owner-menu-item danger" onclick="deleteFamily()">🗑️ Delete Family</div>
-    </div>
-    <div class="owner-menu-list" id="familyMemberItems">
-      <div class="owner-menu-item danger" onclick="closeFamilyOwnerMenu(); leaveFamily();">🚪 Leave Family</div>
-    </div>
-  </div>
-
-  <div class="bottom-nav">
-    <div class="nav-item" id="navMessages" onclick="switchTab('messages')"><span class="nav-icon">💬</span>Messages</div>
-    <div class="nav-item" id="navMoments" onclick="switchTab('moments')"><span class="nav-icon">🪐</span>Moments</div>
-    <div class="nav-item active" id="navHifami" onclick="switchTab('hifami')"><span class="nav-icon">🌾</span>Home</div>
-    <div class="nav-item" id="navRoom" onclick="switchTab('room')"><span class="nav-icon">🏠</span>Room</div>
-    <div class="nav-item" id="navFamily" onclick="switchTab('family')"><span class="nav-icon">👨‍👩‍👧</span>Family</div>
-  </div>
-
-  <!-- ===== PROFILE OVERLAY ===== -->
-  <div class="profile-overlay" id="profileOverlay">
-    <div class="profile-overlay-header">
-      <button onclick="handleProfileBack()">←</button>
-    </div>
-
-    <div id="profileMainView">
-      <div class="profile-hero">
-        <div class="profile-avatar-ring"><div class="profile-avatar" id="profileAvatarBig">?</div></div>
-        <div class="profile-name" id="profileNameBig">User</div>
-        <div class="profile-badges">
-          <span class="badge-pill" id="profileIdLevelBadge">🆔 ID Lv. 1</span>
-          <span class="badge-pill vip-pill" id="profileVipLevelBadge">👑 VIP 1</span>
+      <div class="details-stats-row">
+        <div class="ds-tile">
+          <div class="dst-val" id="rdOnlineCount">0</div>
+          <div class="dst-lbl">Online</div>
         </div>
-        <div class="profile-id-row">ID: <span id="profileIdNumber">—</span> <button onclick="copyProfileId()">📋</button></div>
-      </div>
-      <div class="profile-menu">
-        <div class="profile-menu-item" onclick="openVipBenefits()">
-          <span class="pmi-icon">👑</span><span class="pmi-label">VIP Benefits</span>
-          <span class="pmi-arrow">›</span>
+        <div class="ds-tile">
+          <div class="dst-val" id="rdPopularity">🔥 100</div>
+          <div class="dst-lbl">Popularity</div>
         </div>
-        <div class="profile-menu-item" onclick="goToFamilyFromProfile()">
-          <span class="pmi-icon">🏠</span><span class="pmi-label">Family</span>
-          <span class="pmi-value" id="profileFamilyValue">None</span><span class="pmi-arrow">›</span>
-        </div>
-        <div class="profile-menu-item" onclick="switchTab('hifami'); closeProfile();">
-          <span class="pmi-icon">💰</span><span class="pmi-label">Wallet</span>
-          <span class="pmi-value" id="profileWalletValue">🪙0 💎0</span><span class="pmi-arrow">›</span>
-        </div>
-        <div class="profile-menu-item" onclick="openLanguageView()">
-          <span class="pmi-icon">🌐</span><span class="pmi-label">Language</span>
-          <span class="pmi-value" id="profileLangValue">English</span><span class="pmi-arrow">›</span>
-        </div>
-        <div class="profile-menu-item" onclick="openInviteView()">
-          <span class="pmi-icon">➕</span><span class="pmi-label">Invite Friends</span>
-          <span class="pmi-arrow">›</span>
-        </div>
-        <div class="profile-menu-item" onclick="openSettingsView()">
-          <span class="pmi-icon">⚙️</span><span class="pmi-label">Settings</span>
-          <span class="pmi-arrow">›</span>
+        <div class="ds-tile">
+          <div class="dst-val" id="rdOwnerName">Owner</div>
+          <div class="dst-lbl">Host</div>
         </div>
       </div>
-    </div>
-
-    <div id="inviteView" style="display:none; padding: 0 20px;">
-      <div class="invite-title">🎁 Invite Friends</div>
-      <div class="invite-sub">Share your code — you and your friend both get 💎 50 gems!</div>
-
-      <div class="invite-code-box">
-        <div class="invite-code-label">Your Referral Code</div>
-        <div class="invite-code-value" id="myReferralCode">—</div>
-        <button class="invite-copy-btn" onclick="copyReferralCode()">📋 Copy Code</button>
-      </div>
-
-      <div class="invite-redeem-box">
-        <div class="invite-code-label">Have a friend's code?</div>
-        <input type="text" id="redeemCodeInput" placeholder="Enter code">
-        <button class="invite-redeem-btn" onclick="redeemReferralCode()">Redeem</button>
-        <div class="invite-redeem-status" id="referredStatusText"></div>
-      </div>
-
-      <div class="milestone-box">
-        <div class="invite-code-label">Weekly Bonus — Invite Milestones</div>
-        <div class="milestone-progress-text" id="milestoneProgressText">0 friends invited</div>
-        <div class="milestone-row" id="milestoneRow"></div>
+      <div class="details-notice-box" id="rdNoticeBox">📢 No room notice set.</div>
+      <div class="section-title" style="padding:0 4px;">Room Members</div>
+      <div id="rdMemberList" class="member-cards-list">
+        <div class="loading">Loading members...</div>
       </div>
     </div>
+  </div>
 
-    <div id="languageView" style="display:none; padding: 0 20px;">
-      <div class="invite-title">🌐 Language</div>
-      <div class="language-list" id="languageList"></div>
+  <!-- ===== FAMILY DETAILS OVERLAY (Phase 4) ===== -->
+  <div class="rank-overlay" id="familyDetailsModal">
+    <div class="rank-header">
+      <button onclick="closeFamilyDetailsModal()">←</button>
+      <h2>Family Info</h2>
     </div>
-
-    <div id="settingsView" style="display:none; padding: 0 20px;">
-      <div class="settings-list">
-        <div class="settings-item" onclick="openEditProfileView()">Personal Profile</div>
-        <div class="settings-item" onclick="toast('Push notifications are coming in a future update!')">Notification</div>
-        <div class="settings-item" onclick="openListOverlay('blocked')">Blocked Users</div>
-        <div class="settings-item" onclick="openAccountSecurityView()">Account Security</div>
-        <div class="settings-item" onclick="openInfoPage('terms')">Terms of Use</div>
-        <div class="settings-item" onclick="openInfoPage('privacy')">Privacy Policy</div>
-        <div class="settings-item" onclick="openInfoPage('guidelines')">Community Guidelines</div>
-        <div class="settings-item" onclick="toast('Need help? Message us via Family or Global chat for now.')">Help &amp; Feedback</div>
-        <div class="settings-item no-arrow">Version 1.0.0</div>
-        <button class="sign-out-btn" onclick="handleLogout()">Sign Out</button>
+    <div class="modal-body-scroll">
+      <div class="details-cover-card" id="fdCoverCard">
+        <div class="details-avatar-lg" id="fdAvatar">👨‍👩‍👧</div>
+        <div class="details-title" id="fdName">Family Name</div>
+        <div class="details-sub" id="fdLeaderName">Leader: —</div>
       </div>
-    </div>
-
-    <div id="accountSecurityView" style="display:none; padding: 0 20px;">
-      <div class="profile-overlay-header" style="padding:0 0 14px;">
-        <button onclick="closeAccountSecurityView()">←</button>
-        <span style="font-weight:700; font-size:16px; margin-left:8px;">Account Security</span>
-      </div>
-      <div style="color:rgba(255,255,255,0.6); font-size:13px; margin-bottom:16px;">Email: <span id="secEmailDisplay" style="color:#fff; font-weight:600;">—</span></div>
-      <button class="btn" onclick="sendChangePasswordEmail()" style="margin-bottom:12px;">Send Password Reset Email</button>
-      <div style="color:rgba(255,255,255,0.45); font-size:11.5px;">We'll email you a secure link to set a new password.</div>
-    </div>
-
-    <div id="infoPageView" style="display:none; padding: 0 20px;">
-      <div class="profile-overlay-header" style="padding:0 0 14px;">
-        <button onclick="closeInfoPage()">←</button>
-        <span id="infoPageTitle" style="font-weight:700; font-size:16px; margin-left:8px;">Terms of Use</span>
-      </div>
-      <div id="infoPageBody" style="color:rgba(255,255,255,0.75); font-size:13px; line-height:1.7; white-space:pre-line;"></div>
-    </div>
-
-    <div id="editProfileView" style="display:none; padding: 0 20px;">
-      <div class="edit-avatar-wrap">
-        <div class="edit-avatar-ring"><div class="edit-avatar-circle" id="editAvatarBig">?</div></div>
-        <div style="margin-top:10px;">
-          <button onclick="uploadMyProfilePhoto()" style="background:rgba(255,255,255,0.08); border:none; color:#ffd76a; padding:8px 16px; border-radius:16px; font-size:12px; font-weight:600; cursor:pointer;">📷 Change Photo</button>
-        </div>
-      </div>
-
-      <div class="edit-field">
-        <label>Personal Profile (Bio)</label>
-        <textarea id="editBioInput" rows="2" maxlength="150" placeholder="Smile first, judge later..."></textarea>
-      </div>
-
-      <div class="edit-field">
-        <label>Name</label>
-        <input type="text" id="editNameInput" placeholder="Your name" maxlength="25">
-      </div>
-
-      <div class="edit-field">
-        <label>Gender</label>
-        <select id="editGenderInput">
-          <option value="Male">Male</option>
-          <option value="Female">Female</option>
-          <option value="Other">Other</option>
-        </select>
-      </div>
-
-      <div class="edit-field">
-        <label>Date of Birth</label>
-        <input type="date" id="editDobInput">
-      </div>
-
-      <div class="edit-field">
-        <label>Region</label>
-        <input type="text" id="editRegionInput" placeholder="e.g. Arabic-speaking area">
-      </div>
-
-      <button class="btn" onclick="saveEditProfile()">Save Changes</button>
-    </div>
-  </div>
-</div>
-
-<!-- ===== RANK OVERLAY ===== -->
-<div class="rank-overlay" id="rankOverlay">
-  <div class="rank-header">
-    <button onclick="closeRankView()">←</button>
-    <h2>🏆 Rank</h2>
-  </div>
-
-  <div class="rank-tabs" id="rankTabsRow">
-    <div class="rank-tab active" data-tab="honor" onclick="switchRankTab('honor')">Honor</div>
-    <div class="rank-tab" data-tab="family" onclick="switchRankTab('family')">Family</div>
-    <div class="rank-tab" data-tab="soulmate" onclick="switchRankTab('soulmate')">Soulmate</div>
-    <div class="rank-tab" data-tab="bff" onclick="switchRankTab('bff')">BFF</div>
-    <div class="rank-tab" data-tab="vip" onclick="switchRankTab('vip')">VIP</div>
-  </div>
-
-  <div class="rank-subtabs">
-    <div class="rank-subtab active" data-sub="today" onclick="switchRankSubtab('today')">Today</div>
-    <div class="rank-subtab" data-sub="yesterday" onclick="switchRankSubtab('yesterday')">Yesterday</div>
-    <div class="rank-subtab" data-sub="hall" onclick="switchRankSubtab('hall')">Hall of Fame</div>
-  </div>
-
-  <div class="rank-list" id="rankList">
-    <div class="loading">Loading leaderboard...</div>
-  </div>
-</div>
-
-<!-- ===== VIP BENEFITS OVERLAY ===== -->
-<div class="rank-overlay" id="vipBenefitsOverlay">
-  <div class="rank-header">
-    <button onclick="closeVipBenefits()">←</button>
-    <h2>👑 VIP Benefits</h2>
-  </div>
-
-  <div class="vip-tier-card">
-    <div class="vtc-badge" id="vtcBadge">VIP 1</div>
-    <div class="vtc-topup-text">Top up <span id="vtcAmount">—</span> to unlock <span id="vtcTierLabel">VIP 1</span></div>
-    <div class="xp-bar-bg" style="margin: 12px 0 6px;"><div class="xp-bar-fill" id="vtcProgressFill" style="width:0%;"></div></div>
-    <div class="vtc-progress-text" id="vtcProgressText">0 / 100</div>
-    <button class="btn" onclick="rechargeVip()">Recharge</button>
-  </div>
-
-  <div class="section-title" style="padding: 0 16px;">💎 Buy Gems</div>
-  <div id="gemsPackagesList" style="display:flex; flex-direction:column; gap:10px; padding: 0 16px 16px;"></div>
-
-  <div class="section-title" style="padding: 0 16px;">VIP Exclusive Benefits</div>
-  <div class="vip-benefits-grid">
-    <div class="vip-benefit-cell"><div class="vbc-icon">🏅</div><div class="vbc-name">VIP Badge</div></div>
-    <div class="vip-benefit-cell"><div class="vbc-icon">🖼️</div><div class="vbc-name">Exclusive Frame</div></div>
-    <div class="vip-benefit-cell"><div class="vbc-icon">💬</div><div class="vbc-name">Exclusive Bubble</div></div>
-    <div class="vip-benefit-cell"><div class="vbc-icon">⭐</div><div class="vbc-name">Front-row Avatar</div></div>
-    <div class="vip-benefit-cell"><div class="vbc-icon">⚡</div><div class="vbc-name">Stamina Boost</div></div>
-    <div class="vip-benefit-cell"><div class="vbc-icon">🌾</div><div class="vbc-name">Bonus Farm Land</div></div>
-  </div>
-</div>
-
-<!-- ===== NOTIFICATIONS / ACTIVITY / FRIENDS OVERLAY ===== -->
-<div class="rank-overlay" id="listOverlay">
-  <div class="rank-header">
-    <button onclick="closeListOverlay()">←</button>
-    <h2 id="listOverlayTitle">Notifications</h2>
-  </div>
-
-  <div id="friendsAddBox" style="display:none; padding: 0 16px 14px;">
-    <div class="invite-redeem-box" style="margin-bottom:0;">
-      <div class="invite-code-label">Add a friend by ID</div>
-      <input type="text" id="addFriendIdInput" placeholder="Enter friend's ID">
-      <button class="invite-redeem-btn" onclick="addFriendById()">Add Friend</button>
-      <div class="invite-redeem-status" id="addFriendStatus"></div>
-    </div>
-  </div>
-
-  <div class="rank-list" id="listOverlayContent">
-    <div class="loading">Loading...</div>
-  </div>
-</div>
-
-<!-- Firebase SDKs -->
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-
-<script>
-  window.onerror = function(msg, url, line, col, error) {
-    alert('ERROR: ' + msg + '\nLine: ' + line + '\nFile: ' + url);
-  };
-</script>
-<script src="script.js"></script>
-
-</body>
-</html>
+      <div class="details-stats-row">
+        <div class="ds-tile">
+          <div class="dst-val" id="fdMemberCount">0</div>
+          <div class="dst-l
