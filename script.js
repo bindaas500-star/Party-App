@@ -2295,6 +2295,8 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
     const seatsRef = db.ref('liveRooms/' + currentRoomId + '/seats');
     const handler = seatsRef.on('value', (snap) => {
       const seats = snap.val() || {};
+      const onlineCountEl = document.getElementById('roomOnlineCount');
+      if (onlineCountEl) onlineCountEl.textContent = Object.keys(seats).length + ' online';
       const gridEl = document.getElementById('seatGrid');
       gridEl.innerHTML = '';
       for (let i = 0; i < TOTAL_SEATS; i++) {

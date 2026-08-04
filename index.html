@@ -335,14 +335,18 @@
 
     <!-- ===== ROOM INSIDE VIEW ===== -->
     <div id="roomInsideView" style="display:none; flex-direction:column; flex:1; overflow:hidden; position:relative;">
-      <div class="room-title-bar" style="display:flex; align-items:center; gap:10px;">
-        <button onclick="leaveRoomToBrowse()" style="background:rgba(255,255,255,0.08); border:none; color:#fff; width:32px; height:32px; border-radius:50%; font-size:16px; cursor:pointer;">←</button>
+      <div class="room-title-bar">
+        <button class="room-back-btn" onclick="leaveRoomToBrowse()">←</button>
         <div class="room-header-avatar" id="roomHeaderOwnerAvatar">?</div>
-        <div style="display:flex; flex-direction:column; line-height:1.3;">
+        <div class="room-title-text">
           <span id="roomInsideTitle">Room</span>
-          <span id="roomIdDisplay" style="font-size:10px; color:rgba(255,255,255,0.4); font-weight:500;">ID: —</span>
+          <span class="room-meta-row">
+            <span id="roomIdDisplay">ID: —</span>
+            <span class="room-online-dot"></span>
+            <span id="roomOnlineCount">0 online</span>
+          </span>
         </div>
-        <button onclick="openRoomOwnerMenu()" style="margin-left:auto; background:rgba(255,255,255,0.08); border:none; color:#fff; width:32px; height:32px; border-radius:50%; font-size:18px; cursor:pointer;">⋮</button>
+        <button class="room-menu-btn" onclick="openRoomOwnerMenu()">⋮</button>
       </div>
       <div class="floating-hearts" id="roomFloatingHearts"></div>
       <div class="notice-banner" id="roomNoticeBanner" style="display:none;"></div>
