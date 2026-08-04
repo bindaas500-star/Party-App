@@ -112,14 +112,37 @@ const firebaseConfig = {
   function handleForgotPassword() {
     const email = document.getElementById('emailInput').value.trim();
     if (!email) {
-      document.getElementById('authError').textContent = "⚠️ Pehle apna Email uper box me likhein.";
+      alert("⚠️ Pehle apna Email box me likhein.");
       return;
     }
     auth.sendPasswordResetEmail(email).then(() => {
-      toast("✅ Reset link aap ke email par bhej diya gaya hai!");
+      alert("✅ Password reset link aap ke Email par bhej diya gaya hai!");
     }).catch((err) => {
-      document.getElementById('authError').textContent = "⚠️ " + err.message;
+      alert("⚠️ " + err.message);
     });
+  }
+
+  // Instant Guest Login (1-Click without password)
+  function handleGuestLogin() {
+    const namePrompt = prompt("Apna Naam likhein (Guest Login):", "User" + Math.floor(Math.random() * 9000 + 1000));
+    if (!namePrompt) return;
+    
+    currentUser = { uid: "guest_" + Date.now(), isGuest: true };
+    currentUserData = {
+      name: namePrompt.trim(),
+      coins: 5000,
+      gems: 100,
+      love: 50,
+      level: 1,
+      farmLevel: 1,
+      profileId: String(Math.floor(10000000 + Math.random() * 90000000))
+    };
+
+    renderUserHeader();
+    renderHome();
+    document.getElementById('authScreen').classList.remove('active');
+    document.getElementById('mainScreen').style.display = 'flex';
+    toast("Welcome " + namePrompt + "! 🎉");
   }
 
   function handleAuth() {
@@ -131,15 +154,21 @@ const firebaseConfig = {
     errorEl.textContent = "";
 
     if (!email || !pass) {
-      errorEl.textContent = "⚠️ Email aur Password donon likhna zaroori hai.";
+      const msg = "⚠️ Email aur Password donon likhna zaroori hai.";
+      errorEl.textContent = msg;
+      alert(msg);
       return;
     }
     if (isSignupMode && !name) {
-      errorEl.textContent = "⚠️ Apna Naam zaroor likhein.";
+      const msg = "⚠️ Apna Naam zaroor likhein.";
+      errorEl.textContent = msg;
+      alert(msg);
       return;
     }
     if (pass.length < 6) {
-      errorEl.textContent = "⚠️ Password kam se kam 6 huroof (characters) ka hona chahiye.";
+      const msg = "⚠️ Password kam se kam 6 huroof ka hona chahiye.";
+      errorEl.textContent = msg;
+      alert(msg);
       return;
     }
 
@@ -160,31 +189,37 @@ const firebaseConfig = {
         .catch((err) => {
           btn.disabled = false;
           btn.textContent = "Sign Up";
+          let errMsg = err.message;
           if (err.code === 'auth/email-already-in-use') {
-            errorEl.textContent = "⚠️ Yeh Email pehle se registered hai. 'Login' par click karke login karein!";
+            errMsg = "Yeh Email pehle se registered hai. 'Login' par click karein!";
           } else if (err.code === 'auth/invalid-email') {
-            errorEl.textContent = "⚠️ Sahi Email address darj karein.";
-          } else {
-            errorEl.textContent = "⚠️ " + err.message;
+            errMsg = "Sahi Email address darj karein.";
           }
+          errorEl.textContent = "⚠️ " + errMsg;
+          alert("⚠️ Sign Up Failed: " + errMsg);
         });
     } else {
       auth.signInWithEmailAndPassword(email, pass)
         .catch((err) => {
           btn.disabled = false;
           btn.textContent = "Login";
+          let errMsg = err.message;
           if (err.code === 'auth/user-not-found' || err.code === 'auth/invalid-credential') {
-            errorEl.textContent = "⚠️ Account nahi mila ya Password galat hai! Pehle 'New here? Create an account' par click karein.";
+            errMsg = "Account nahi mila ya Password galat hai! Pehle 'New here? Create an account' par click karein.";
           } else if (err.code === 'auth/wrong-password') {
-            errorEl.textContent = "⚠️ Password galat hai!";
-          } else {
-            errorEl.textContent = "⚠️ " + err.message;
+            errMsg = "Password galat hai!";
           }
+          errorEl.textContent = "⚠️ " + errMsg;
+          alert("⚠️ Login Failed: " + errMsg);
         });
     }
   }
 
-  function handleLogout() { auth.signOut(); }
+  function handleLogout() {
+    auth.signOut().then(() => {
+      location.reload();
+    });
+  }
 
   let initialRestoreDone = false;
 
@@ -199,7 +234,7 @@ const firebaseConfig = {
   auth.onAuthStateChanged((user) => {
     hideSplashScreen();
 
-    if (user) {
+    if (user && !currentUser) {
       currentUser = user;
       db.ref('users/' + user.uid).on('value', (snap) => {
         currentUserData = snap.val() || { name: "User", level: 1, xp: 0, coins: 0, gems: 0, lastHarvestAt: Date.now() };
@@ -227,7 +262,7 @@ const firebaseConfig = {
       listenToFamilyList();
       listenToRoomList();
       listenToMoments();
-    } else {
+    } else if (!currentUser) {
       currentUser = null;
       document.getElementById('mainScreen').style.display = 'none';
       document.getElementById('authScreen').classList.add('active');
@@ -355,141 +390,4 @@ const firebaseConfig = {
     gridEl.innerHTML = '';
     PLOTS.forEach((plot, i) => {
       const isUnlocked = farmLevel >= plot.requiredLevel;
-      const cell = document.createElement('div');
-      cell.className = 'plot10-cell ' + (isUnlocked ? 'unlocked' : 'locked');
-      cell.innerHTML = isUnlocked
-        ? `<div class="p-emoji">${CROP_EMOJIS[i % CROP_EMOJIS.length]}</div><div class="p-bonus">+${plot.bonus}</div>`
-        : `<div class="p-emoji">🔒</div><div class="p-label">${plot.label}</div>`;
-      gridEl.appendChild(cell);
-    });
-  }
-
-  function doHarvest() {
-    if (!currentUser || !currentUserData) return;
-    const gained = getProductionAmount();
-    db.ref('users/' + currentUser.uid).update({
-      coins: (currentUserData.coins || 0) + gained,
-      lastHarvestAt: Date.now()
-    }).then(() => toast('Collected 🪙 ' + formatNum(gained)));
-  }
-
-  function upgradeFarm() {
-    if (!currentUser || !currentUserData) return;
-    const cost = getFarmLevel() * UPGRADE_INCREMENT;
-    if ((currentUserData.gems || 0) < cost) { toast('Not enough Gems!', 'error'); return; }
-    db.ref('users/' + currentUser.uid).update({
-      gems: currentUserData.gems - cost,
-      farmLevel: getFarmLevel() + 1
-    }).then(() => toast('Farm Upgraded! 👑'));
-  }
-
-  let currentRoomId = null;
-  let roomListCache = null;
-
-  function listenToRoomList() {
-    db.ref('liveRooms').on('value', (snap) => {
-      roomListCache = snap.val();
-      renderRoomList();
-    });
-  }
-
-  function renderRoomList() {
-    const listEl = document.getElementById('roomExploreList');
-    if (!listEl) return;
-    if (!roomListCache) { listEl.innerHTML = '<div class="loading">No rooms available.</div>'; return; }
-    listEl.innerHTML = '';
-    Object.entries(roomListCache).forEach(([id, r]) => {
-      const card = document.createElement('div');
-      card.className = 'room-card';
-      card.innerHTML = `<div class="rc-thumb">🏠</div><div class="rc-info"><div class="rc-name">${escapeHtml(r.name)}</div></div>`;
-      card.onclick = () => enterRoom(id, r.name);
-      listEl.appendChild(card);
-    });
-  }
-
-  function createLiveRoom() {
-    const name = document.getElementById('roomNameInput').value.trim();
-    if (!name || !currentUser) return;
-    const ref = db.ref('liveRooms').push();
-    ref.set({ name: name, ownerUid: currentUser.uid, createdAt: Date.now() }).then(() => enterRoom(ref.key, name));
-  }
-
-  function enterRoom(id, name) {
-    currentRoomId = id;
-    document.getElementById('roomInsideTitle').textContent = name;
-    document.getElementById('roomBrowseView').style.display = 'none';
-    document.getElementById('roomInsideView').style.display = 'flex';
-    listenToSeats(id);
-    listenToRoomChat(id);
-  }
-
-  function leaveRoomToBrowse() {
-    currentRoomId = null;
-    document.getElementById('roomInsideView').style.display = 'none';
-    document.getElementById('roomBrowseView').style.display = 'flex';
-  }
-
-  function listenToSeats(roomId) {
-    db.ref('liveRooms/' + roomId + '/seats').on('value', (snap) => {
-      const seats = snap.val() || {};
-      const grid = document.getElementById('seatGrid');
-      if (!grid) return;
-      grid.innerHTML = '';
-      for (let i = 0; i < 8; i++) {
-        const s = seats[i];
-        const cell = document.createElement('div');
-        cell.className = 'seat-cell';
-        if (s) {
-          cell.innerHTML = `
-            <div class="seat-vip-pill">VIP ${s.vip || 1}</div>
-            <div class="seat-avatar-wrap frame-sparkle">
-              <div class="seat-avatar">${escapeHtml((s.name || 'U').charAt(0).toUpperCase())}</div>
-              <div class="seat-mic-badge ${s.muted ? 'muted' : ''}">${s.muted ? '🔇' : '🎙️'}</div>
-            </div>
-            <div class="seat-name">${escapeHtml(s.name)}</div>
-          `;
-          cell.onclick = () => openSeatProfile(s.uid, s.name);
-        } else {
-          cell.innerHTML = `<div class="seat-plus">+</div><div class="seat-name">${i + 1}</div>`;
-          cell.onclick = () => sitOnSeat(i);
-        }
-        grid.appendChild(cell);
-      }
-    });
-  }
-
-  function sitOnSeat(index) {
-    if (!currentUser || !currentRoomId) return;
-    db.ref('liveRooms/' + currentRoomId + '/seats/' + index).set({
-      uid: currentUser.uid,
-      name: currentUserData.name,
-      vip: currentUserData.farmLevel || 1
-    });
-  }
-
-  function openRoomDetailsModal() {
-    if (!currentRoomId) return;
-    document.getElementById('roomDetailsModal').classList.add('show');
-    db.ref('liveRooms/' + currentRoomId).once('value').then((snap) => {
-      const r = snap.val() || {};
-      document.getElementById('rdName').textContent = r.name || 'Room';
-      document.getElementById('rdNumericId').textContent = 'ID: ' + (r.roomNumericId || currentRoomId);
-      document.getElementById('rdNoticeBox').textContent = '📢 ' + (r.notice || 'Welcome to our room!');
-    });
-  }
-  function closeRoomDetailsModal() { document.getElementById('roomDetailsModal').classList.remove('show'); }
-
-  function listenToFamilyList() {
-    db.ref('families').on('value', (snap) => {
-      const data = snap.val();
-      const listEl = document.getElementById('familyList');
-      if (!listEl) return;
-      if (!data) { listEl.innerHTML = '<div class="loading">No families yet.</div>'; return; }
-      listEl.innerHTML = '';
-      Object.entries(data).forEach(([id, fam]) => {
-        const item = document.createElement('div');
-        item.className = 'family-item';
-        item.innerHTML = `
-          <div class="f-avatar">${escapeHtml(fam.name.charAt(0).toUpperCase())}</div>
-          <div class="f-info"><div class="f-name">${escapeHtml(fam.name)}</div></div>
-          <button class="join-btn" onclick="joinFamily('${id}')">
+      const cell = document.c
