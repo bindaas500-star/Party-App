@@ -1,499 +1,437 @@
-const firebaseConfig = {
-    apiKey: "AIzaSyCWFsDRzavLObytahjDj3cRYwsoSNuttaA",
-    authDomain: "party-app-f2413.firebaseapp.com",
-    databaseURL: "https://party-app-f2413-default-rtdb.firebaseio.com",
-    projectId: "party-app-f2413",
-    storageBucket: "party-app-f2413.firebasestorage.app",
-    messagingSenderId: "1016955843509",
-    appId: "1:1016955843509:web:db4f2393b4dc83c0cb5ffc",
-    measurementId: "G-9QEVZLLM1Y"
-  };
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Party App</title>
+<meta name="description" content="Join Party App — chat live, play games, grow your farm, and hang out with your family in fun social rooms.">
 
-  firebase.initializeApp(firebaseConfig);
+<meta property="og:type" content="website">
+<meta property="og:title" content="Party App">
+<meta property="og:description" content="Join Party App — chat live, play games, grow your farm, and hang out with your family in fun social rooms.">
+<meta property="og:image" content="https://bindaas500-star.github.io/Party-App/icon-512.png">
+<meta property="og:url" content="https://bindaas500-star.github.io/Party-App/">
 
-  function setAppHeight() {
-    document.documentElement.style.setProperty('--app-height', window.innerHeight + 'px');
-    const topbarEl = document.querySelector('.topbar');
-    const bottomNavEl = document.querySelector('.bottom-nav');
-    if (topbarEl) {
-      document.documentElement.style.setProperty('--topbar-height', topbarEl.getBoundingClientRect().height + 'px');
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1a1030">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="stylesheet" href="styles.css?v=2">
+</head>
+<body>
+
+<!-- ===== SPLASH SCREEN ===== -->
+<div id="splashScreen" style="position:fixed; inset:0; z-index:2000; background:linear-gradient(160deg,#2a1a4a,#1a1030); display:flex; flex-direction:column; align-items:center; justify-content:center; transition: opacity 0.4s ease;">
+  <div class="splash-logo">P</div>
+  <div style="margin-top:16px; color:rgba(255,255,255,0.6); font-size:13px; font-family:'Fredoka','Inter',sans-serif; font-weight:600;">Party App</div>
+</div>
+
+<script>
+  setTimeout(function() {
+    var s = document.getElementById('splashScreen');
+    if (s) {
+      s.style.opacity = '0';
+      setTimeout(function() { s.style.display = 'none'; }, 400);
     }
-    if (bottomNavEl) {
-      document.documentElement.style.setProperty('--bottomnav-height', bottomNavEl.getBoundingClientRect().height + 'px');
-    }
-  }
-  setAppHeight();
-  window.addEventListener('resize', setAppHeight);
-  window.addEventListener('orientationchange', setAppHeight);
-  setTimeout(setAppHeight, 300);
+  }, 1800);
+</script>
 
-  (function setupBannerSlider() {
-    const track = document.getElementById('topbarBannerTrack');
-    if (!track) return;
-    const slideCount = track.children.length;
-    let current = 0;
-    setInterval(() => {
-      current = (current + 1) % slideCount;
-      track.style.transform = `translateX(-${current * 100}%)`;
-    }, 4000);
-  })();
+<!-- ===== AUTH SCREEN ===== -->
+<div id="authScreen" class="screen active">
+  <div>
+    <div class="auth-logo">
+      <span class="emoji">🎉</span>
+      <span class="brand">Party App</span>
+    </div>
+    <div class="auth-box">
+      <h1 id="authTitle">Welcome Back</h1>
+      <div class="error-msg" id="authError"></div>
+      <input type="text" id="nameInput" placeholder="Your name" maxlength="25" style="display:none;">
+      <input type="email" id="emailInput" placeholder="Email">
+      <input type="password" id="passInput" placeholder="Password">
+      <button class="btn" id="authSubmitBtn" onclick="handleAuth()">Login</button>
+      <div class="toggle-link" id="forgotPasswordLink" onclick="handleForgotPassword()">Forgot password?</div>
+      <div class="toggle-link" id="toggleAuthMode" onclick="toggleAuthMode()">New here? Create an account</div>
+    </div>
+  </div>
+</div>
 
-  (function setupPullToRefresh() {
-    const indicator = document.getElementById('pullRefreshIndicator');
-    if (!indicator) return;
-    let startY = 0;
-    let pulling = false;
+<!-- ===== MAIN APP SCREEN ===== -->
+<div id="mainScreen" class="app-shell" style="display:none; flex-direction: column;">
+  <div id="pullRefreshIndicator">↓ Pull to refresh</div>
+  <div id="toastContainer"></div>
 
-    document.addEventListener('touchstart', (e) => {
-      pulling = window.scrollY <= 0;
-      startY = e.touches[0].clientY;
-    }, { passive: true });
+  <!-- ===== ONBOARDING ===== -->
+  <div class="ttt-overlay" id="onboardingOverlay" style="z-index:900; background:linear-gradient(160deg,#2a1a4a,#1a1030); align-items:stretch; padding:0;">
+    <div id="onboardingSlides" style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:30px;">
+      <div id="onbEmoji" style="font-size:64px; margin-bottom:18px;">🎉</div>
+      <div id="onbTitle" style="font-family:'Fredoka','Inter',sans-serif; font-weight:700; font-size:22px; color:#fff; margin-bottom:12px;">Welcome to Party App!</div>
+      <div id="onbText" style="color:rgba(255,255,255,0.7); font-size:14px; line-height:1.6; max-width:300px;">Let's take a super quick look around before you dive in.</div>
+    </div>
+    <div style="padding:20px 24px 30px;">
+      <div id="onbDots" style="display:flex; justify-content:center; gap:6px; margin-bottom:18px;"></div>
+      <button class="btn" onclick="onboardingNext()" id="onbNextBtn">Next</button>
+      <div onclick="closeOnboarding()" style="text-align:center; margin-top:14px; color:rgba(255,255,255,0.4); font-size:12.5px; cursor:pointer;">Skip</div>
+    </div>
+  </div>
 
-    document.addEventListener('touchmove', (e) => {
-      if (!pulling) return;
-      const dy = e.touches[0].clientY - startY;
-      if (dy > 0) {
-        const pull = Math.min(dy * 0.5, 90);
-        indicator.style.transform = `translateY(${pull}px)`;
-        indicator.style.opacity = Math.min(pull / 55, 1);
-        indicator.textContent = pull > 55 ? '↻ Release to refresh' : '↓ Pull to refresh';
-      }
-    }, { passive: false });
+  <div class="topbar">
+    <div class="avatar-ring" onclick="openProfile()"><div class="avatar" id="userAvatar">?</div></div>
+    <div>
+      <div class="name" id="userName">User</div>
+      <div class="level-badge">🆔 <span id="userLevelLabel">ID Lv. 1</span></div>
+    </div>
+    <div class="topbar-banner" id="topbarBanner">
+      <div class="tbb-track" id="topbarBannerTrack">
+        <div class="tbb-slide" style="background:linear-gradient(135deg,#ff6b9d,#c44dff);">🎉 Welcome to Party App</div>
+        <div class="tbb-slide" style="background:linear-gradient(135deg,#ffd76a,#ff9d3d);">💎 Buy Gems &amp; upgrade VIP</div>
+        <div class="tbb-slide" style="background:linear-gradient(135deg,#4ecdc4,#3a7bd5);">🎊 Join a Family today</div>
+      </div>
+    </div>
+  </div>
 
-    document.addEventListener('touchend', () => {
-      if (!pulling) return;
-      pulling = false;
-      if (indicator.style.opacity === '1') {
-        indicator.textContent = '↻ Refreshing...';
-        setTimeout(() => location.reload(), 250);
-      } else {
-        indicator.style.transform = '';
-        indicator.style.opacity = '';
-      }
-    }, { passive: true });
-  })();
+  <div id="panelsWrap" class="panels-wrap">
+  <!-- ===== HOME / HARVEST PANEL ===== -->
+  <div class="panel active" id="homePanel">
+    <div class="home-content">
+      <div class="home-decor">
+        <span style="top:6%; left:4%; font-size:34px;">🌳</span>
+        <span style="top:14%; right:8%; font-size:26px;">🌸</span>
+        <span style="top:38%; left:2%; font-size:22px;">🌿</span>
+        <span style="top:55%; right:4%; font-size:30px;">🌳</span>
+        <span style="top:72%; left:8%; font-size:24px;">🌻</span>
+        <span style="top:85%; right:12%; font-size:20px;">🍃</span>
+        <span style="top:25%; left:45%; font-size:18px;">☁️</span>
+        <span class="hd-particle" style="top:20%; left:20%; animation-delay:0s;"></span>
+        <span class="hd-particle" style="top:45%; left:75%; animation-delay:1.5s;"></span>
+        <span class="hd-particle" style="top:65%; left:35%; animation-delay:3s;"></span>
+        <span class="hd-particle" style="top:80%; left:60%; animation-delay:2s;"></span>
+      </div>
 
-  const auth = firebase.auth();
-  const db = firebase.database();
+      <div class="quick-actions-row">
+        <div class="qa-btn" onclick="openVipBenefits()">
+          <div class="qa-icon">👑</div>
+          <div class="qa-label">VIP</div>
+        </div>
+        <div class="qa-btn" onclick="openRankView()">
+          <div class="qa-icon">🏆</div>
+          <div class="qa-label">Rank</div>
+        </div>
+        <div class="qa-btn" onclick="switchTab('family')">
+          <div class="qa-icon">🏠</div>
+          <div class="qa-label">Family</div>
+        </div>
+      </div>
 
-  const LEVEL_REQUIRED_TO_CREATE = 5;
-  const XP_PER_LEVEL = 150;
-  const XP_PER_MESSAGE = 5;
-  const HARVEST_CYCLE_MS = 30 * 60 * 1000;
-  const UPGRADE_INCREMENT = 1000;
-  const PLOTS = [
-    { label: 'Lv.1', requiredLevel: 1, bonus: 10000 },
-    { label: 'Lv.2', requiredLevel: 2, bonus: 15000 },
-    { label: 'Lv.3', requiredLevel: 3, bonus: 20000 },
-    { label: 'Lv.4', requiredLevel: 4, bonus: 27000 },
-    { label: 'Lv.5', requiredLevel: 5, bonus: 35000 },
-    { label: 'Lv.6', requiredLevel: 6, bonus: 45000 },
-    { label: 'VIP8', requiredLevel: 8, bonus: 70000 },
-    { label: 'VIP10', requiredLevel: 10, bonus: 120000 },
-    { label: 'VIP12', requiredLevel: 12, bonus: 200000 },
-    { label: 'VIP15', requiredLevel: 15, bonus: 350000 }
-  ];
+      <div class="home-section-label">🔥 Popular Rooms</div>
+      <div class="popular-rooms-row" id="popularRoomsRow">
+        <div class="loading">Loading rooms...</div>
+      </div>
 
-  let isSignupMode = false;
-  let currentUser = null;
-  let currentUserData = null;
-  let currentFamilyId = null;
-  let familyListListenerAttached = false;
+      <div class="home-header">
+        <div class="home-title">🌾 Your Farm</div>
+        <div class="wallet-box">
+          <div class="wallet"><span class="wallet-icon-badge" style="background:linear-gradient(135deg,#ffd76a,#ff9d3d);">🪙</span><span id="coinsDisplay">0</span></div>
+          <div class="wallet"><span class="wallet-icon-badge" style="background:linear-gradient(135deg,#7dd3ff,#3a9bd9);">💎</span><span id="gemsDisplay">0</span></div>
+          <div class="wallet"><span class="wallet-icon-badge" style="background:linear-gradient(135deg,#ff9dc4,#ff6b9d);">💕</span><span id="loveDisplay">0</span></div>
+        </div>
+      </div>
 
-  function toggleAuthMode() {
-    isSignupMode = !isSignupMode;
-    document.getElementById('authTitle').textContent = isSignupMode ? "Create Account" : "Welcome Back";
-    document.getElementById('authSubmitBtn').textContent = isSignupMode ? "Sign Up" : "Login";
-    document.getElementById('toggleAuthMode').textContent = isSignupMode ? "Already have an account? Login" : "New here? Create an account";
-    document.getElementById('nameInput').style.display = isSignupMode ? "block" : "none";
-    document.getElementById('forgotPasswordLink').style.display = isSignupMode ? "none" : "block";
-    document.getElementById('authError').textContent = "";
-  }
+      <div class="withdraw-card">
+        <div>
+          <h2>Withdraw</h2>
+          <p>Available Balance</p>
+        </div>
+        <button onclick="toast('Real-money withdrawals are coming soon!')">Withdraw</button>
+      </div>
 
-  function handleForgotPassword() {
-    const email = document.getElementById('emailInput').value.trim();
-    if (!email) { alert("Enter your email first."); return; }
-    auth.sendPasswordResetEmail(email).then(() => toast("✅ Reset link sent!"));
-  }
+      <div class="farm-card">
+        <h2 id="homeFarmLevelTag">🌾 Farm Level 1</h2>
+        <div class="rate-label" id="rateLabel">In 30 min: 🪙 0</div>
+        <h1 id="prodValue">0 Coins</h1>
+        <div id="harvestTimer">Ready</div>
+        <button id="harvestBtn" onclick="doHarvest()">Collect</button>
+      </div>
 
-  function handleAuth() {
-    const email = document.getElementById('emailInput').value.trim();
-    const pass = document.getElementById('passInput').value;
-    const name = document.getElementById('nameInput').value.trim();
-    const errorEl = document.getElementById('authError');
-    errorEl.textContent = "";
+      <div class="farm-grid" id="plotsGrid10"></div>
+      <button class="upgrade-btn" id="upgradeFarmBtn" onclick="upgradeFarm()">Upgrade Farm</button>
+    </div>
+  </div>
 
-    if (!email || !pass) { errorEl.textContent = "Please fill email and password."; return; }
-    if (isSignupMode && !name) { errorEl.textContent = "Please enter your name."; return; }
+  <!-- ===== CHAT PANEL ===== -->
+  <div class="panel" id="chatPanel">
+    <div class="msg-shortcuts">
+      <div class="msg-shortcut" onclick="openListOverlay('notifications')">
+        <div class="ms-icon">🔔</div><div class="ms-label">Notifications</div>
+      </div>
+      <div class="msg-shortcut" onclick="openListOverlay('activity')">
+        <div class="ms-icon">🎁</div><div class="ms-label">Activity</div>
+      </div>
+      <div class="msg-shortcut" onclick="openListOverlay('friends')">
+        <div class="ms-icon">❤️</div><div class="ms-label">Friends</div>
+      </div>
+    </div>
+    <div class="chat-area" id="chatArea">
+      <div class="loading">Loading messages...</div>
+    </div>
+    <div class="input-bar">
+      <input type="text" id="msgInput" placeholder="Say something..." maxlength="300" onkeypress="if(event.key==='Enter') sendMessage()">
+      <button class="send-btn" onclick="sendMessage()">➤</button>
+    </div>
+  </div>
 
-    if (isSignupMode) {
-      auth.createUserWithEmailAndPassword(email, pass)
-        .then((cred) => {
-          return db.ref('users/' + cred.user.uid).set({
-            name: name,
-            email: email,
-            vip: 1, coins: 0, gems: 0, love: 0, xp: 0, level: 1, farmLevel: 1,
-            profileId: String(Math.floor(10000000 + Math.random() * 90000000)),
-            lastHarvestAt: Date.now()
-          });
-        }).catch((err) => { errorEl.textContent = err.message; });
-    } else {
-      auth.signInWithEmailAndPassword(email, pass).catch((err) => { errorEl.textContent = err.message; });
-    }
-  }
+  <!-- ===== FAMILY PANEL ===== -->
+  <div class="panel" id="familyPanel">
+    <div class="family-content" id="familyBrowseView">
+      <div class="level-card">
+        <div class="row">
+          <span class="lv-label" id="famLevelLabel">Level 1</span>
+          <span class="xp-label" id="famXpLabel">0 / 20 XP</span>
+        </div>
+        <div class="xp-bar-bg"><div class="xp-bar-fill" id="xpBarFill" style="width:0%;"></div></div>
+      </div>
 
-  function handleLogout() { auth.signOut(); }
+      <div class="create-family-box">
+        <h3>✨ Create Your Own Family</h3>
+        <input type="text" id="familyNameInput" placeholder="Family name" maxlength="30">
+        <button class="btn" id="createFamilyBtn" onclick="createFamily()">Create Family</button>
+        <div class="lock-msg" id="createLockMsg" style="display:none;"></div>
+      </div>
 
-  let initialRestoreDone = false;
+      <div class="section-title">Join a Family</div>
+      <div style="padding: 0 16px 10px;">
+        <input type="text" id="familySearchInput" placeholder="🔍 Search families..." oninput="filterFamilyList()" class="styled-search-input">
+      </div>
+      <div id="familyList">
+        <div class="loading">Loading families...</div>
+      </div>
+    </div>
 
-  function hideSplashScreen() {
-    const splash = document.getElementById('splashScreen');
-    if (splash) {
-      splash.style.opacity = '0';
-      setTimeout(function() { splash.style.display = 'none'; }, 300);
-    }
-  }
+    <div id="familyInsideView" style="display:none; flex-direction: column; flex: 1; overflow: hidden; position:relative;">
+      <div class="floating-hearts" id="familyFloatingHearts"></div>
+      
+      <div class="premium-header" onclick="openFamilyDetailsModal()">
+        <div class="f-avatar-lg" id="insideFamAvatar">F</div>
+        <div class="ph-info">
+          <div class="ph-title" id="insideFamName">Family</div>
+          <div class="ph-sub">
+            <span id="insideFamMemberCount">👥 0 members</span> • <span id="insideFamLevel">Level 1</span>
+          </div>
+        </div>
+        <div class="ph-actions" onclick="event.stopPropagation()">
+          <button class="hdr-btn" onclick="openFamilyOwnerMenu()">⋮</button>
+        </div>
+      </div>
 
-  auth.onAuthStateChanged((user) => {
-    hideSplashScreen();
+      <div class="notice-banner" id="familyNoticeBanner" style="display:none;"></div>
+      <div class="seat-grid" id="familySeatGrid"></div>
+      <div class="chat-area" id="familyChatArea"></div>
+      <div class="input-bar">
+        <input type="text" id="famMsgInput" placeholder="Message your family..." maxlength="300" onkeypress="if(event.key==='Enter') sendFamilyMessage()">
+        <button class="send-btn" onclick="sendFamilyMessage()">➤</button>
+      </div>
+    </div>
+  </div>
 
-    if (user) {
-      currentUser = user;
-      db.ref('users/' + user.uid).on('value', (snap) => {
-        currentUserData = snap.val() || { name: "User", level: 1, xp: 0, coins: 0, gems: 0, lastHarvestAt: Date.now() };
-        renderUserHeader();
-        renderLevelCard();
-        renderHome();
-        if (currentUserData.familyId) {
-          currentFamilyId = currentUserData.familyId;
-          showInsideFamily(currentFamilyId);
-        } else {
-          currentFamilyId = null;
-          showBrowseFamilies();
-        }
-        updateFamilyBubble(getActiveTab());
+  <div class="family-bubble" id="familyBubble">
+    <span id="familyBubbleAvatar">F</span>
+    <span class="bubble-tag">👨‍👩‍👧</span>
+    <span class="bubble-close-btn" id="familyBubbleClose">✕</span>
+  </div>
 
-        if (!initialRestoreDone) {
-          initialRestoreDone = true;
-          switchTab(localStorage.getItem('lastTab') || 'hifami');
-        }
-      });
+  <!-- ===== MOMENTS PANEL ===== -->
+  <div class="panel" id="momentsPanel" style="position: relative; overflow: hidden;">
+    <div class="room-title-bar">🪐 Moments</div>
+    <div class="moments-feed" id="momentsFeed">
+      <div class="loading">Loading moments...</div>
+    </div>
+    <div class="moments-fab" onclick="openNewPostOverlay()">+</div>
+  </div>
 
-      document.getElementById('authScreen').classList.remove('active');
-      document.getElementById('mainScreen').style.display = 'flex';
-      listenToChat();
-      listenToFamilyList();
-      listenToRoomList();
-      listenToMoments();
-    } else {
-      currentUser = null;
-      document.getElementById('mainScreen').style.display = 'none';
-      document.getElementById('authScreen').classList.add('active');
-    }
-  });
+  <!-- ===== NEW POST OVERLAY ===== -->
+  <div class="rank-overlay" id="newPostOverlay">
+    <div class="rank-header">
+      <button onclick="closeNewPostOverlay()">←</button>
+      <h2>✏️ New Moment</h2>
+    </div>
+    <div style="padding: 0 16px;">
+      <div class="edit-field">
+        <label>What's on your mind?</label>
+        <textarea id="newPostText" rows="4" placeholder="Share something..."></textarea>
+      </div>
+      <div class="edit-field">
+        <label>Image URL (optional)</label>
+        <input type="text" id="newPostImageUrl" placeholder="https://example.com/photo.jpg">
+      </div>
+      <button class="btn" onclick="submitNewPost()">Post</button>
+    </div>
+  </div>
 
-  function renderUserHeader() {
-    document.getElementById('userName').textContent = currentUserData.name;
-    applyAvatarPhoto(document.getElementById('userAvatar'), currentUserData);
-    document.getElementById('userLevelLabel').textContent = "ID Lv. " + (currentUserData.level || 1);
-    renderProfile();
-  }
+  <!-- ===== ROOM PANEL ===== -->
+  <div class="panel" id="roomPanel" style="flex-direction: column; overflow: hidden;">
 
-  function applyAvatarPhoto(el, userData) {
-    if (!el) return;
-    const letter = (userData && userData.name ? userData.name.charAt(0).toUpperCase() : '?');
-    if (userData && userData.photoURL) {
-      el.style.backgroundImage = `url('${userData.photoURL}')`;
-      el.style.backgroundSize = 'cover';
-      el.textContent = '';
-    } else {
-      el.style.backgroundImage = '';
-      el.textContent = letter;
-    }
-  }
+    <div id="roomBrowseView" style="display:flex; flex-direction:column; flex:1; overflow:hidden;">
+      <div class="room-explore-banner">
+        <div class="reb-title">Create Room Event</div>
+        <div class="reb-sub">Start your own room and invite friends</div>
+      </div>
 
-  function renderProfile() {
-    if (!currentUserData) return;
-    applyAvatarPhoto(document.getElementById('profileAvatarBig'), currentUserData);
-    document.getElementById('profileNameBig').textContent = currentUserData.name;
-    document.getElementById('profileIdLevelBadge').textContent = "🆔 ID Lv. " + (currentUserData.level || 1);
-    document.getElementById('profileVipLevelBadge').textContent = "👑 VIP " + (currentUserData.farmLevel || 1);
-    document.getElementById('profileWalletValue').textContent = "🪙" + formatNum(currentUserData.coins || 0) + " 💎" + formatNum(currentUserData.gems || 0);
-    document.getElementById('profileFamilyValue').textContent = currentFamilyId ? 'Joined' : 'None';
-    document.getElementById('profileIdNumber').textContent = currentUserData.profileId || '—';
-    document.getElementById('myReferralCode').textContent = currentUserData.profileId || '—';
-  }
+      <div class="room-explore-tabs">
+        <div class="ret active">Explore</div>
+        <div class="ret" onclick="toast('Followed rooms list is coming soon!')">Followed</div>
+      </div>
 
-  function openProfile() {
-    renderProfile();
-    document.getElementById('profileOverlay').classList.add('show');
-  }
+      <div class="create-room-box">
+        <input type="text" id="roomNameInput" placeholder="Room name" maxlength="30">
+        <button class="btn" onclick="createLiveRoom()">Create Room</button>
+      </div>
 
-  function closeProfile() {
-    document.getElementById('profileOverlay').classList.remove('show');
-    hideAllProfileSubViews();
-  }
+      <div style="padding: 0 16px 10px;">
+        <input type="text" id="roomSearchInput" placeholder="🔍 Search rooms..." oninput="filterRoomList()" class="styled-search-input">
+      </div>
 
-  function hideAllProfileSubViews() {
-    document.getElementById('inviteView').style.display = 'none';
-    document.getElementById('languageView').style.display = 'none';
-    document.getElementById('settingsView').style.display = 'none';
-    document.getElementById('editProfileView').style.display = 'none';
-    document.getElementById('accountSecurityView').style.display = 'none';
-    document.getElementById('infoPageView').style.display = 'none';
-    document.getElementById('profileMainView').style.display = 'block';
-  }
+      <div class="room-explore-list" id="roomExploreList">
+        <div class="loading">Loading rooms...</div>
+      </div>
+    </div>
 
-  function copyProfileId() {
-    const id = document.getElementById('profileIdNumber').textContent;
-    if (navigator.clipboard) navigator.clipboard.writeText(id).then(() => toast('ID copied: ' + id));
-  }
+    <div id="roomInsideView" style="display:none; flex-direction:column; flex:1; overflow:hidden; position:relative;">
+      <div class="premium-header" onclick="openRoomDetailsModal()">
+        <button class="room-back-btn" onclick="event.stopPropagation(); leaveRoomToBrowse();">←</button>
+        <div class="room-header-avatar" id="roomHeaderOwnerAvatar">?</div>
+        <div class="ph-info">
+          <div class="ph-title" id="roomInsideTitle">Room</div>
+          <div class="ph-sub">
+            <span id="roomIdDisplay">ID: —</span> • <span class="room-online-dot"></span> <span id="roomOnlineCount">0 online</span>
+          </div>
+        </div>
+        <div class="ph-actions" onclick="event.stopPropagation()">
+          <button class="hdr-btn" onclick="followCurrentRoom()" title="Follow Room">⭐</button>
+          <button class="hdr-btn" onclick="shareCurrentRoom()" title="Share Room">🔗</button>
+          <button class="hdr-btn" onclick="openRoomOwnerMenu()" title="Menu">⋮</button>
+        </div>
+      </div>
 
-  function switchTab(tab) {
-    document.getElementById('homePanel').classList.toggle('active', tab === 'hifami');
-    document.getElementById('chatPanel').classList.toggle('active', tab === 'messages');
-    document.getElementById('familyPanel').classList.toggle('active', tab === 'family');
-    document.getElementById('momentsPanel').classList.toggle('active', tab === 'moments');
-    document.getElementById('roomPanel').classList.toggle('active', tab === 'room');
+      <div class="floating-hearts" id="roomFloatingHearts"></div>
+      <div class="notice-banner" id="roomNoticeBanner" style="display:none;"></div>
 
-    document.getElementById('navHifami').classList.toggle('active', tab === 'hifami');
-    document.getElementById('navMessages').classList.toggle('active', tab === 'messages');
-    document.getElementById('navFamily').classList.toggle('active', tab === 'family');
-    document.getElementById('navMoments').classList.toggle('active', tab === 'moments');
-    document.getElementById('navRoom').classList.toggle('active', tab === 'room');
+      <div class="games-row">
+        <div class="game-chip" onclick="openTicTacToe()">⭕ Tic-Tac-Toe</div>
+        <div class="game-chip" onclick="toast('UNO is coming soon!')">🎴 UNO</div>
+        <div class="game-chip" onclick="toast('Pool is coming soon!')">🎱 Pool</div>
+        <div class="game-chip" onclick="toast('Carrom is coming soon!')">🎲 Carrom</div>
+        <div class="game-chip" onclick="toast('Snakes is coming soon!')">🐍 Snakes</div>
+      </div>
 
-    updateFamilyBubble(tab);
-    localStorage.setItem('lastTab', tab);
-  }
+      <div class="seat-grid" id="seatGrid"></div>
+      <div class="chat-area" id="roomChatArea"></div>
+      <div class="input-bar">
+        <input type="text" id="roomMsgInput" placeholder="Say something..." maxlength="300" onkeypress="if(event.key==='Enter') sendRoomMessage()">
+        <button class="quick-icon-btn" onclick="openQuickGiftPicker()" title="Send Gift">🎁</button>
+        <button class="quick-icon-btn" onclick="openGiftLog()" title="Gift Log">📦</button>
+        <button class="send-btn" onclick="sendRoomMessage()">➤</button>
+      </div>
+    </div>
+  </div>
+  </div>
 
-  function getActiveTab() {
-    if (document.getElementById('homePanel').classList.contains('active')) return 'hifami';
-    if (document.getElementById('familyPanel').classList.contains('active')) return 'family';
-    if (document.getElementById('momentsPanel').classList.contains('active')) return 'moments';
-    if (document.getElementById('roomPanel').classList.contains('active')) return 'room';
-    return 'messages';
-  }
+  <!-- ===== TIC-TAC-TOE OVERLAY ===== -->
+  <div class="ttt-overlay" id="tttOverlay">
+    <div class="ttt-header">
+      <button onclick="closeTicTacToe()">←</button>
+      <h2>⭕ Tic-Tac-Toe</h2>
+    </div>
+    <div class="ttt-status" id="tttStatus">Waiting for players...</div>
+    <div class="ttt-board" id="tttBoard"></div>
+    <button class="btn" style="max-width:220px;" onclick="resetTicTacToe()">Reset Game</button>
+  </div>
 
-  function updateFamilyBubble(activeTab) {
-    const bubble = document.getElementById('familyBubble');
-    if (!bubble) return;
-    if (currentFamilyId && activeTab !== 'family') {
-      bubble.classList.add('show');
-    } else {
-      bubble.classList.remove('show');
-    }
-  }
+  <!-- ===== GIFT PICKER OVERLAY ===== -->
+  <div class="ttt-overlay" id="giftOverlay" style="align-items: stretch; padding: 0;">
+    <div class="ttt-header" style="padding: 16px 16px 8px;">
+      <button onclick="closeGiftPicker()">←</button>
+      <h2>🎁 Send Gift</h2>
+    </div>
 
-  function getFarmLevel() { return (currentUserData && currentUserData.farmLevel) || 1; }
-  function getProductionAmount() {
-    const lvl = getFarmLevel();
-    let total = 0;
-    PLOTS.forEach((p) => { if (lvl >= p.requiredLevel) total += p.bonus; });
-    return total;
-  }
+    <div class="gift-recipients-row" id="giftRecipientsRow"></div>
+    <button class="gift-select-all-btn" id="giftSelectAllBtn" onclick="toggleSelectAllRecipients()">Select All</button>
 
-  function renderHome() {
-    if (!currentUserData) return;
-    document.getElementById('coinsDisplay').textContent = formatNum(currentUserData.coins || 0);
-    document.getElementById('gemsDisplay').textContent = formatNum(currentUserData.gems || 0);
-    document.getElementById('loveDisplay').textContent = formatNum(currentUserData.love || 0);
-    document.getElementById('homeFarmLevelTag').textContent = "🌾 Farm Level " + getFarmLevel();
-    document.getElementById('rateLabel').textContent = "In 30 min: 🪙 " + formatNum(getProductionAmount());
-    renderPlots();
-  }
+    <div class="gift-category-tabs" id="giftCategoryTabs">
+      <div class="gct active" data-cat="classical" onclick="switchGiftCategory('classical')">Classical</div>
+      <div class="gct" data-cat="premium" onclick="switchGiftCategory('premium')">Premium</div>
+    </div>
 
-  const CROP_EMOJIS = ['🥕','🌽','🥬','🍅','🌻','🥦','🍆','🌾','🥔','🌿'];
-  function renderPlots() {
-    const farmLevel = getFarmLevel();
-    const gridEl = document.getElementById('plotsGrid10');
-    if (!gridEl) return;
-    gridEl.innerHTML = '';
-    PLOTS.forEach((plot, i) => {
-      const isUnlocked = farmLevel >= plot.requiredLevel;
-      const cell = document.createElement('div');
-      cell.className = 'plot10-cell ' + (isUnlocked ? 'unlocked' : 'locked');
-      cell.innerHTML = isUnlocked
-        ? `<div class="p-emoji">${CROP_EMOJIS[i % CROP_EMOJIS.length]}</div><div class="p-bonus">+${plot.bonus}</div>`
-        : `<div class="p-emoji">🔒</div><div class="p-label">${plot.label}</div>`;
-      gridEl.appendChild(cell);
-    });
-  }
+    <div class="gift-grid" id="giftGrid" style="flex: 1; overflow-y: auto; padding: 4px 16px 16px;"></div>
 
-  function doHarvest() {
-    if (!currentUser || !currentUserData) return;
-    const gained = getProductionAmount();
-    db.ref('users/' + currentUser.uid).update({
-      coins: (currentUserData.coins || 0) + gained,
-      lastHarvestAt: Date.now()
-    }).then(() => toast('Collected 🪙 ' + formatNum(gained)));
-  }
+    <div class="gift-send-bar">
+      <div class="gsb-wallet">💕 <span id="giftWalletDisplay">0</span></div>
+      <div class="gsb-qty">
+        <button onclick="changeGiftQty(-1)">−</button>
+        <span id="giftQtyDisplay">1</span>
+        <button onclick="changeGiftQty(1)">+</button>
+      </div>
+      <button class="gsb-send-btn" onclick="confirmSendGift()">Send</button>
+    </div>
+  </div>
 
-  function upgradeFarm() {
-    if (!currentUser || !currentUserData) return;
-    const cost = getFarmLevel() * UPGRADE_INCREMENT;
-    if ((currentUserData.gems || 0) < cost) { toast('Not enough Gems!', 'error'); return; }
-    db.ref('users/' + currentUser.uid).update({
-      gems: currentUserData.gems - cost,
-      farmLevel: getFarmLevel() + 1
-    }).then(() => toast('Farm Upgraded! 👑'));
-  }
+  <!-- ===== ROOM DETAILS OVERLAY ===== -->
+  <div class="rank-overlay" id="roomDetailsModal">
+    <div class="rank-header">
+      <button onclick="closeRoomDetailsModal()">←</button>
+      <h2>Room Info</h2>
+    </div>
+    <div class="modal-body-scroll">
+      <div class="details-cover-card" id="rdCoverCard">
+        <div class="details-avatar-lg" id="rdAvatar">🏠</div>
+        <div class="details-title" id="rdName">Room Name</div>
+        <div class="details-sub" id="rdNumericId">ID: —</div>
+      </div>
+      <div class="details-stats-row">
+        <div class="ds-tile">
+          <div class="dst-val" id="rdOnlineCount">0</div>
+          <div class="dst-lbl">Online</div>
+        </div>
+        <div class="ds-tile">
+          <div class="dst-val" id="rdPopularity">🔥 100</div>
+          <div class="dst-lbl">Popularity</div>
+        </div>
+        <div class="ds-tile">
+          <div class="dst-val" id="rdOwnerName">Owner</div>
+          <div class="dst-lbl">Host</div>
+        </div>
+      </div>
+      <div class="details-notice-box" id="rdNoticeBox">📢 No room notice set.</div>
+      <div class="section-title" style="padding:0 4px;">Room Members</div>
+      <div id="rdMemberList" class="member-cards-list">
+        <div class="loading">Loading members...</div>
+      </div>
+    </div>
+  </div>
 
-  let currentRoomId = null;
-  let roomListCache = null;
-
-  function listenToRoomList() {
-    db.ref('liveRooms').on('value', (snap) => {
-      roomListCache = snap.val();
-      renderRoomList();
-    });
-  }
-
-  function renderRoomList() {
-    const listEl = document.getElementById('roomExploreList');
-    if (!listEl) return;
-    if (!roomListCache) { listEl.innerHTML = '<div class="loading">No rooms available.</div>'; return; }
-    listEl.innerHTML = '';
-    Object.entries(roomListCache).forEach(([id, r]) => {
-      const card = document.createElement('div');
-      card.className = 'room-card';
-      card.innerHTML = `<div class="rc-thumb">🏠</div><div class="rc-info"><div class="rc-name">${escapeHtml(r.name)}</div></div>`;
-      card.onclick = () => enterRoom(id, r.name);
-      listEl.appendChild(card);
-    });
-  }
-
-  function createLiveRoom() {
-    const name = document.getElementById('roomNameInput').value.trim();
-    if (!name || !currentUser) return;
-    const ref = db.ref('liveRooms').push();
-    ref.set({ name: name, ownerUid: currentUser.uid, createdAt: Date.now() }).then(() => enterRoom(ref.key, name));
-  }
-
-  function enterRoom(id, name) {
-    currentRoomId = id;
-    document.getElementById('roomInsideTitle').textContent = name;
-    document.getElementById('roomBrowseView').style.display = 'none';
-    document.getElementById('roomInsideView').style.display = 'flex';
-    listenToSeats(id);
-    listenToRoomChat(id);
-  }
-
-  function leaveRoomToBrowse() {
-    currentRoomId = null;
-    document.getElementById('roomInsideView').style.display = 'none';
-    document.getElementById('roomBrowseView').style.display = 'flex';
-  }
-
-  function listenToSeats(roomId) {
-    db.ref('liveRooms/' + roomId + '/seats').on('value', (snap) => {
-      const seats = snap.val() || {};
-      const grid = document.getElementById('seatGrid');
-      if (!grid) return;
-      grid.innerHTML = '';
-      for (let i = 0; i < 8; i++) {
-        const s = seats[i];
-        const cell = document.createElement('div');
-        cell.className = 'seat-cell';
-        if (s) {
-          cell.innerHTML = `
-            <div class="seat-vip-pill">VIP ${s.vip || 1}</div>
-            <div class="seat-avatar-wrap frame-sparkle">
-              <div class="seat-avatar">${escapeHtml((s.name || 'U').charAt(0).toUpperCase())}</div>
-              <div class="seat-mic-badge ${s.muted ? 'muted' : ''}">${s.muted ? '🔇' : '🎙️'}</div>
-            </div>
-            <div class="seat-name">${escapeHtml(s.name)}</div>
-          `;
-          cell.onclick = () => openSeatProfile(s.uid, s.name);
-        } else {
-          cell.innerHTML = `<div class="seat-plus">+</div><div class="seat-name">${i + 1}</div>`;
-          cell.onclick = () => sitOnSeat(i);
-        }
-        grid.appendChild(cell);
-      }
-    });
-  }
-
-  function sitOnSeat(index) {
-    if (!currentUser || !currentRoomId) return;
-    db.ref('liveRooms/' + currentRoomId + '/seats/' + index).set({
-      uid: currentUser.uid,
-      name: currentUserData.name,
-      vip: currentUserData.farmLevel || 1
-    });
-  }
-
-  function openRoomDetailsModal() {
-    if (!currentRoomId) return;
-    document.getElementById('roomDetailsModal').classList.add('show');
-    db.ref('liveRooms/' + currentRoomId).once('value').then((snap) => {
-      const r = snap.val() || {};
-      document.getElementById('rdName').textContent = r.name || 'Room';
-      document.getElementById('rdNumericId').textContent = 'ID: ' + (r.roomNumericId || currentRoomId);
-      document.getElementById('rdNoticeBox').textContent = '📢 ' + (r.notice || 'Welcome to our room!');
-    });
-  }
-  function closeRoomDetailsModal() { document.getElementById('roomDetailsModal').classList.remove('show'); }
-
-  function listenToFamilyList() {
-    db.ref('families').on('value', (snap) => {
-      const data = snap.val();
-      const listEl = document.getElementById('familyList');
-      if (!listEl) return;
-      if (!data) { listEl.innerHTML = '<div class="loading">No families yet.</div>'; return; }
-      listEl.innerHTML = '';
-      Object.entries(data).forEach(([id, fam]) => {
-        const item = document.createElement('div');
-        item.className = 'family-item';
-        item.innerHTML = `
-          <div class="f-avatar">${escapeHtml(fam.name.charAt(0).toUpperCase())}</div>
-          <div class="f-info"><div class="f-name">${escapeHtml(fam.name)}</div></div>
-          <button class="join-btn" onclick="joinFamily('${id}')">Join</button>
-        `;
-        listEl.appendChild(item);
-      });
-    });
-  }
-
-  function createFamily() {
-    const name = document.getElementById('familyNameInput').value.trim();
-    if (!name || !currentUser) return;
-    const ref = db.ref('families').push();
-    ref.set({ name: name, ownerUid: currentUser.uid, createdAt: Date.now() }).then(() => {
-      db.ref('users/' + currentUser.uid).update({ familyId: ref.key });
-    });
-  }
-
-  function joinFamily(famId) {
-    db.ref('users/' + currentUser.uid).update({ familyId: famId });
-  }
-
-  function showInsideFamily(famId) {
-    document.getElementById('familyBrowseView').style.display = 'none';
-    document.getElementById('familyInsideView').style.display = 'flex';
-    db.ref('families/' + famId).once('value').then((snap) => {
-      const f = snap.val() || {};
-      document.getElementById('insideFamName').textContent = f.name;
-    });
-    listenToFamilySeats(famId);
-    listenToFamilyChat(famId);
-  }
-
-  function showBrowseFamilies() {
-    document.getElementById('familyBrowseView').style.display = 'block';
-    document.getElementById('familyInsideView').style.display = 'none';
-  }
-
-  function listenToFamilySeats(famId) {
-    db.ref('families/' + famId + '/seats').on('value', (snap) => {
-      const seats = snap.val() || {};
-      const grid = document.getElementById('familySeatGrid');
-      if (!grid) return;
-      grid.innerHTML = '';
-      for (let i = 0; i < 8; i++) {
-        const s = seats[i];
-        const cell = document.createElement('div');
-        cell.className = 'seat-cell';
-        if (s) {
-          cell.innerHTML = `
-            <div class="seat-avatar-wrap">
-              <div class="se
+  <!-- ===== FAMILY DETAILS OVERLAY ===== -->
+  <div class="rank-overlay" id="familyDetailsModal">
+    <div class="rank-header">
+      <button onclick="closeFamilyDetailsModal()">←</button>
+      <h2>Family Info</h2>
+    </div>
+    <div class="modal-body-scroll">
+      <div class="details-cover-card" id="fdCoverCard">
+        <div class="details-avatar-lg" id="fdAvatar">👨‍👩‍👧</div>
+        <div class="details-title" id="fdName">Family Name</div>
+        <div class="details-sub" id="fdLeaderName">Leader: —</div>
+      </div>
+      <div class="details-stats-row">
+        <div class="ds-tile">
+          <div class="dst-val" id="fdMemberCount">0</div>
+          <div class="dst-lbl">Members</div>
+        </div>
+        <div class="ds-tile">
+          <div class="dst-val" id="fdLevel">Lv.1</div>
+          <div class="dst-lbl">Level</div>
+        </div>
+        <div class="ds-tile">
+          <div class="dst-val" id="fdActivityXp">0 XP</div>
+          <div class="dst-lbl">Contribution</div>
+        </div>
+      </div>
+      <div class="details-notice-box" id="fdNoticeBox">📢 Welcome to our family!</div>
+      <div class="section-title" styl
