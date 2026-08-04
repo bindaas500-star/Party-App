@@ -97,14 +97,19 @@
         <span style="top:25%; left:45%; font-size:18px;">☁️</span>
       </div>
 
-      <div class="side-icon-stack">
-        <div class="side-icon-btn" onclick="openVipBenefits()">
-          <div class="sib-icon">👑</div>
-          <div class="sib-label">VIP</div>
+      <!-- VIP / Rank / Family quick row -->
+      <div class="quick-actions-row" style="position:relative; z-index:1;">
+        <div class="qa-btn" onclick="openVipBenefits()">
+          <div class="qa-icon">👑</div>
+          <div class="qa-label">VIP</div>
         </div>
-        <div class="side-icon-btn" onclick="openRankView()">
-          <div class="sib-icon">🏆</div>
-          <div class="sib-label">Rank</div>
+        <div class="qa-btn" onclick="openRankView()">
+          <div class="qa-icon">🏆</div>
+          <div class="qa-label">Rank</div>
+        </div>
+        <div class="qa-btn" onclick="switchTab('family')">
+          <div class="qa-icon">🏠</div>
+          <div class="qa-label">Family</div>
         </div>
       </div>
 

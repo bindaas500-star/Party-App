@@ -2008,11 +2008,14 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
     entries.forEach(({ id, room, count }) => {
       const card = document.createElement('div');
       card.className = 'pop-room-card';
-      const thumbStyle = room.photoURL ? `style="background-image:url('${room.photoURL}');background-size:cover;background-position:center;"` : '';
+      const thumbStyle = room.photoURL ? `style="background-image:url('${room.photoURL}');"` : '';
       card.innerHTML = `
         <div class="prc-thumb" ${thumbStyle}>${room.photoURL ? '' : '🏠'}</div>
-        <div class="prc-name">${escapeHtml(room.name)}</div>
-        <div class="prc-count">🔥 ${count}</div>
+        <div class="prc-body">
+          <div class="prc-name">${escapeHtml(room.name)}</div>
+          <div class="prc-count">🟢 ${count} online</div>
+          <button class="prc-join-btn">Join</button>
+        </div>
       `;
       card.onclick = () => { switchTab('room'); enterRoom(id, room.name); };
       rowEl.appendChild(card);
