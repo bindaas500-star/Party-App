@@ -40,6 +40,7 @@ const firebaseConfig = {
 
   (function setupPullToRefresh() {
     const indicator = document.getElementById('pullRefreshIndicator');
+    if (!indicator) return;
     let startY = 0;
     let pulling = false;
 
@@ -145,7 +146,16 @@ const firebaseConfig = {
 
   let initialRestoreDone = false;
 
+  // Splash Screen Fallback Auto-Hide
+  function hideSplashScreen() {
+    const splash = document.getElementById('splashScreen');
+    if (splash) splash.style.display = 'none';
+  }
+  setTimeout(hideSplashScreen, 1500);
+
   auth.onAuthStateChanged((user) => {
+    hideSplashScreen();
+
     if (user) {
       currentUser = user;
       db.ref('users/' + user.uid).on('value', (snap) => {
@@ -170,7 +180,6 @@ const firebaseConfig = {
 
       document.getElementById('authScreen').classList.remove('active');
       document.getElementById('mainScreen').style.display = 'flex';
-      document.getElementById('splashScreen').style.display = 'none';
       listenToChat();
       listenToFamilyList();
       listenToRoomList();
@@ -272,7 +281,6 @@ const firebaseConfig = {
     }
   }
 
-  // ---------- FARM HARVEST SYSTEM ----------
   function getFarmLevel() { return (currentUserData && currentUserData.farmLevel) || 1; }
   function getProductionAmount() {
     const lvl = getFarmLevel();
@@ -295,6 +303,7 @@ const firebaseConfig = {
   function renderPlots() {
     const farmLevel = getFarmLevel();
     const gridEl = document.getElementById('plotsGrid10');
+    if (!gridEl) return;
     gridEl.innerHTML = '';
     PLOTS.forEach((plot, i) => {
       const isUnlocked = farmLevel >= plot.requiredLevel;
@@ -326,7 +335,6 @@ const firebaseConfig = {
     }).then(() => toast('Farm Upgraded! 👑'));
   }
 
-  // ---------- ROOM SYSTEM (PHASE 1 & 2) ----------
   let currentRoomId = null;
   let roomListCache = null;
 
@@ -339,6 +347,7 @@ const firebaseConfig = {
 
   function renderRoomList() {
     const listEl = document.getElementById('roomExploreList');
+    if (!listEl) return;
     if (!roomListCache) { listEl.innerHTML = '<div class="loading">No rooms available.</div>'; return; }
     listEl.innerHTML = '';
     Object.entries(roomListCache).forEach(([id, r]) => {
@@ -376,6 +385,7 @@ const firebaseConfig = {
     db.ref('liveRooms/' + roomId + '/seats').on('value', (snap) => {
       const seats = snap.val() || {};
       const grid = document.getElementById('seatGrid');
+      if (!grid) return;
       grid.innerHTML = '';
       for (let i = 0; i < 8; i++) {
         const s = seats[i];
@@ -421,11 +431,11 @@ const firebaseConfig = {
   }
   function closeRoomDetailsModal() { document.getElementById('roomDetailsModal').classList.remove('show'); }
 
-  // ---------- FAMILY SYSTEM (PHASE 3 & 4) ----------
   function listenToFamilyList() {
     db.ref('families').on('value', (snap) => {
       const data = snap.val();
       const listEl = document.getElementById('familyList');
+      if (!listEl) return;
       if (!data) { listEl.innerHTML = '<div class="loading">No families yet.</div>'; return; }
       listEl.innerHTML = '';
       Object.entries(data).forEach(([id, fam]) => {
@@ -474,6 +484,7 @@ const firebaseConfig = {
     db.ref('families/' + famId + '/seats').on('value', (snap) => {
       const seats = snap.val() || {};
       const grid = document.getElementById('familySeatGrid');
+      if (!grid) return;
       grid.innerHTML = '';
       for (let i = 0; i < 8; i++) {
         const s = seats[i];
@@ -506,7 +517,6 @@ const firebaseConfig = {
   }
   function closeFamilyDetailsModal() { document.getElementById('familyDetailsModal').classList.remove('show'); }
 
-  // ---------- PROFILE POPUP (PHASE 5) ----------
   let targetUserUid = null;
   let targetUserName = null;
 
@@ -551,7 +561,6 @@ const firebaseConfig = {
   function toggleModeratorSeatUser() { toast('Admin status updated for ' + targetUserName); }
   function kickSeatUser() { toast(targetUserName + ' kicked from room'); closeSeatProfile(); }
 
-  // ---------- CHAT ----------
   function listenToChat() {
     db.ref('rooms/global/messages').limitToLast(40).on('value', (snap) => {
       renderChatMessages('chatArea', snap.val());
@@ -607,7 +616,6 @@ const firebaseConfig = {
     input.value = '';
   }
 
-  // ---------- GIFTS & UTILS ----------
   function openQuickGiftPicker() { openListOverlay('quickgift'); }
   function openGiftLog() { toast('Gift log feature active'); }
   function openGiftPicker(uid, name) { document.getElementById('giftOverlay').classList.add('show'); }
@@ -617,7 +625,8 @@ const firebaseConfig = {
     const el = document.createElement('div');
     el.className = 'toast' + (type === 'error' ? ' error' : '');
     el.textContent = msg;
-    document.getElementById('toastContainer').appendChild(el);
+    const container = document.getElementById('toastContainer');
+    if (container) container.appendChild(el);
     setTimeout(() => el.remove(), 2500);
   }
 
