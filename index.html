@@ -385,6 +385,14 @@
 
   <!-- ===== GIFT PICKER OVERLAY ===== -->
   <div class="ttt-overlay" id="giftOverlay" style="align-items: stretch; padding: 0;">
+    <div class="gift-sparkles">
+      <span style="left:10%; top:20%; animation-delay:0s;"></span>
+      <span style="left:30%; top:60%; animation-delay:0.8s;"></span>
+      <span style="left:55%; top:15%; animation-delay:1.6s;"></span>
+      <span style="left:75%; top:50%; animation-delay:2.4s;"></span>
+      <span style="left:88%; top:25%; animation-delay:1.2s;"></span>
+      <span style="left:45%; top:80%; animation-delay:2s;"></span>
+    </div>
     <div class="ttt-header" style="padding: 16px 16px 8px;">
       <button onclick="closeGiftPicker()">←</button>
       <h2>🎁 Send Gift</h2>
@@ -402,6 +410,12 @@
 
     <div class="gift-send-bar">
       <div class="gsb-wallet">💕 <span id="giftWalletDisplay">0</span></div>
+      <div class="gift-qty-presets">
+        <button class="gqp-btn" onclick="setGiftQty(1)">1</button>
+        <button class="gqp-btn" onclick="setGiftQty(10)">10</button>
+        <button class="gqp-btn" onclick="setGiftQty(99)">99</button>
+        <button class="gqp-btn" onclick="setGiftQty(520)">520</button>
+      </div>
       <div class="gsb-qty">
         <button onclick="changeGiftQty(-1)">−</button>
         <span id="giftQtyDisplay">1</span>

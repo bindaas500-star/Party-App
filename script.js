@@ -2805,6 +2805,7 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
 
     document.getElementById('giftQtyDisplay').textContent = '1';
     document.getElementById('giftWalletDisplay').textContent = formatNum((currentUserData && currentUserData.love) || 0);
+    document.querySelectorAll('.gqp-btn').forEach(b => b.classList.toggle('active', b.textContent === '1'));
     switchGiftCategory('classical');
     document.getElementById('giftOverlay').classList.add('show');
   }
@@ -2853,14 +2854,22 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
     renderGiftGrid();
   }
 
+  function getGiftRarity(cost) {
+    if (cost >= 2000) return 'legendary';
+    if (cost >= 300) return 'epic';
+    if (cost >= 50) return 'rare';
+    return 'common';
+  }
+
   function renderGiftGrid() {
     const gridEl = document.getElementById('giftGrid');
     gridEl.innerHTML = '';
     GIFTS.filter(g => g.cat === giftSelectedCategory).forEach((gift) => {
       const cell = document.createElement('div');
       const isSel = giftSelectedItem === gift;
-      cell.className = 'gift-cell' + (isSel ? ' selected' : '');
-      cell.innerHTML = `<div class="g-emoji">${gift.emoji}</div><div class="g-name">${gift.name}</div><div class="g-cost">💕 ${formatNum(gift.cost)}</div>`;
+      const rarity = getGiftRarity(gift.cost);
+      cell.className = 'gift-cell rarity-' + rarity + (isSel ? ' selected' : '');
+      cell.innerHTML = `<div class="g-emoji">${gift.emoji}</div><div class="g-name">${gift.name}</div><div class="g-rarity ${rarity}">${rarity}</div><div class="g-cost">💕 ${formatNum(gift.cost)}</div>`;
       cell.onclick = () => { giftSelectedItem = gift; renderGiftGrid(); };
       gridEl.appendChild(cell);
     });
@@ -2869,6 +2878,13 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
   function changeGiftQty(delta) {
     giftQty = Math.max(1, giftQty + delta);
     document.getElementById('giftQtyDisplay').textContent = giftQty;
+    document.querySelectorAll('.gqp-btn').forEach(b => b.classList.remove('active'));
+  }
+
+  function setGiftQty(value) {
+    giftQty = value;
+    document.getElementById('giftQtyDisplay').textContent = giftQty;
+    document.querySelectorAll('.gqp-btn').forEach(b => b.classList.toggle('active', parseInt(b.textContent) === value));
   }
 
   let giftSendInProgress = false;
