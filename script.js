@@ -2483,8 +2483,8 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
 
   function giftFromSeatProfile() {
     if (!seatProfileUid) return;
-    if (!currentRoomId) {
-      alert("Gifting works inside a Room. Join a room together to send " + seatProfileName + " a gift!");
+    if (!currentRoomId && !currentFamilyId) {
+      alert("Gifting works inside a Room or Family. Join one to send " + seatProfileName + " a gift!");
       return;
     }
     closeSeatProfile();
@@ -2787,21 +2787,39 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
   let giftRecipientUid = null;
   let giftRecipientName = null;
 
+  let giftContext = 'room';
+  let giftContextId = null;
+
   function openGiftPicker(preselectUid, preselectName) {
-    if (!currentRoomId) { alert('Join a room first to send gifts.'); return; }
+    if (!currentRoomId && !currentFamilyId) { alert('Join a Room or Family first to send gifts.'); return; }
+    giftContext = currentRoomId ? 'room' : 'family';
+    giftContextId = currentRoomId ? currentRoomId : currentFamilyId;
     giftSendInProgress = false;
     giftSelectedRecipients = new Set();
     giftSelectedItem = null;
     giftQty = 1;
     giftSelectedCategory = 'classical';
 
-    db.ref('liveRooms/' + currentRoomId + '/seats').once('value').then((snap) => {
-      const seats = snap.val() || {};
-      const others = Object.values(seats).filter(s => currentUser && s.uid !== currentUser.uid);
-      renderRecipientChips(others);
-      if (preselectUid) giftSelectedRecipients.add(preselectUid);
-      renderRecipientChips(others);
-    });
+    if (giftContext === 'room') {
+      db.ref('liveRooms/' + giftContextId + '/seats').once('value').then((snap) => {
+        const seats = snap.val() || {};
+        const others = Object.values(seats).filter(s => currentUser && s.uid !== currentUser.uid);
+        renderRecipientChips(others);
+        if (preselectUid) giftSelectedRecipients.add(preselectUid);
+        renderRecipientChips(others);
+      });
+    } else {
+      db.ref('families/' + giftContextId + '/members').once('value').then((snap) => {
+        const members = snap.val() || {};
+        const memberUids = Object.keys(members).filter(uid => currentUser && uid !== currentUser.uid);
+        Promise.all(memberUids.map(uid => db.ref('users/' + uid).once('value').then(s => ({ uid, name: (s.val() || {}).name || 'User' }))))
+          .then((others) => {
+            renderRecipientChips(others);
+            if (preselectUid) giftSelectedRecipients.add(preselectUid);
+            renderRecipientChips(others);
+          });
+      });
+    }
 
     document.getElementById('giftQtyDisplay').textContent = '1';
     document.getElementById('giftWalletDisplay').textContent = formatNum((currentUserData && currentUserData.love) || 0);
@@ -2890,7 +2908,7 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
   let giftSendInProgress = false;
 
   function confirmSendGift() {
-    if (!currentUser || !currentUserData || !currentRoomId) return;
+    if (!currentUser || !currentUserData || !giftContextId) return;
     if (giftSendInProgress) return;
     if (giftSelectedRecipients.size === 0) { alert('Pick at least one recipient.'); return; }
     if (!giftSelectedItem) { alert('Pick a gift first.'); return; }
@@ -2931,7 +2949,8 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
       ? recipientNames.slice(0, 2).join(', ') + ' +' + (recipientNames.length - 2) + ' more'
       : recipientNames.join(' & ');
 
-    db.ref('liveRooms/' + currentRoomId + '/messages').push({
+    const messagesPath = giftContext === 'room' ? 'liveRooms/' + giftContextId + '/messages' : 'families/' + giftContextId + '/messages';
+    db.ref(messagesPath).push({
       uid: currentUser.uid,
       name: currentUserData.name,
       text: '🎁 sent ' + namesText + ' ' + giftQty + '× ' + giftSelectedItem.name + ' ' + giftSelectedItem.emoji,
