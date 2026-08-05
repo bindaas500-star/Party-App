@@ -250,8 +250,8 @@
     <div id="familyInsideView" style="display:none; flex-direction: column; flex: 1; overflow: hidden; position:relative;">
       <div class="floating-hearts" id="familyFloatingHearts"></div>
       <div class="family-header">
-        <div class="f-avatar-lg" id="insideFamAvatar">F</div>
-        <div>
+        <div class="f-avatar-lg" id="insideFamAvatar" onclick="openFamilyDetails()">F</div>
+        <div onclick="openFamilyDetails()">
           <div class="f-title" id="insideFamName">Family</div>
           <div class="f-sub" id="insideFamMemberCount">0 members</div>
         </div>
@@ -259,8 +259,8 @@
       </div>
       <div class="notice-banner" id="familyNoticeBanner" style="display:none;"></div>
       <div class="seat-grid" id="familySeatGrid"></div>
-      <div class="members-strip-label">All Members</div>
-      <div class="members-strip" id="membersStrip"></div>
+      <div class="members-strip-label" style="display:none;">All Members</div>
+      <div class="members-strip" id="membersStrip" style="display:none;"></div>
       <div class="chat-area" id="familyChatArea"></div>
       <div class="input-bar">
         <input type="text" id="famMsgInput" placeholder="Message your family..." maxlength="300" onkeypress="if(event.key==='Enter') sendFamilyMessage()">
@@ -337,8 +337,8 @@
     <div id="roomInsideView" style="display:none; flex-direction:column; flex:1; overflow:hidden; position:relative;">
       <div class="room-title-bar">
         <button class="room-back-btn" onclick="leaveRoomToBrowse()">←</button>
-        <div class="room-header-avatar" id="roomHeaderOwnerAvatar">?</div>
-        <div class="room-title-text">
+        <div class="room-header-avatar" id="roomHeaderOwnerAvatar" onclick="openRoomDetails()">?</div>
+        <div class="room-title-text" onclick="openRoomDetails()">
           <span id="roomInsideTitle">Room</span>
           <span class="room-meta-row">
             <span id="roomIdDisplay">ID: —</span>
@@ -487,6 +487,78 @@
       <button onclick="pasteFromClipboard()" style="width:100%; padding:12px; border-radius:14px; border:1px solid rgba(255,215,106,0.4); background:rgba(255,215,106,0.1); color:#ffd76a; font-size:13px; font-weight:600; cursor:pointer; margin-bottom:14px;">📋 Paste from Clipboard</button>
       <div style="color:rgba(255,255,255,0.45); font-size:11.5px; margin-bottom:18px;">Best source: upload to <b style="color:rgba(255,255,255,0.7);">imgur.com</b> (no account needed) and copy the direct image link (ends in .jpg/.png). Google Photos share links usually won't work.</div>
       <button class="btn" onclick="confirmImageUrlModal()">Save</button>
+    </div>
+  </div>
+
+  <!-- ===== ROOM DETAILS PAGE ===== -->
+  <div class="detail-overlay" id="roomDetailsOverlay">
+    <div class="detail-cover" id="roomDetailCover">
+      <button class="detail-back-btn" onclick="closeRoomDetails()">←</button>
+      <div class="detail-cover-info">
+        <div class="detail-avatar" id="roomDetailAvatar">?</div>
+        <div class="detail-name" id="roomDetailName">Room</div>
+        <div class="detail-id" id="roomDetailId">ID: —</div>
+      </div>
+    </div>
+    <div class="detail-body">
+      <div class="detail-stats-row">
+        <div class="detail-stat"><div class="ds-value" id="roomDetailMembers">0</div><div class="ds-label">Members</div></div>
+        <div class="detail-stat"><div class="ds-value" id="roomDetailOnline">0</div><div class="ds-label">Online</div></div>
+        <div class="detail-stat"><div class="ds-value" id="roomDetailCreated">—</div><div class="ds-label">Created</div></div>
+      </div>
+      <div class="detail-owner-row" id="roomDetailOwnerRow">
+        <div class="dor-avatar" id="roomDetailOwnerAvatar">?</div>
+        <div>
+          <div class="dor-label">Room Owner</div>
+          <div class="dor-name" id="roomDetailOwnerName">—</div>
+        </div>
+      </div>
+      <div class="detail-notice" id="roomDetailNotice" style="display:none;"></div>
+      <div class="detail-action-row">
+        <button class="detail-action-btn" onclick="shareRoomDetails()">🔗 Share Room</button>
+        <button class="detail-action-btn" onclick="inviteFriendsToRoom()">➕ Invite Friends</button>
+      </div>
+      <input type="text" id="roomMemberSearch" class="detail-search" placeholder="🔍 Search members..." oninput="renderRoomDetailMembers()">
+      <div class="detail-section-label">Members</div>
+      <div id="roomDetailMemberList"></div>
+    </div>
+  </div>
+
+  <!-- ===== FAMILY DETAILS PAGE ===== -->
+  <div class="detail-overlay" id="familyDetailsOverlay">
+    <div class="detail-cover" id="familyDetailCover">
+      <button class="detail-back-btn" onclick="closeFamilyDetails()">←</button>
+      <div class="detail-cover-info">
+        <div class="detail-avatar" id="familyDetailAvatar">?</div>
+        <div class="detail-name" id="familyDetailName">Family</div>
+        <div class="detail-id" id="familyDetailId">ID: —</div>
+      </div>
+    </div>
+    <div class="detail-body">
+      <div class="detail-stats-row">
+        <div class="detail-stat"><div class="ds-value" id="familyDetailMembers">0</div><div class="ds-label">Members</div></div>
+        <div class="detail-stat"><div class="ds-value" id="familyDetailLevel">1</div><div class="ds-label">Fam Level</div></div>
+        <div class="detail-stat"><div class="ds-value" id="familyDetailCreated">—</div><div class="ds-label">Created</div></div>
+      </div>
+      <div class="detail-xp-bar-wrap">
+        <div class="detail-xp-bar-bg"><div class="detail-xp-bar-fill" id="familyDetailXpFill" style="width:0%;"></div></div>
+        <div class="detail-xp-text" id="familyDetailXpText">0 / 15000 XP</div>
+      </div>
+      <div class="detail-owner-row" id="familyDetailOwnerRow">
+        <div class="dor-avatar" id="familyDetailOwnerAvatar">?</div>
+        <div>
+          <div class="dor-label">Family Leader</div>
+          <div class="dor-name" id="familyDetailOwnerName">—</div>
+        </div>
+      </div>
+      <div class="detail-notice" id="familyDetailNotice" style="display:none;"></div>
+      <div class="detail-action-row">
+        <button class="detail-action-btn" onclick="shareFamilyDetails()">🔗 Share Family</button>
+        <button class="detail-action-btn" onclick="inviteFriendsToFamily()">➕ Invite Friends</button>
+      </div>
+      <input type="text" id="familyMemberSearch" class="detail-search" placeholder="🔍 Search members..." oninput="renderFamilyDetailMembers()">
+      <div class="detail-section-label">Members</div>
+      <div id="familyDetailMemberList"></div>
     </div>
   </div>
 

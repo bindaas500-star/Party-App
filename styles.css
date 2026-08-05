@@ -1082,3 +1082,108 @@
 
 /* Splash screen pulse animation */
 @keyframes splashPulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.08); } }
+
+  .detail-overlay {
+    position: fixed; inset: 0; z-index: 300; background: #1a1030;
+    display: none; flex-direction: column; overflow-y: auto;
+  }
+  .detail-overlay.show { display: flex; }
+  .detail-cover {
+    position: relative; min-height: 210px; padding: 16px;
+    background: linear-gradient(160deg, rgba(255,107,157,0.35), rgba(196,77,255,0.25)), linear-gradient(180deg,#2a1a4a,#1a1030);
+    background-size: cover; background-position: center; flex-shrink: 0;
+    display: flex; flex-direction: column;
+  }
+  .detail-cover::after {
+    content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,0.1), rgba(26,16,48,0.85) 90%);
+  }
+  .detail-back-btn {
+    background: rgba(255,255,255,0.15); border: none; color: #fff; width: 34px; height: 34px;
+    border-radius: 50%; font-size: 17px; cursor: pointer; position: relative; z-index: 1;
+  }
+  .detail-cover-info { position: relative; z-index: 1; margin-top: auto; text-align: center; }
+  .detail-avatar {
+    width: 78px; height: 78px; border-radius: 20px; margin: 0 auto 10px;
+    background: linear-gradient(135deg,#ff6b9d,#c44dff); background-size: cover; background-position: center;
+    display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: 700;
+    font-family: 'Fredoka', 'Inter', sans-serif; color: #fff;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4), 0 0 0 3px rgba(255,255,255,0.2);
+  }
+  .detail-name { font-family: 'Fredoka', 'Inter', sans-serif; font-weight: 700; font-size: 19px; color: #fff; text-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+  .detail-id { font-size: 12px; color: rgba(255,255,255,0.6); font-weight: 600; margin-top: 3px; }
+
+  .detail-body { padding: 18px 16px 30px; }
+  .detail-stats-row {
+    display: flex; background: rgba(255,255,255,0.07); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.1); border-radius: 18px; padding: 14px 6px; margin-bottom: 16px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+  }
+  .detail-stat { flex: 1; text-align: center; }
+  .ds-value { font-family: 'Fredoka', 'Inter', sans-serif; font-weight: 700; font-size: 17px; color: #ffd76a; }
+  .ds-label { font-size: 10.5px; color: rgba(255,255,255,0.5); font-weight: 600; margin-top: 2px; }
+
+  .detail-xp-bar-wrap { margin-bottom: 16px; }
+  .detail-xp-bar-bg { height: 9px; background: rgba(0,0,0,0.3); border-radius: 5px; overflow: hidden; margin-bottom: 5px; }
+  .detail-xp-bar-fill { height: 100%; background: linear-gradient(90deg,#ffd76a,#ff6b9d); border-radius: 5px; transition: width .3s; }
+  .detail-xp-text { font-size: 11px; color: rgba(255,255,255,0.5); font-weight: 600; text-align: center; }
+
+  .detail-owner-row {
+    display: flex; align-items: center; gap: 12px; background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 12px 14px; margin-bottom: 14px;
+  }
+  .dor-avatar {
+    width: 42px; height: 42px; border-radius: 50%; background: linear-gradient(135deg,#ffd76a,#ff9d3d);
+    background-size: cover; background-position: center;
+    display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 16px;
+    font-family: 'Fredoka', 'Inter', sans-serif; flex-shrink: 0;
+  }
+  .dor-label { font-size: 10.5px; color: rgba(255,255,255,0.5); font-weight: 600; }
+  .dor-name { font-size: 14px; font-weight: 700; font-family: 'Fredoka', 'Inter', sans-serif; }
+
+  .detail-notice {
+    background: rgba(255,215,106,0.12); border: 1px solid rgba(255,215,106,0.3); border-radius: 14px;
+    padding: 10px 14px; font-size: 12.5px; color: #ffe9a8; font-weight: 600; margin-bottom: 14px;
+  }
+
+  .detail-action-row { display: flex; gap: 10px; margin-bottom: 16px; }
+  .detail-action-btn {
+    flex: 1; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);
+    color: #fff; padding: 11px 8px; border-radius: 14px; font-size: 12.5px; font-weight: 700;
+    font-family: 'Fredoka', 'Inter', sans-serif; cursor: pointer; transition: transform .15s;
+  }
+  .detail-action-btn:active { transform: scale(0.95); }
+
+  .detail-search {
+    width: 100%; padding: 12px 16px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.15);
+    background: rgba(255,255,255,0.06); color: #fff; font-size: 13px; margin-bottom: 14px; box-sizing: border-box;
+  }
+  .detail-section-label {
+    font-size: 11.5px; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.5px;
+    font-weight: 700; margin-bottom: 10px;
+  }
+
+  .detail-member-card {
+    display: flex; align-items: center; gap: 12px; background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 11px 12px; margin-bottom: 8px;
+  }
+  .dmc-avatar {
+    width: 44px; height: 44px; border-radius: 50%; background: linear-gradient(135deg,#ff6b9d,#c44dff);
+    background-size: cover; background-position: center; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 16px;
+    font-family: 'Fredoka', 'Inter', sans-serif;
+  }
+  .dmc-info { flex: 1; min-width: 0; }
+  .dmc-name-row { display: flex; align-items: center; gap: 6px; }
+  .dmc-name { font-size: 13.5px; font-weight: 700; font-family: 'Fredoka', 'Inter', sans-serif; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .dmc-owner-tag {
+    font-size: 9px; font-weight: 700; background: linear-gradient(90deg,#ffd76a,#ff9d3d); color: #3a2410;
+    padding: 2px 6px; border-radius: 8px; flex-shrink: 0;
+  }
+  .dmc-badges { display: flex; gap: 5px; margin-top: 3px; }
+  .dmc-badge { font-size: 9.5px; font-weight: 700; color: rgba(255,255,255,0.55); }
+  .dmc-actions { display: flex; gap: 6px; flex-shrink: 0; }
+  .dmc-action-btn {
+    width: 30px; height: 30px; border-radius: 50%; border: none; background: rgba(255,255,255,0.1);
+    color: #fff; font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+  }
+  .dmc-action-btn.gift { background: linear-gradient(135deg,#ff6b9d,#c44dff); }

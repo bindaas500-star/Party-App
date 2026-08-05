@@ -1852,6 +1852,274 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
     return BAD_WORDS.some(w => normalized.includes(w));
   }
 
+  // ---------- ROOM DETAILS PAGE ----------
+  let roomDetailSeatsCache = [];
+
+  function openRoomDetails() {
+    if (!currentRoomId) return;
+    const roomRef = db.ref('liveRooms/' + currentRoomId);
+    roomRef.once('value').then((snap) => {
+      const room = snap.val();
+      if (!room) return;
+
+      const coverEl = document.getElementById('roomDetailCover');
+      coverEl.style.backgroundImage = room.wallpaperURL ? `url('${room.wallpaperURL}')` : '';
+
+      const avatarEl = document.getElementById('roomDetailAvatar');
+      if (room.photoURL) {
+        avatarEl.style.backgroundImage = `url('${room.photoURL}')`;
+        avatarEl.textContent = '';
+      } else {
+        avatarEl.style.backgroundImage = '';
+        avatarEl.textContent = room.name.charAt(0).toUpperCase();
+      }
+
+      document.getElementById('roomDetailName').textContent = room.name;
+      document.getElementById('roomDetailId').textContent = 'ID: ' + (room.roomNumericId || '—');
+
+      const seats = room.seats || {};
+      const seatList = Object.values(seats);
+      roomDetailSeatsCache = seatList;
+      document.getElementById('roomDetailMembers').textContent = seatList.length;
+      document.getElementById('roomDetailOnline').textContent = seatList.length;
+      document.getElementById('roomDetailCreated').textContent = room.createdAt ? new Date(room.createdAt).toLocaleDateString() : '—';
+
+      const noticeEl = document.getElementById('roomDetailNotice');
+      if (room.notice) {
+        noticeEl.textContent = '📢 ' + room.notice;
+        noticeEl.style.display = 'block';
+      } else {
+        noticeEl.style.display = 'none';
+      }
+
+      if (room.ownerUid) {
+        db.ref('users/' + room.ownerUid).once('value').then((ownerSnap) => {
+          const owner = ownerSnap.val();
+          if (!owner) return;
+          const ownerAvatarEl = document.getElementById('roomDetailOwnerAvatar');
+          if (owner.photoURL) {
+            ownerAvatarEl.style.backgroundImage = `url('${owner.photoURL}')`;
+            ownerAvatarEl.textContent = '';
+          } else {
+            ownerAvatarEl.style.backgroundImage = '';
+            ownerAvatarEl.textContent = owner.name.charAt(0).toUpperCase();
+          }
+          document.getElementById('roomDetailOwnerName').textContent = owner.name;
+        });
+      }
+
+      document.getElementById('roomMemberSearch').value = '';
+      renderRoomDetailMembers();
+      document.getElementById('roomDetailsOverlay').classList.add('show');
+    });
+  }
+
+  function closeRoomDetails() {
+    document.getElementById('roomDetailsOverlay').classList.remove('show');
+  }
+
+  function renderRoomDetailMembers() {
+    const listEl = document.getElementById('roomDetailMemberList');
+    const query = (document.getElementById('roomMemberSearch').value || '').trim().toLowerCase();
+    const filtered = roomDetailSeatsCache.filter(m => !query || (m.name || '').toLowerCase().includes(query));
+    if (!filtered.length) {
+      listEl.innerHTML = '<div class="loading">No members found.</div>';
+      return;
+    }
+    listEl.innerHTML = '';
+    filtered.forEach((m) => {
+      db.ref('users/' + m.uid).once('value').then((snap) => {
+        const u = snap.val();
+        const card = document.createElement('div');
+        card.className = 'detail-member-card';
+        const avatarStyle = (u && u.photoURL) ? `style="background-image:url('${u.photoURL}');"` : '';
+        const isOwner = currentRoomOwnerUid === m.uid;
+        card.innerHTML = `
+          <div class="dmc-avatar" ${avatarStyle}>${(u && u.photoURL) ? '' : escapeHtml((m.name || 'U').charAt(0).toUpperCase())}</div>
+          <div class="dmc-info">
+            <div class="dmc-name-row">
+              <div class="dmc-name">${escapeHtml(m.name || 'User')}</div>
+              ${isOwner ? '<span class="dmc-owner-tag">OWNER</span>' : ''}
+            </div>
+            <div class="dmc-badges">
+              <span class="dmc-badge">🆔 Lv.${u ? (u.level || 1) : 1}</span>
+              <span class="dmc-badge">👑 VIP ${u ? (u.farmLevel || 1) : 1}</span>
+            </div>
+          </div>
+        `;
+        card.onclick = () => { closeRoomDetails(); openSeatProfile(m.uid, m.name); };
+        listEl.appendChild(card);
+      });
+    });
+  }
+
+  function shareRoomDetails() {
+    const name = document.getElementById('roomDetailName').textContent;
+    const shareText = 'Join my room "' + name + '" on Party App!';
+    if (navigator.share) {
+      navigator.share({ title: 'Party App', text: shareText, url: location.href }).catch(() => {});
+    } else if (navigator.clipboard) {
+      navigator.clipboard.writeText(shareText + ' ' + location.href);
+      toast('Room link copied to clipboard!');
+    }
+  }
+
+  function inviteFriendsToRoom() {
+    if (!currentUser || !currentUserData) return;
+    const friends = currentUserData.friends || {};
+    const uids = Object.keys(friends);
+    if (!uids.length) { toast('Add some friends first to invite them!', 'error'); return; }
+    uids.forEach((uid) => {
+      addActivity(uid, 'social', currentUserData.name + ' invited you to join a room!');
+    });
+    toast('Invite sent to your friends!');
+  }
+
+  // ---------- FAMILY DETAILS PAGE ----------
+  let familyDetailMembersCache = [];
+
+  function openFamilyDetails() {
+    if (!currentFamilyId) return;
+    const famRef = db.ref('families/' + currentFamilyId);
+    famRef.once('value').then((snap) => {
+      const fam = snap.val();
+      if (!fam) return;
+
+      const coverEl = document.getElementById('familyDetailCover');
+      coverEl.style.backgroundImage = fam.wallpaperURL ? `url('${fam.wallpaperURL}')` : '';
+
+      const avatarEl = document.getElementById('familyDetailAvatar');
+      if (fam.photoURL) {
+        avatarEl.style.backgroundImage = `url('${fam.photoURL}')`;
+        avatarEl.textContent = '';
+      } else {
+        avatarEl.style.backgroundImage = '';
+        avatarEl.textContent = fam.name.charAt(0).toUpperCase();
+      }
+
+      document.getElementById('familyDetailName').textContent = fam.name;
+
+      if (!fam.familyNumericId) {
+        const numericId = Math.floor(1000000 + Math.random() * 8999999);
+        famRef.child('familyNumericId').set(numericId);
+        document.getElementById('familyDetailId').textContent = 'ID: ' + numericId;
+      } else {
+        document.getElementById('familyDetailId').textContent = 'ID: ' + fam.familyNumericId;
+      }
+
+      const members = fam.members || {};
+      const memberUids = Object.keys(members);
+      familyDetailMembersCache = memberUids;
+      document.getElementById('familyDetailMembers').textContent = memberUids.length;
+      document.getElementById('familyDetailCreated').textContent = fam.createdAt ? new Date(fam.createdAt).toLocaleDateString() : '—';
+
+      const levelInfo = getGroupLevelInfo(fam.activityXp || 0);
+      document.getElementById('familyDetailLevel').textContent = levelInfo.level;
+      document.getElementById('familyDetailXpFill').style.width = Math.min(100, (levelInfo.currentXp / levelInfo.neededXp) * 100) + '%';
+      document.getElementById('familyDetailXpText').textContent = formatNum(levelInfo.currentXp) + ' / ' + formatNum(levelInfo.neededXp) + ' XP';
+
+      const noticeEl = document.getElementById('familyDetailNotice');
+      if (fam.notice) {
+        noticeEl.textContent = '📢 ' + fam.notice;
+        noticeEl.style.display = 'block';
+      } else {
+        noticeEl.style.display = 'none';
+      }
+
+      if (fam.ownerUid) {
+        db.ref('users/' + fam.ownerUid).once('value').then((ownerSnap) => {
+          const owner = ownerSnap.val();
+          if (!owner) return;
+          const ownerAvatarEl = document.getElementById('familyDetailOwnerAvatar');
+          if (owner.photoURL) {
+            ownerAvatarEl.style.backgroundImage = `url('${owner.photoURL}')`;
+            ownerAvatarEl.textContent = '';
+          } else {
+            ownerAvatarEl.style.backgroundImage = '';
+            ownerAvatarEl.textContent = owner.name.charAt(0).toUpperCase();
+          }
+          document.getElementById('familyDetailOwnerName').textContent = owner.name;
+        });
+      }
+
+      document.getElementById('familyMemberSearch').value = '';
+      renderFamilyDetailMembers();
+      document.getElementById('familyDetailsOverlay').classList.add('show');
+    });
+  }
+
+  function closeFamilyDetails() {
+    document.getElementById('familyDetailsOverlay').classList.remove('show');
+  }
+
+  function renderFamilyDetailMembers() {
+    const listEl = document.getElementById('familyDetailMemberList');
+    const query = (document.getElementById('familyMemberSearch').value || '').trim().toLowerCase();
+    if (!familyDetailMembersCache.length) {
+      listEl.innerHTML = '<div class="loading">No members found.</div>';
+      return;
+    }
+    listEl.innerHTML = '';
+    familyDetailMembersCache.forEach((uid) => {
+      db.ref('users/' + uid).once('value').then((snap) => {
+        const u = snap.val();
+        if (!u) return;
+        if (query && !u.name.toLowerCase().includes(query)) return;
+        const card = document.createElement('div');
+        card.className = 'detail-member-card';
+        const avatarStyle = u.photoURL ? `style="background-image:url('${u.photoURL}');"` : '';
+        const isOwner = currentFamilyOwnerUid === uid;
+        const canKick = currentUser && currentFamilyOwnerUid === currentUser.uid && uid !== currentUser.uid;
+        card.innerHTML = `
+          <div class="dmc-avatar" ${avatarStyle}>${u.photoURL ? '' : escapeHtml(u.name.charAt(0).toUpperCase())}</div>
+          <div class="dmc-info">
+            <div class="dmc-name-row">
+              <div class="dmc-name">${escapeHtml(u.name)}</div>
+              ${isOwner ? '<span class="dmc-owner-tag">LEADER</span>' : ''}
+            </div>
+            <div class="dmc-badges">
+              <span class="dmc-badge">🆔 Lv.${u.level || 1}</span>
+              <span class="dmc-badge">👑 VIP ${u.farmLevel || 1}</span>
+            </div>
+          </div>
+          ${canKick ? '<div class="dmc-actions"><button class="dmc-action-btn" data-kick-uid="' + escapeHtml(uid) + '">✕</button></div>' : ''}
+        `;
+        card.onclick = (e) => {
+          if (e.target.closest('.dmc-action-btn')) return;
+          closeFamilyDetails();
+          openSeatProfile(uid, u.name);
+        };
+        const kickBtn = card.querySelector('.dmc-action-btn');
+        if (kickBtn) {
+          kickBtn.onclick = (e) => { e.stopPropagation(); kickFamilyMember(currentFamilyId, uid, u.name); };
+        }
+        listEl.appendChild(card);
+      });
+    });
+  }
+
+  function shareFamilyDetails() {
+    const name = document.getElementById('familyDetailName').textContent;
+    const shareText = 'Join my family "' + name + '" on Party App!';
+    if (navigator.share) {
+      navigator.share({ title: 'Party App', text: shareText, url: location.href }).catch(() => {});
+    } else if (navigator.clipboard) {
+      navigator.clipboard.writeText(shareText + ' ' + location.href);
+      toast('Family link copied to clipboard!');
+    }
+  }
+
+  function inviteFriendsToFamily() {
+    if (!currentUser || !currentUserData) return;
+    const friends = currentUserData.friends || {};
+    const uids = Object.keys(friends);
+    if (!uids.length) { toast('Add some friends first to invite them!', 'error'); return; }
+    uids.forEach((uid) => {
+      addActivity(uid, 'social', currentUserData.name + ' invited you to join their family!');
+    });
+    toast('Invite sent to your friends!');
+  }
+
   function toast(message, type) {
     const el = document.createElement('div');
     el.className = 'toast' + (type === 'error' ? ' error' : '');
