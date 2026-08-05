@@ -1275,3 +1275,30 @@
     color: #fff; font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center;
   }
   .dmc-action-btn.gift { background: linear-gradient(135deg,#ff6b9d,#c44dff); }
+
+  /* Legendary gift send effect */
+  .gift-flash.legendary {
+    font-size: 76px;
+    filter: drop-shadow(0 0 18px rgba(255,183,71,0.9)) drop-shadow(0 0 34px rgba(196,77,255,0.6));
+    animation: giftPopLegendary 1.6s ease-out forwards;
+  }
+  @keyframes giftPopLegendary {
+    0% { transform: translate(-50%,-50%) scale(0.2) rotate(-10deg); opacity: 0; }
+    25% { transform: translate(-50%,-50%) scale(1.35) rotate(5deg); opacity: 1; }
+    55% { transform: translate(-50%,-50%) scale(1.1) rotate(0deg); opacity: 1; }
+    100% { transform: translate(-50%,-80%) scale(1) rotate(0deg); opacity: 0; }
+  }
+  .gift-flash-burst {
+    position: fixed; top: 40%; left: 50%; width: 0; height: 0; z-index: 299; pointer-events: none;
+  }
+  .gift-flash-burst span {
+    position: absolute; top: 0; left: 0; width: 6px; height: 6px; border-radius: 50%;
+    background: radial-gradient(circle, #ffd76a, #ff9d3d 60%, transparent);
+    box-shadow: 0 0 8px rgba(255,183,71,0.9);
+    animation: sparkBurstFly 1s ease-out forwards;
+    transform: rotate(var(--angle)) translateX(0);
+  }
+  @keyframes sparkBurstFly {
+    0% { transform: rotate(var(--angle)) translateX(0) scale(1); opacity: 1; }
+    100% { transform: rotate(var(--angle)) translateX(90px) scale(0.2); opacity: 0; }
+  }

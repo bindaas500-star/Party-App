@@ -2959,17 +2959,32 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
 
     addActivity(currentUser.uid, 'personal', 'You sent ' + giftQty + '× ' + giftSelectedItem.emoji + ' ' + giftSelectedItem.name + ' to ' + namesText);
 
-    showGiftFlash(giftSelectedItem.emoji);
+    showGiftFlash(giftSelectedItem.emoji, getGiftRarity(giftSelectedItem.cost) === 'legendary');
     closeGiftPicker();
     giftSendInProgress = false;
     const sendBtnEl = document.querySelector('.gsb-send-btn');
     if (sendBtnEl) sendBtnEl.disabled = false;
   }
 
-  function showGiftFlash(emoji) {
+  function showGiftFlash(emoji, isLegendary) {
     const flash = document.createElement('div');
-    flash.className = 'gift-flash';
+    flash.className = 'gift-flash' + (isLegendary ? ' legendary' : '');
     flash.textContent = emoji;
     document.body.appendChild(flash);
+
+    if (isLegendary) {
+      const burst = document.createElement('div');
+      burst.className = 'gift-flash-burst';
+      for (let i = 0; i < 12; i++) {
+        const spark = document.createElement('span');
+        const angle = (i / 12) * 360;
+        spark.style.setProperty('--angle', angle + 'deg');
+        spark.style.animationDelay = (i * 0.03) + 's';
+        burst.appendChild(spark);
+      }
+      document.body.appendChild(burst);
+      setTimeout(() => burst.remove(), 1600);
+    }
+
     setTimeout(() => flash.remove(), 1400);
   }
