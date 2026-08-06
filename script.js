@@ -1063,6 +1063,8 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
   }
 
   function switchTab(tab) {
+    document.querySelectorAll('.ttt-overlay.show, .profile-overlay.show, .rank-overlay.show, .detail-overlay.show').forEach((el) => el.classList.remove('show'));
+
     document.getElementById('homePanel').classList.toggle('active', tab === 'hifami');
     document.getElementById('chatPanel').classList.toggle('active', tab === 'messages');
     document.getElementById('familyPanel').classList.toggle('active', tab === 'family');
