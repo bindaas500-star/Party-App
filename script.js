@@ -331,7 +331,8 @@
     applyAvatarPhoto(document.getElementById('profileAvatarBig'), currentUserData);
     document.getElementById('profileNameBig').textContent = currentUserData.name;
     document.getElementById('profileIdLevelBadge').textContent = "🆔 ID Lv. " + (currentUserData.level || 1);
-    document.getElementById('profileVipLevelBadge').textContent = "👑 VIP " + (currentUserData.farmLevel || 1);
+    document.getElementById('profileVipLevelBadge').textContent = "👑 VIP " + (currentUserData.realVipTier || 0);
+    document.getElementById('profileRoomLevelBadge').textContent = "🎁 Room Lv. " + getGroupLevelInfo(currentUserData.roomXP || 0).level;
     document.getElementById('profileWalletValue').textContent = "🪙" + formatNum(currentUserData.coins || 0) + " 💎" + formatNum(currentUserData.gems || 0);
     document.getElementById('profileFamilyValue').textContent = currentFamilyId ? 'Joined' : 'None';
     document.getElementById('profileLangValue').textContent = currentUserData.language || 'English';
@@ -1203,7 +1204,7 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
 
     const cost = getUpgradeCost();
     const upgradeBtn = document.getElementById('upgradeFarmBtn');
-    upgradeBtn.textContent = "Upgrade VIP — 💎 " + formatNum(cost);
+    upgradeBtn.textContent = "Upgrade Farm Tier — 💎 " + formatNum(cost);
     upgradeBtn.disabled = (currentUserData.gems || 0) < cost;
 
     if (!harvestIntervalStarted) {
@@ -2457,7 +2458,8 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
     applyAvatarPhoto(document.getElementById('seatProfAvatar'), { name });
     document.getElementById('seatProfName').textContent = name;
     document.getElementById('seatProfIdBadge').textContent = '🆔 ID Lv. 1';
-    document.getElementById('seatProfVipBadge').textContent = '👑 VIP 1';
+    document.getElementById('seatProfVipBadge').textContent = '👑 VIP 0';
+    document.getElementById('seatProfRoomBadge').textContent = '🎁 Room Lv. 1';
     document.getElementById('seatProfFamilyValue').textContent = 'None';
     document.getElementById('seatProfIdNumber').textContent = '—';
 
@@ -2466,7 +2468,8 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
       if (!u) return;
       applyAvatarPhoto(document.getElementById('seatProfAvatar'), u);
       document.getElementById('seatProfIdBadge').textContent = '🆔 ID Lv. ' + (u.level || 1);
-      document.getElementById('seatProfVipBadge').textContent = '👑 VIP ' + (u.farmLevel || 1);
+      document.getElementById('seatProfVipBadge').textContent = '👑 VIP ' + (u.realVipTier || 0);
+      document.getElementById('seatProfRoomBadge').textContent = '🎁 Room Lv. ' + getGroupLevelInfo(u.roomXP || 0).level;
       document.getElementById('seatProfIdNumber').textContent = u.profileId || '—';
       if (u.familyId) {
         db.ref('families/' + u.familyId).once('value').then((famSnap) => {
@@ -2909,6 +2912,14 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
 
   let giftSendInProgress = false;
 
+  function addUserRoomXp(uid, amount) {
+    db.ref('users/' + uid + '/roomXP').once('value').then((snap) => {
+      const newXp = (snap.val() || 0) + amount;
+      const levelInfo = getGroupLevelInfo(newXp);
+      db.ref('users/' + uid).update({ roomXP: newXp, roomLevel: levelInfo.level });
+    });
+  }
+
   function confirmSendGift() {
     if (!currentUser || !currentUserData || !giftContextId) return;
     if (giftSendInProgress) return;
@@ -2927,6 +2938,7 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
     const perRecipientReward = Math.floor(perRecipientCost * 0.5);
 
     db.ref('users/' + currentUser.uid).update({ love: myLove - totalCost });
+    addUserRoomXp(currentUser.uid, totalCost);
 
     const recipientNames = [];
     let pending = recipientUids.length;
@@ -2939,6 +2951,7 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
         if (rData) {
           db.ref('users/' + uid).update({ love: (rData.love || 0) + perRecipientReward });
         }
+        addUserRoomXp(uid, perRecipientCost);
         addActivity(uid, 'social', currentUserData.name + ' sent you ' + giftQty + '× ' + giftSelectedItem.emoji + ' ' + giftSelectedItem.name + '!');
         pending--;
         if (pending === 0) finishGiftSend(recipientNames);

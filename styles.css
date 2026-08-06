@@ -714,6 +714,7 @@
     box-shadow: 0 4px 12px rgba(255,183,71,0.35);
   }
   .badge-pill.vip-pill { background: linear-gradient(90deg, #4ecdc4, #3a7bd5); color: #fff; box-shadow: 0 4px 12px rgba(58,123,213,0.4); }
+  .badge-pill.room-pill { background: linear-gradient(90deg, #ff6b9d, #c44dff); color: #fff; box-shadow: 0 4px 12px rgba(196,77,255,0.4); }
   .profile-id-row {
     font-size: 12.5px; color: rgba(255,255,255,0.5); display: flex; align-items: center;
     justify-content: center; gap: 6px; font-weight: 600; position: relative; z-index: 1;
