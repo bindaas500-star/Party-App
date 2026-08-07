@@ -149,20 +149,70 @@
   const XP_PER_LEVEL = 150;
   const XP_PER_MESSAGE = 5;
   const HARVEST_CYCLE_MS = 30 * 60 * 1000; // reference window used to derive per-second rate
-  const BASE_PRODUCTION = 50; // coins per harvest at farm/VIP level 1
-  const PRODUCTION_PER_LEVEL = 25; // extra coins per VIP level
-  const UPGRADE_INCREMENT = 1000; // cost = level * 1000 gems
+  const MAX_OFFLINE_FARMING_MS = 8 * 60 * 60 * 1000; // coins stop accumulating past 8 hours offline
+
+  // ---- FARM ECONOMY CONFIG (edit these to rebalance the whole game) ----
+  // Coins produced per 30-minute cycle at each Account/Farm Level checkpoint.
+  // Levels between checkpoints are smoothly interpolated; levels beyond the
+  // last checkpoint keep growing at that checkpoint's growth rate.
+  const FARM_PRODUCTION_CHECKPOINTS = [
+    { level: 1, coins: 50 },
+    { level: 2, coins: 75 },
+    { level: 3, coins: 100 },
+    { level: 4, coins: 140 },
+    { level: 5, coins: 200 },
+    { level: 6, coins: 280 },
+    { level: 7, coins: 400 },
+    { level: 8, coins: 550 },
+    { level: 9, coins: 750 },
+    { level: 10, coins: 1000 },
+    { level: 11, coins: 1500 },
+    { level: 12, coins: 2200 },
+    { level: 15, coins: 5000 },
+    { level: 20, coins: 15000 },
+    { level: 30, coins: 50000 },
+    { level: 40, coins: 150000 },
+    { level: 50, coins: 350000 },
+    { level: 60, coins: 700000 },
+    { level: 75, coins: 1500000 },
+    { level: 100, coins: 5000000 }
+  ];
+  // Gem cost to upgrade to the NEXT level, as a function of the level being left.
+  // Superlinear growth so higher levels take meaningfully longer to reach.
+  const UPGRADE_COST_BASE = 500;
+  const UPGRADE_COST_EXPONENT = 1.5;
+
+  function getProductionForLevel(level) {
+    const cps = FARM_PRODUCTION_CHECKPOINTS;
+    if (level <= cps[0].level) return cps[0].coins;
+    for (let i = 0; i < cps.length - 1; i++) {
+      const lo = cps[i], hi = cps[i + 1];
+      if (level >= lo.level && level <= hi.level) {
+        if (level === lo.level) return lo.coins;
+        if (level === hi.level) return hi.coins;
+        const frac = (level - lo.level) / (hi.level - lo.level);
+        return Math.round(lo.coins * Math.pow(hi.coins / lo.coins, frac));
+      }
+    }
+    // Beyond the last checkpoint: keep growing at the final segment's per-level rate
+    const last = cps[cps.length - 1];
+    const prev = cps[cps.length - 2];
+    const ratioPerLevel = Math.pow(last.coins / prev.coins, 1 / (last.level - prev.level));
+    const extraLevels = level - last.level;
+    return Math.round(last.coins * Math.pow(ratioPerLevel, extraLevels));
+  }
+
   const PLOTS = [
-    { label: 'Lv.1', requiredLevel: 1, bonus: 10000 },
-    { label: 'Lv.2', requiredLevel: 2, bonus: 15000 },
-    { label: 'Lv.3', requiredLevel: 3, bonus: 20000 },
-    { label: 'Lv.4', requiredLevel: 4, bonus: 27000 },
-    { label: 'Lv.5', requiredLevel: 5, bonus: 35000 },
-    { label: 'Lv.6', requiredLevel: 6, bonus: 45000 },
-    { label: 'VIP8', requiredLevel: 8, bonus: 70000 },
-    { label: 'VIP10', requiredLevel: 10, bonus: 120000 },
-    { label: 'VIP12', requiredLevel: 12, bonus: 200000 },
-    { label: 'VIP15', requiredLevel: 15, bonus: 350000 }
+    { label: 'Lv.1', requiredLevel: 1, bonus: 50 },
+    { label: 'Lv.2', requiredLevel: 2, bonus: 25 },
+    { label: 'Lv.3', requiredLevel: 3, bonus: 25 },
+    { label: 'Lv.4', requiredLevel: 4, bonus: 40 },
+    { label: 'Lv.5', requiredLevel: 5, bonus: 60 },
+    { label: 'Lv.6', requiredLevel: 6, bonus: 80 },
+    { label: 'VIP8', requiredLevel: 8, bonus: 270 },
+    { label: 'VIP10', requiredLevel: 10, bonus: 450 },
+    { label: 'VIP12', requiredLevel: 12, bonus: 1200 },
+    { label: 'VIP15', requiredLevel: 15, bonus: 2800 }
   ];
 
   let isSignupMode = false;
@@ -656,7 +706,7 @@
           if (!u) return;
           const row = document.createElement('div');
           row.className = 'rank-row';
-          row.innerHTML = `<div class="rank-avatar">${escapeHtml((u.name || 'U').charAt(0).toUpperCase())}</div><div class="rank-info"><div class="rank-name">${escapeHtml(u.name || 'User')}</div><div class="rank-sub">VIP ${u.farmLevel || 1}</div></div>`;
+          row.innerHTML = `<div class="rank-avatar">${escapeHtml((u.name || 'U').charAt(0).toUpperCase())}</div><div class="rank-info"><div class="rank-name">${escapeHtml(u.name || 'User')}</div><div class="rank-sub">VIP ${u.realVipTier || 0}</div></div>`;
           contentEl.appendChild(row);
         });
       });
@@ -1052,7 +1102,8 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
   function addXp(amount) {
     if (!currentUser || !currentUserData) return;
     const newXp = (currentUserData.xp || 0) + amount;
-    const newLevel = Math.floor(newXp / XP_PER_LEVEL) + 1;
+    const xpBasedLevel = Math.floor(newXp / XP_PER_LEVEL) + 1;
+    const newLevel = Math.max(currentUserData.level || 1, xpBasedLevel);
     db.ref('users/' + currentUser.uid).update({ xp: newXp, level: newLevel });
   }
 
@@ -1164,21 +1215,16 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
   let harvestIntervalStarted = false;
 
   function getFarmLevel() {
-    return (currentUserData && currentUserData.farmLevel) || 1;
+    return (currentUserData && currentUserData.level) || 1;
   }
 
   function getProductionAmount() {
-    const farmLevel = getFarmLevel();
-    let total = 0;
-    PLOTS.forEach((plot) => {
-      if (farmLevel >= plot.requiredLevel) total += plot.bonus;
-    });
-    return total;
+    return getProductionForLevel(getFarmLevel());
   }
 
   function getUpgradeCost() {
-    const farmLevel = getFarmLevel();
-    return farmLevel * UPGRADE_INCREMENT;
+    const level = getFarmLevel();
+    return Math.round(UPGRADE_COST_BASE * Math.pow(level, UPGRADE_COST_EXPONENT));
   }
 
   let harvestAtBeingFixed = false;
@@ -1244,16 +1290,16 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
 
     db.ref('users/' + currentUser.uid).update({
       gems: gems - cost,
-      farmLevel: getFarmLevel() + 1
-    }).then(() => toast('VIP Level upgraded! 👑'));
+      level: getFarmLevel() + 1
+    }).then(() => toast('Farm Level upgraded! 🌾'));
   }
 
   function getAccumulatedCoins() {
     if (!currentUserData) return 0;
     const perSecondRate = getProductionAmount() / (HARVEST_CYCLE_MS / 1000);
     const lastHarvest = currentUserData.lastHarvestAt || Date.now();
-    const elapsedSeconds = Math.max(0, (Date.now() - lastHarvest) / 1000);
-    return Math.floor(perSecondRate * elapsedSeconds);
+    const elapsedMs = Math.min(Math.max(0, Date.now() - lastHarvest), MAX_OFFLINE_FARMING_MS);
+    return Math.floor(perSecondRate * (elapsedMs / 1000));
   }
 
   function updateHarvestTimer() {
@@ -1332,7 +1378,8 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
     const xpFromHarvest = 10;
     const newXp = (currentUserData.xp || 0) + xpFromHarvest;
     update.xp = newXp;
-    update.level = Math.floor(newXp / XP_PER_LEVEL) + 1;
+    const xpBasedLevel = Math.floor(newXp / XP_PER_LEVEL) + 1;
+    update.level = Math.max(currentUserData.level || 1, xpBasedLevel);
 
     db.ref('users/' + currentUser.uid).update(update).then(() => {
       if (gemsAwarded > 0) {
@@ -1946,7 +1993,7 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
             </div>
             <div class="dmc-badges">
               <span class="dmc-badge">🆔 Lv.${u ? (u.level || 1) : 1}</span>
-              <span class="dmc-badge">👑 VIP ${u ? (u.farmLevel || 1) : 1}</span>
+              <span class="dmc-badge">👑 VIP ${u ? (u.realVipTier || 0) : 0}</span>
             </div>
           </div>
         `;
@@ -2082,7 +2129,7 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
             </div>
             <div class="dmc-badges">
               <span class="dmc-badge">🆔 Lv.${u.level || 1}</span>
-              <span class="dmc-badge">👑 VIP ${u.farmLevel || 1}</span>
+              <span class="dmc-badge">👑 VIP ${u.realVipTier || 0}</span>
             </div>
           </div>
           ${canKick ? '<div class="dmc-actions"><button class="dmc-action-btn" data-kick-uid="' + escapeHtml(uid) + '">✕</button></div>' : ''}
