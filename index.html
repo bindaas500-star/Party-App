@@ -54,6 +54,11 @@
   <div id="pullRefreshIndicator">↓ Pull to refresh</div>
   <div id="toastContainer"></div>
 
+  <div class="emoji-picker" id="emojiPicker">
+    <div class="emoji-picker-handle" onclick="closeEmojiPicker()"></div>
+    <div class="emoji-picker-grid" id="emojiPickerGrid"></div>
+  </div>
+
   <!-- ===== ONBOARDING ===== -->
   <div class="ttt-overlay" id="onboardingOverlay" style="z-index:900; background:linear-gradient(160deg,#2a1a4a,#1a1030); align-items:stretch; padding:0;">
     <div id="onboardingSlides" style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:30px;">
@@ -213,6 +218,7 @@
       <div class="loading">Loading messages...</div>
     </div>
     <div class="input-bar">
+      <button class="quick-icon-btn" onclick="openEmojiPicker('msgInput')" title="Emoji">😊</button>
       <input type="text" id="msgInput" placeholder="Say something..." maxlength="300" onkeypress="if(event.key==='Enter') sendMessage()">
       <button class="send-btn" onclick="sendMessage()">➤</button>
     </div>
@@ -263,6 +269,7 @@
       <div class="members-strip" id="membersStrip" style="display:none;"></div>
       <div class="chat-area" id="familyChatArea"></div>
       <div class="input-bar">
+        <button class="quick-icon-btn" onclick="openEmojiPicker('famMsgInput')" title="Emoji">😊</button>
         <input type="text" id="famMsgInput" placeholder="Message your family..." maxlength="300" onkeypress="if(event.key==='Enter') sendFamilyMessage()">
         <button class="send-btn" onclick="sendFamilyMessage()">➤</button>
       </div>
@@ -389,6 +396,7 @@
 
       <div class="chat-area" id="roomChatArea"></div>
       <div class="input-bar">
+        <button class="quick-icon-btn" onclick="openEmojiPicker('roomMsgInput')" title="Emoji">😊</button>
         <input type="text" id="roomMsgInput" placeholder="Say something..." maxlength="300" onkeypress="if(event.key==='Enter') sendRoomMessage()">
         <button class="quick-icon-btn" onclick="openQuickGiftPicker()" title="Send Gift">🎁</button>
         <button class="quick-icon-btn" onclick="openGiftLog()" title="Gift Log">📦</button>

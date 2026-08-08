@@ -1115,7 +1115,7 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
   }
 
   function switchTab(tab) {
-    document.querySelectorAll('.ttt-overlay.show, .profile-overlay.show, .rank-overlay.show, .detail-overlay.show').forEach((el) => el.classList.remove('show'));
+    document.querySelectorAll('.ttt-overlay.show, .profile-overlay.show, .rank-overlay.show, .detail-overlay.show, .emoji-picker.show').forEach((el) => el.classList.remove('show'));
 
     document.getElementById('homePanel').classList.toggle('active', tab === 'hifami');
     document.getElementById('chatPanel').classList.toggle('active', tab === 'messages');
@@ -2168,6 +2168,43 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
       addActivity(uid, 'social', currentUserData.name + ' invited you to join their family!');
     });
     toast('Invite sent to your friends!');
+  }
+
+  const EMOJI_LIST = [
+    '😀','😁','😂','🤣','😊','😍','😘','😜','🤗','🤔','😎','😢','😭','😡','🥳','😴',
+    '👍','👎','👏','🙌','🙏','💪','🤝','✌️','👋','🤙','🔥','✨','💯','🎉','🎊','⭐',
+    '❤️','💕','💔','💖','💗','😻','🎁','🌹','🍰','☕','🍕','🍔','⚽','🏆','🎮','🎵'
+  ];
+  let emojiTargetInputId = null;
+
+  function renderEmojiPickerGrid() {
+    const gridEl = document.getElementById('emojiPickerGrid');
+    if (gridEl.children.length) return;
+    EMOJI_LIST.forEach((emoji) => {
+      const span = document.createElement('span');
+      span.textContent = emoji;
+      span.onclick = () => insertEmoji(emoji);
+      gridEl.appendChild(span);
+    });
+  }
+
+  function openEmojiPicker(targetInputId) {
+    emojiTargetInputId = targetInputId;
+    renderEmojiPickerGrid();
+    document.getElementById('emojiPicker').classList.add('show');
+  }
+
+  function closeEmojiPicker() {
+    document.getElementById('emojiPicker').classList.remove('show');
+  }
+
+  function insertEmoji(emoji) {
+    if (!emojiTargetInputId) return;
+    const input = document.getElementById(emojiTargetInputId);
+    if (input) {
+      input.value += emoji;
+      input.focus();
+    }
   }
 
   function toast(message, type) {
