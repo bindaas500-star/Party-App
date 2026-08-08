@@ -322,6 +322,7 @@
             switchTab(lastTab);
           }
           maybeShowOnboarding();
+          checkAdminStatus();
         }
       });
 
@@ -2205,6 +2206,183 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
       input.value += emoji;
       input.focus();
     }
+  }
+
+  // ---------- ADMIN PANEL (Phase 1: Auth + Dashboard + User Management) ----------
+  let isAdminUser = false;
+  let adminAllUsersCache = null;
+  let adminSelectedUid = null;
+
+  function checkAdminStatus() {
+    if (!currentUser) return;
+    db.ref('adminRoles/' + currentUser.uid).once('value').then((snap) => {
+      isAdminUser = snap.val() === true;
+      const menuItem = document.getElementById('adminPanelMenuItem');
+      if (menuItem) menuItem.style.display = isAdminUser ? 'block' : 'none';
+    }).catch(() => { isAdminUser = false; });
+  }
+
+  function openAdminPanel() {
+    if (!isAdminUser) { toast('Admin access only.', 'error'); return; }
+    document.getElementById('adminPanelOverlay').classList.add('show');
+    switchAdminTab('dashboard');
+  }
+
+  function closeAdminPanel() {
+    document.getElementById('adminPanelOverlay').classList.remove('show');
+  }
+
+  function switchAdminTab(tab) {
+    document.querySelectorAll('.admin-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+    document.getElementById('adminDashboardTab').style.display = tab === 'dashboard' ? 'block' : 'none';
+    document.getElementById('adminUsersTab').style.display = tab === 'users' ? 'block' : 'none';
+    if (tab === 'dashboard') loadAdminDashboard();
+    if (tab === 'users') loadAdminUsers();
+  }
+
+  function loadAdminDashboard() {
+    const gridEl = document.getElementById('adminStatsGrid');
+    gridEl.innerHTML = '<div class="loading">Loading stats...</div>';
+
+    Promise.all([
+      db.ref('users').once('value'),
+      db.ref('liveRooms').once('value'),
+      db.ref('families').once('value')
+    ]).then(([usersSnap, roomsSnap, famsSnap]) => {
+      const users = usersSnap.val() || {};
+      const rooms = roomsSnap.val() || {};
+      const families = famsSnap.val() || {};
+      const userList = Object.values(users);
+
+      const totalUsers = userList.length;
+      const vipUsers = userList.filter(u => (u.realVipTier || 0) > 0).length;
+
+      const now = Date.now();
+      const oneDayMs = 24 * 60 * 60 * 1000;
+      const newToday = userList.filter(u => u.createdAt && (now - u.createdAt) < oneDayMs).length;
+      const newWeek = userList.filter(u => u.createdAt && (now - u.createdAt) < oneDayMs * 7).length;
+      const newMonth = userList.filter(u => u.createdAt && (now - u.createdAt) < oneDayMs * 30).length;
+
+      let activeRooms = 0;
+      Object.values(rooms).forEach(r => { if (r.seats && Object.keys(r.seats).length > 0) activeRooms++; });
+
+      const stats = [
+        { label: 'Total Users', value: totalUsers },
+        { label: 'VIP Users', value: vipUsers },
+        { label: 'Total Rooms', value: Object.keys(rooms).length },
+        { label: 'Active Rooms', value: activeRooms },
+        { label: 'Total Families', value: Object.keys(families).length },
+        { label: 'New Today', value: newToday },
+        { label: 'New This Week', value: newWeek },
+        { label: 'New This Month', value: newMonth }
+      ];
+
+      gridEl.innerHTML = '';
+      stats.forEach((s) => {
+        const card = document.createElement('div');
+        card.className = 'admin-stat-card';
+        card.innerHTML = `<div class="asc-value">${formatNum(s.value)}</div><div class="asc-label">${s.label}</div>`;
+        gridEl.appendChild(card);
+      });
+    });
+  }
+
+  function loadAdminUsers() {
+    document.getElementById('adminUserSearch').value = '';
+    db.ref('users').once('value').then((snap) => {
+      const users = snap.val() || {};
+      adminAllUsersCache = Object.entries(users).map(([uid, u]) => ({ uid, ...u }));
+      renderAdminUserList();
+    });
+  }
+
+  function renderAdminUserList() {
+    const listEl = document.getElementById('adminUserList');
+    if (!adminAllUsersCache) { listEl.innerHTML = '<div class="loading">Loading...</div>'; return; }
+    const query = (document.getElementById('adminUserSearch').value || '').trim().toLowerCase();
+    const filtered = adminAllUsersCache.filter(u => !query || (u.name || '').toLowerCase().includes(query)).slice(0, 100);
+    if (!filtered.length) { listEl.innerHTML = '<div class="loading">No users found.</div>'; return; }
+    listEl.innerHTML = '';
+    filtered.forEach((u) => {
+      const row = document.createElement('div');
+      row.className = 'admin-user-row';
+      const avatarStyle = u.photoURL ? `style="background-image:url('${u.photoURL}');background-size:cover;background-position:center;"` : '';
+      row.innerHTML = `
+        <div class="dmc-avatar" ${avatarStyle}>${u.photoURL ? '' : escapeHtml((u.name || 'U').charAt(0).toUpperCase())}</div>
+        <div class="dmc-info">
+          <div class="dmc-name">${escapeHtml(u.name || 'User')} ${u.banned ? '<span style="color:#ff8a8a;font-size:10px;">(BANNED)</span>' : ''}</div>
+          <div class="dmc-badges"><span class="dmc-badge">🆔 Lv.${u.level || 1}</span><span class="dmc-badge">💎 ${formatNum(u.gems || 0)}</span></div>
+        </div>
+      `;
+      row.onclick = () => openAdminUserDetail(u.uid);
+      listEl.appendChild(row);
+    });
+  }
+
+  function openAdminUserDetail(uid) {
+    adminSelectedUid = uid;
+    db.ref('users/' + uid).once('value').then((snap) => {
+      const u = snap.val();
+      if (!u) return;
+      document.getElementById('adminUserDetailName').textContent = u.name || 'User';
+      document.getElementById('adminUdIdLevel').textContent = u.level || 1;
+      document.getElementById('adminUdVip').textContent = u.realVipTier || 0;
+      document.getElementById('adminUdFarmLevel').textContent = u.level || 1;
+      document.getElementById('adminUdRoomLevel').textContent = getGroupLevelInfo(u.roomXP || 0).level;
+      document.getElementById('adminUdStatus').textContent = u.banned ? '🚫 Banned' : '✅ Active';
+      document.getElementById('adminUdCoins').textContent = formatNum(u.coins || 0);
+      document.getElementById('adminUdGems').textContent = formatNum(u.gems || 0);
+      document.getElementById('adminUdLove').textContent = formatNum(u.love || 0);
+      document.getElementById('adminAdjustCoinsInput').value = '';
+      document.getElementById('adminAdjustGemsInput').value = '';
+      document.getElementById('adminAdjustLoveInput').value = '';
+      document.getElementById('adminBanToggleBtn').textContent = u.banned ? '✅ Unban User' : '🚫 Ban User';
+      document.getElementById('adminUserDetailOverlay').classList.add('show');
+    });
+  }
+
+  function closeAdminUserDetail() {
+    document.getElementById('adminUserDetailOverlay').classList.remove('show');
+  }
+
+  function writeAdminAuditLog(action, targetUid, oldValue, newValue) {
+    db.ref('auditLog').push({
+      adminId: currentUser.uid,
+      adminName: currentUserData.name,
+      action: action,
+      targetUid: targetUid,
+      oldValue: oldValue,
+      newValue: newValue,
+      timestamp: Date.now()
+    });
+  }
+
+  function adminAdjustCurrency(field) {
+    if (!isAdminUser || !adminSelectedUid) return;
+    const inputEl = document.getElementById('adminAdjust' + field.charAt(0).toUpperCase() + field.slice(1) + 'Input');
+    const newValue = parseInt(inputEl.value, 10);
+    if (isNaN(newValue) || newValue < 0) { alert('Enter a valid non-negative number.'); return; }
+
+    db.ref('users/' + adminSelectedUid + '/' + field).once('value').then((snap) => {
+      const oldValue = snap.val() || 0;
+      db.ref('users/' + adminSelectedUid).update({ [field]: newValue }).then(() => {
+        writeAdminAuditLog('Adjusted ' + field, adminSelectedUid, oldValue, newValue);
+        toast(field + ' updated to ' + formatNum(newValue));
+        openAdminUserDetail(adminSelectedUid);
+      });
+    });
+  }
+
+  function adminToggleBan() {
+    if (!isAdminUser || !adminSelectedUid) return;
+    db.ref('users/' + adminSelectedUid + '/banned').once('value').then((snap) => {
+      const wasBanned = snap.val() === true;
+      db.ref('users/' + adminSelectedUid).update({ banned: !wasBanned }).then(() => {
+        writeAdminAuditLog(wasBanned ? 'Unbanned user' : 'Banned user', adminSelectedUid, wasBanned, !wasBanned);
+        toast(wasBanned ? 'User unbanned.' : 'User banned.');
+        openAdminUserDetail(adminSelectedUid);
+      });
+    });
   }
 
   function toast(message, type) {

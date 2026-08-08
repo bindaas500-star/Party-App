@@ -611,6 +611,71 @@
     </div>
   </div>
 
+  <!-- ===== ADMIN PANEL ===== -->
+  <div class="detail-overlay" id="adminPanelOverlay">
+    <div style="padding:16px; display:flex; align-items:center; gap:12px; border-bottom:1px solid rgba(255,255,255,0.1); flex-shrink:0;">
+      <button class="detail-back-btn" onclick="closeAdminPanel()">←</button>
+      <div style="font-family:'Fredoka','Inter',sans-serif; font-weight:700; font-size:17px;">🛡️ Admin Panel</div>
+    </div>
+    <div class="admin-tabs">
+      <div class="admin-tab active" data-tab="dashboard" onclick="switchAdminTab('dashboard')">Dashboard</div>
+      <div class="admin-tab" data-tab="users" onclick="switchAdminTab('users')">Users</div>
+    </div>
+
+    <div class="admin-tab-content" id="adminDashboardTab">
+      <div class="admin-stats-grid" id="adminStatsGrid">
+        <div class="loading">Loading stats...</div>
+      </div>
+    </div>
+
+    <div class="admin-tab-content" id="adminUsersTab" style="display:none;">
+      <input type="text" id="adminUserSearch" class="detail-search" placeholder="🔍 Search by name..." oninput="renderAdminUserList()">
+      <div id="adminUserList"></div>
+    </div>
+  </div>
+
+  <!-- ===== ADMIN USER DETAIL ===== -->
+  <div class="ttt-overlay" id="adminUserDetailOverlay">
+    <div class="ttt-header">
+      <button onclick="closeAdminUserDetail()">←</button>
+      <h2 id="adminUserDetailName">User</h2>
+    </div>
+    <div style="width:100%; padding:0 4px 20px; overflow-y:auto;">
+      <div class="admin-detail-row"><span>ID Level</span><span id="adminUdIdLevel">—</span></div>
+      <div class="admin-detail-row"><span>VIP Tier</span><span id="adminUdVip">—</span></div>
+      <div class="admin-detail-row"><span>Farm Level</span><span id="adminUdFarmLevel">—</span></div>
+      <div class="admin-detail-row"><span>Room Level</span><span id="adminUdRoomLevel">—</span></div>
+      <div class="admin-detail-row"><span>Status</span><span id="adminUdStatus">Active</span></div>
+
+      <div class="admin-adjust-box">
+        <div class="admin-adjust-label">💰 Coins</div>
+        <div class="admin-adjust-row">
+          <span id="adminUdCoins">0</span>
+          <input type="number" id="adminAdjustCoinsInput" placeholder="New value">
+          <button onclick="adminAdjustCurrency('coins')">Set</button>
+        </div>
+      </div>
+      <div class="admin-adjust-box">
+        <div class="admin-adjust-label">💎 Gems</div>
+        <div class="admin-adjust-row">
+          <span id="adminUdGems">0</span>
+          <input type="number" id="adminAdjustGemsInput" placeholder="New value">
+          <button onclick="adminAdjustCurrency('gems')">Set</button>
+        </div>
+      </div>
+      <div class="admin-adjust-box">
+        <div class="admin-adjust-label">💕 Love Coins</div>
+        <div class="admin-adjust-row">
+          <span id="adminUdLove">0</span>
+          <input type="number" id="adminAdjustLoveInput" placeholder="New value">
+          <button onclick="adminAdjustCurrency('love')">Set</button>
+        </div>
+      </div>
+
+      <button class="detail-action-btn" id="adminBanToggleBtn" style="width:calc(100% - 32px); margin:16px 16px 0; color:#ff8a8a; border-color:rgba(255,107,107,0.4);" onclick="adminToggleBan()">🚫 Ban User</button>
+    </div>
+  </div>
+
   <!-- ===== FAMILY OWNER MENU ===== -->
   <div class="ttt-overlay" id="familyOwnerOverlay">
     <div class="ttt-header">
@@ -721,6 +786,7 @@
         <div class="settings-item" onclick="openInfoPage('privacy')">Privacy Policy</div>
         <div class="settings-item" onclick="openInfoPage('guidelines')">Community Guidelines</div>
         <div class="settings-item" onclick="toast('Need help? Message us via Family or Global chat for now.')">Help &amp; Feedback</div>
+        <div class="settings-item" id="adminPanelMenuItem" style="display:none;" onclick="openAdminPanel()">🛡️ Admin Panel</div>
         <div class="settings-item no-arrow">Version 1.0.0</div>
         <button class="sign-out-btn" onclick="handleLogout()">Sign Out</button>
       </div>
