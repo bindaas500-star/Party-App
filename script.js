@@ -1618,11 +1618,14 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
         const seatData = seats[i];
         const cell = document.createElement('div');
         if (seatData) {
-          cell.className = 'seat-cell occupied';
+          cell.className = 'seat-cell occupied' + (seatData.uid === currentFamilyOwnerUid ? ' host' : '');
           const avatarInner = seatData.photoURL
             ? `style="background-image:url('${seatData.photoURL}');background-size:cover;background-position:center;"`
             : '';
-          cell.innerHTML = `<div class="seat-avatar" ${avatarInner}>${seatData.photoURL ? '' : escapeHtml((seatData.name || 'U').charAt(0).toUpperCase())}</div><div class="seat-name">${escapeHtml(seatData.name || 'User')}</div>`;
+          const crownBadge = seatData.uid === currentFamilyOwnerUid ? '<div class="seat-crown-badge">👑</div>' : '';
+          const isMuted = !!seatData.muted;
+          const micBadge = `<div class="seat-mic-badge${isMuted ? ' muted' : ''}">${isMuted ? '🔇' : '🎤'}</div>`;
+          cell.innerHTML = crownBadge + `<div class="seat-avatar" ${avatarInner}>${seatData.photoURL ? '' : escapeHtml((seatData.name || 'U').charAt(0).toUpperCase())}</div><div class="seat-name">${escapeHtml(seatData.name || 'User')}</div>` + micBadge;
         } else {
           cell.className = 'seat-cell';
           cell.innerHTML = `<div class="seat-plus">+</div><div class="seat-name">${i + 1}</div>`;
@@ -1638,19 +1641,15 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
     if (!currentUser) return;
     const seatsRef = db.ref('families/' + famId + '/seats');
     if (isOccupied) {
-      if (seatData.uid === currentUser.uid) {
-        seatsRef.child(index).remove();
-        db.ref('users/' + currentUser.uid + '/activeSeat').remove();
-      } else {
-        openSeatProfile(seatData.uid, seatData.name);
-      }
+      openSeatActionsMenu('family', famId, index, seatData);
       return;
     }
     clearMyActiveSeat().then(() => {
       seatsRef.child(index).set({
         uid: currentUser.uid,
         name: currentUserData.name,
-        photoURL: currentUserData.photoURL || null
+        photoURL: currentUserData.photoURL || null,
+        muted: false
       });
       db.ref('users/' + currentUser.uid + '/activeSeat').set({ type: 'family', containerId: famId, seatIndex: index });
       completeFamilyTask(famId, 'sit');
@@ -2894,12 +2893,7 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
     if (!currentUser || !currentRoomId) return;
     const seatsRef = db.ref('liveRooms/' + currentRoomId + '/seats');
     if (isOccupied) {
-      if (seatData.uid === currentUser.uid) {
-        seatsRef.child(index).remove();
-        db.ref('users/' + currentUser.uid + '/activeSeat').remove();
-      } else {
-        openSeatProfile(seatData.uid, seatData.name);
-      }
+      openSeatActionsMenu('room', currentRoomId, index, seatData);
       return;
     }
     clearMyActiveSeat().then(() => seatsRef.once('value')).then((snap) => {
@@ -2922,6 +2916,75 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
   function toggleSeatMic(index, currentMuted) {
     if (!currentRoomId) return;
     db.ref('liveRooms/' + currentRoomId + '/seats/' + index + '/muted').set(!currentMuted);
+  }
+
+  // ---------- SEAT ACTIONS MENU (shared by Room + Family) ----------
+  let seatActionsContext = null; // { type, containerId, seatIndex, seatData }
+
+  function openSeatActionsMenu(type, containerId, seatIndex, seatData) {
+    if (!currentUser || !seatData) return;
+    seatActionsContext = { type, containerId, seatIndex, seatData };
+
+    document.getElementById('seatActionsName').textContent = seatData.name || 'User';
+
+    const isMe = seatData.uid === currentUser.uid;
+    const ownerUid = type === 'room' ? currentRoomOwnerUid : currentFamilyOwnerUid;
+    const isOwnerViewing = currentUser.uid === ownerUid && ownerUid;
+
+    const micItem = document.getElementById('seatActionsMicItem');
+    if (isMe || isOwnerViewing) {
+      micItem.style.display = 'flex';
+      micItem.textContent = seatData.muted ? '🎤 Unmute Mic' : '🔇 Mute Mic';
+    } else {
+      micItem.style.display = 'none';
+    }
+
+    const kickItem = document.getElementById('seatActionsKickItem');
+    kickItem.style.display = (isOwnerViewing && !isMe) ? 'flex' : 'none';
+
+    const standItem = document.getElementById('seatActionsStandItem');
+    standItem.style.display = isMe ? 'flex' : 'none';
+
+    document.getElementById('seatActionsOverlay').classList.add('show');
+  }
+
+  function closeSeatActionsMenu() {
+    document.getElementById('seatActionsOverlay').classList.remove('show');
+  }
+
+  function seatActionsStandUp() {
+    if (!seatActionsContext || !currentUser) return;
+    const { type, containerId, seatIndex } = seatActionsContext;
+    const seatPath = (type === 'room' ? 'liveRooms/' : 'families/') + containerId + '/seats/' + seatIndex;
+    db.ref(seatPath).remove();
+    db.ref('users/' + currentUser.uid + '/activeSeat').remove();
+    closeSeatActionsMenu();
+  }
+
+  function seatActionsViewProfile() {
+    if (!seatActionsContext) return;
+    const { seatData } = seatActionsContext;
+    closeSeatActionsMenu();
+    openSeatProfile(seatData.uid, seatData.name);
+  }
+
+  function seatActionsToggleMic() {
+    if (!seatActionsContext) return;
+    const { type, containerId, seatIndex, seatData } = seatActionsContext;
+    const path = (type === 'room' ? 'liveRooms/' : 'families/') + containerId + '/seats/' + seatIndex + '/muted';
+    db.ref(path).set(!seatData.muted);
+    closeSeatActionsMenu();
+  }
+
+  function seatActionsKick() {
+    if (!seatActionsContext) return;
+    const { type, containerId, seatIndex, seatData } = seatActionsContext;
+    if (!confirm('Remove ' + (seatData.name || 'this user') + ' from the seat?')) return;
+    const seatPath = (type === 'room' ? 'liveRooms/' : 'families/') + containerId + '/seats/' + seatIndex;
+    db.ref(seatPath).remove();
+    db.ref('users/' + seatData.uid + '/activeSeat').remove();
+    toast(seatData.name + ' was removed from the seat.');
+    closeSeatActionsMenu();
   }
 
   // ---------- ROOM: CHAT ----------

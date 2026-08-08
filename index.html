@@ -611,6 +611,20 @@
     </div>
   </div>
 
+  <!-- ===== SEAT ACTIONS MENU ===== -->
+  <div class="ttt-overlay" id="seatActionsOverlay">
+    <div class="ttt-header">
+      <button onclick="closeSeatActionsMenu()">←</button>
+      <h2 id="seatActionsName">User</h2>
+    </div>
+    <div class="owner-menu-list">
+      <div class="owner-menu-item" onclick="seatActionsViewProfile()">👤 View Profile</div>
+      <div class="owner-menu-item" id="seatActionsMicItem" onclick="seatActionsToggleMic()">🎤 Mute Mic</div>
+      <div class="owner-menu-item" id="seatActionsStandItem" style="display:none;" onclick="seatActionsStandUp()">🧍 Stand Up</div>
+      <div class="owner-menu-item danger" id="seatActionsKickItem" style="display:none;" onclick="seatActionsKick()">🚪 Kick From Seat</div>
+    </div>
+  </div>
+
   <!-- ===== ADMIN PANEL ===== -->
   <div class="detail-overlay" id="adminPanelOverlay">
     <div style="padding:16px; display:flex; align-items:center; gap:12px; border-bottom:1px solid rgba(255,255,255,0.1); flex-shrink:0;">
