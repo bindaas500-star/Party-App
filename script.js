@@ -2409,6 +2409,8 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
     roomRef.once('value').then((snap) => {
       const room = snap.val();
       currentRoomOwnerUid = room ? room.ownerUid : null;
+      const roomLevelEl = document.getElementById('roomLevelDisplay');
+      if (roomLevelEl) roomLevelEl.textContent = '🎖️ Lv.' + getGroupLevelInfo((room && room.activityXp) || 0).level;
       const insideEl = document.getElementById('roomInsideView');
       if (room && room.wallpaperURL) {
         insideEl.style.backgroundImage = `linear-gradient(rgba(20,10,35,0.75),rgba(20,10,35,0.75)), url('${room.wallpaperURL}')`;
@@ -2623,11 +2625,12 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
         const seatData = seats[i];
         const cell = document.createElement('div');
         if (seatData) {
-          cell.className = 'seat-cell occupied';
+          cell.className = 'seat-cell occupied' + (seatData.uid === currentRoomOwnerUid ? ' host' : '');
           const avatarInner = seatData.photoURL
             ? `style="background-image:url('${seatData.photoURL}');background-size:cover;background-position:center;"`
             : '';
-          cell.innerHTML = `<div class="seat-avatar" ${avatarInner}>${seatData.photoURL ? '' : escapeHtml((seatData.name || 'U').charAt(0).toUpperCase())}</div><div class="seat-name">${escapeHtml(seatData.name || 'User')}</div>` +
+          const crownBadge = seatData.uid === currentRoomOwnerUid ? '<div class="seat-crown-badge">👑</div>' : '';
+          cell.innerHTML = crownBadge + `<div class="seat-avatar" ${avatarInner}>${seatData.photoURL ? '' : escapeHtml((seatData.name || 'U').charAt(0).toUpperCase())}</div><div class="seat-name">${escapeHtml(seatData.name || 'User')}</div>` +
             `<div class="seat-gift-btn" data-gift-uid="${escapeHtml(seatData.uid)}" data-gift-name="${escapeHtml(seatData.name || 'User')}">🎁</div>`;
         } else {
           cell.className = 'seat-cell';
@@ -2732,6 +2735,11 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
 
   // ---------- TIC-TAC-TOE ----------
   let tttListenerAttached = false;
+
+  function selectGameCard(cardEl) {
+    document.querySelectorAll('.game-card').forEach(c => c.classList.remove('selected'));
+    cardEl.classList.add('selected');
+  }
 
   function openTicTacToe() {
     document.getElementById('tttOverlay').classList.add('show');

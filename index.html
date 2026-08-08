@@ -344,6 +344,7 @@
             <span id="roomIdDisplay">ID: —</span>
             <span class="room-online-dot"></span>
             <span id="roomOnlineCount">0 online</span>
+            <span id="roomLevelDisplay">🎖️ Lv.1</span>
           </span>
         </div>
         <button class="room-menu-btn" onclick="openRoomOwnerMenu()">⋮</button>
@@ -351,12 +352,37 @@
       <div class="floating-hearts" id="roomFloatingHearts"></div>
       <div class="notice-banner" id="roomNoticeBanner" style="display:none;"></div>
 
-      <div class="games-row">
-        <div class="game-chip" onclick="openTicTacToe()">⭕ Tic-Tac-Toe</div>
-        <div class="game-chip" onclick="toast('UNO is coming soon!')">🎴 UNO</div>
-        <div class="game-chip" onclick="toast('Pool is coming soon!')">🎱 Pool</div>
-        <div class="game-chip" onclick="toast('Carrom is coming soon!')">🎲 Carrom</div>
-        <div class="game-chip" onclick="toast('Snakes is coming soon!')">🐍 Snakes</div>
+      <div class="game-lobby" id="gameLobby">
+        <div class="game-card" data-game="ttt" onclick="selectGameCard(this); openTicTacToe();">
+          <div class="gc-icon">⭕</div>
+          <div class="gc-name">Tic-Tac-Toe</div>
+          <button class="gc-play-btn">PLAY</button>
+        </div>
+        <div class="game-card" data-game="uno" onclick="selectGameCard(this); toast('UNO is coming soon!');">
+          <div class="gc-icon">🎴</div>
+          <div class="gc-name">UNO</div>
+          <div class="gc-soon-badge">Coming Soon</div>
+        </div>
+        <div class="game-card" data-game="pool" onclick="selectGameCard(this); toast('Pool is coming soon!');">
+          <div class="gc-icon">🎱</div>
+          <div class="gc-name">Pool</div>
+          <div class="gc-soon-badge">Coming Soon</div>
+        </div>
+        <div class="game-card" data-game="carrom" onclick="selectGameCard(this); toast('Carrom is coming soon!');">
+          <div class="gc-icon">🎲</div>
+          <div class="gc-name">Carrom</div>
+          <div class="gc-soon-badge">Coming Soon</div>
+        </div>
+        <div class="game-card" data-game="ludo" onclick="selectGameCard(this); toast('Ludo is coming soon!');">
+          <div class="gc-icon">🎯</div>
+          <div class="gc-name">Ludo</div>
+          <div class="gc-soon-badge">Coming Soon</div>
+        </div>
+        <div class="game-card" data-game="snake" onclick="selectGameCard(this); toast('Snake is coming soon!');">
+          <div class="gc-icon">🐍</div>
+          <div class="gc-name">Snake</div>
+          <div class="gc-soon-badge">Coming Soon</div>
+        </div>
       </div>
 
       <div class="seat-grid" id="seatGrid"></div>
