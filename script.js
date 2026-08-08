@@ -2219,11 +2219,7 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
       isAdminUser = snap.val() === true;
       const menuItem = document.getElementById('adminPanelMenuItem');
       if (menuItem) menuItem.style.display = isAdminUser ? 'block' : 'none';
-      toast('Admin check: ' + (isAdminUser ? 'YES you are admin' : 'NOT admin — value was ' + JSON.stringify(snap.val())));
-    }).catch((err) => {
-      isAdminUser = false;
-      toast('Admin check FAILED: ' + err.message, 'error');
-    });
+    }).catch(() => { isAdminUser = false; });
   }
 
   function openAdminPanel() {
