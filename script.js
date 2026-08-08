@@ -2667,7 +2667,10 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
             ? `style="background-image:url('${seatData.photoURL}');background-size:cover;background-position:center;"`
             : '';
           const crownBadge = seatData.uid === currentRoomOwnerUid ? '<div class="seat-crown-badge">👑</div>' : '';
+          const isMuted = !!seatData.muted;
+          const micBadge = `<div class="seat-mic-badge${isMuted ? ' muted' : ''}" data-seat-index="${i}">${isMuted ? '🔇' : '🎤'}</div>`;
           cell.innerHTML = crownBadge + `<div class="seat-avatar" ${avatarInner}>${seatData.photoURL ? '' : escapeHtml((seatData.name || 'U').charAt(0).toUpperCase())}</div><div class="seat-name">${escapeHtml(seatData.name || 'User')}</div>` +
+            micBadge +
             `<div class="seat-gift-btn" data-gift-uid="${escapeHtml(seatData.uid)}" data-gift-name="${escapeHtml(seatData.name || 'User')}">🎁</div>`;
         } else {
           cell.className = 'seat-cell';
@@ -2680,6 +2683,13 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
           giftBtn.onclick = (e) => {
             e.stopPropagation();
             openGiftPicker(giftBtn.dataset.giftUid, giftBtn.dataset.giftName);
+          };
+        }
+        const micBtn = cell.querySelector('.seat-mic-badge');
+        if (micBtn && seatData && seatData.uid === currentUser.uid) {
+          micBtn.onclick = (e) => {
+            e.stopPropagation();
+            toggleSeatMic(i, !!seatData.muted);
           };
         }
       }
@@ -2724,10 +2734,16 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
       seatsRef.child(index).set({
         uid: currentUser.uid,
         name: currentUserData.name,
-        photoURL: currentUserData.photoURL || null
+        photoURL: currentUserData.photoURL || null,
+        muted: false
       });
       db.ref('users/' + currentUser.uid + '/activeSeat').set({ type: 'room', containerId: currentRoomId, seatIndex: index });
     });
+  }
+
+  function toggleSeatMic(index, currentMuted) {
+    if (!currentRoomId) return;
+    db.ref('liveRooms/' + currentRoomId + '/seats/' + index + '/muted').set(!currentMuted);
   }
 
   // ---------- ROOM: CHAT ----------
