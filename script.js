@@ -103,7 +103,7 @@
     history.pushState({ trap: true }, '');
 
     function closeTopmostSimpleOverlay() {
-      const overlays = document.querySelectorAll('.ttt-overlay.show, .profile-overlay.show, .rank-overlay.show');
+      const overlays = document.querySelectorAll('.ttt-overlay.show, .profile-overlay.show, .rank-overlay.show, .seat-actions-sheet.show');
       if (overlays.length === 0) return false;
       overlays[overlays.length - 1].classList.remove('show');
       return true;
@@ -1116,7 +1116,7 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
   }
 
   function switchTab(tab) {
-    document.querySelectorAll('.ttt-overlay.show, .profile-overlay.show, .rank-overlay.show, .detail-overlay.show, .emoji-picker.show').forEach((el) => el.classList.remove('show'));
+    document.querySelectorAll('.ttt-overlay.show, .profile-overlay.show, .rank-overlay.show, .detail-overlay.show, .emoji-picker.show, .seat-actions-sheet.show').forEach((el) => el.classList.remove('show'));
 
     document.getElementById('homePanel').classList.toggle('active', tab === 'hifami');
     document.getElementById('chatPanel').classList.toggle('active', tab === 'messages');
@@ -2924,32 +2924,66 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
   function openSeatActionsMenu(type, containerId, seatIndex, seatData) {
     if (!currentUser || !seatData) return;
     seatActionsContext = { type, containerId, seatIndex, seatData };
+    // reuse existing profile popup's Gift/Chat/Report/Block logic
+    seatProfileUid = seatData.uid;
+    seatProfileName = seatData.name;
 
+    const avatarEl = document.getElementById('seatActionsAvatar');
+    if (seatData.photoURL) {
+      avatarEl.style.backgroundImage = `url('${seatData.photoURL}')`;
+      avatarEl.textContent = '';
+    } else {
+      avatarEl.style.backgroundImage = '';
+      avatarEl.textContent = (seatData.name || 'U').charAt(0).toUpperCase();
+    }
     document.getElementById('seatActionsName').textContent = seatData.name || 'User';
+    document.getElementById('seatActionsSub').textContent = 'Loading...';
+    db.ref('users/' + seatData.uid).once('value').then((snap) => {
+      const u = snap.val();
+      document.getElementById('seatActionsSub').textContent = u ? ('🆔 ID Lv. ' + (u.level || 1) + '  ·  👑 VIP ' + (u.realVipTier || 0)) : '';
+    });
 
     const isMe = seatData.uid === currentUser.uid;
     const ownerUid = type === 'room' ? currentRoomOwnerUid : currentFamilyOwnerUid;
-    const isOwnerViewing = currentUser.uid === ownerUid && ownerUid;
+    const isOwnerViewing = !!(ownerUid && currentUser.uid === ownerUid && !isMe);
+
+    document.getElementById('seatActionsGiftBtn').style.display = isMe ? 'none' : 'flex';
+    document.getElementById('seatActionsChatBtn').style.display = isMe ? 'none' : 'flex';
+    document.getElementById('seatActionsReportBtn').style.display = isMe ? 'none' : 'flex';
 
     const micItem = document.getElementById('seatActionsMicItem');
     if (isMe || isOwnerViewing) {
       micItem.style.display = 'flex';
-      micItem.textContent = seatData.muted ? '🎤 Unmute Mic' : '🔇 Mute Mic';
+      document.getElementById('seatActionsMicLabel').textContent = seatData.muted ? 'Unmute' : 'Mute';
     } else {
       micItem.style.display = 'none';
     }
 
-    const kickItem = document.getElementById('seatActionsKickItem');
-    kickItem.style.display = (isOwnerViewing && !isMe) ? 'flex' : 'none';
-
-    const standItem = document.getElementById('seatActionsStandItem');
-    standItem.style.display = isMe ? 'flex' : 'none';
+    document.getElementById('seatActionsStandItem').style.display = isMe ? 'flex' : 'none';
+    document.getElementById('seatActionsKickItem').style.display = isOwnerViewing ? 'flex' : 'none';
+    document.getElementById('seatActionsBanItem').style.display = isOwnerViewing ? 'flex' : 'none';
+    document.getElementById('seatActionsModItem').style.display = isOwnerViewing ? 'flex' : 'none';
 
     document.getElementById('seatActionsOverlay').classList.add('show');
   }
 
   function closeSeatActionsMenu() {
     document.getElementById('seatActionsOverlay').classList.remove('show');
+  }
+
+  function seatActionsGift() {
+    closeSeatActionsMenu();
+    giftFromSeatProfile();
+  }
+
+  function seatActionsChat() {
+    closeSeatActionsMenu();
+    chatFromSeatProfile();
+  }
+
+  function seatActionsReport() {
+    closeSeatActionsMenu();
+    reportSeatProfileUser();
   }
 
   function seatActionsStandUp() {

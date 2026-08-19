@@ -1410,3 +1410,45 @@
     background: linear-gradient(90deg,#ff6b9d,#c44dff); border: none; color: #fff; padding: 9px 16px;
     border-radius: 10px; font-weight: 700; font-size: 12px; cursor: pointer;
   }
+
+  /* ---- Seat Actions Bottom Sheet ---- */
+  .seat-actions-sheet {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 400;
+    background: rgba(22,12,40,0.97); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+    border-top: 1px solid rgba(255,255,255,0.14); border-radius: 22px 22px 0 0;
+    box-shadow: 0 -10px 40px rgba(0,0,0,0.5);
+    transform: translateY(100%); opacity: 0; transition: transform 0.25s ease, opacity 0.25s ease;
+    padding: 8px 16px calc(20px + env(safe-area-inset-bottom, 0px));
+    max-height: 70vh; overflow-y: auto; box-sizing: border-box;
+  }
+  .seat-actions-sheet.show { transform: translateY(0); opacity: 1; }
+  .sas-handle { width: 38px; height: 4px; border-radius: 2px; background: rgba(255,255,255,0.25); margin: 6px auto 14px; }
+  .sas-header { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
+  .sas-avatar {
+    width: 46px; height: 46px; border-radius: 50%; background: linear-gradient(135deg,#ff6b9d,#c44dff);
+    background-size: cover; background-position: center; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 17px;
+    font-family: 'Fredoka', 'Inter', sans-serif; box-shadow: 0 4px 14px rgba(0,0,0,0.35), 0 0 0 2px rgba(255,215,106,0.5);
+  }
+  .sas-info { flex: 1; min-width: 0; }
+  .sas-name { font-family: 'Fredoka', 'Inter', sans-serif; font-weight: 700; font-size: 15.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .sas-sub { font-size: 11.5px; color: rgba(255,255,255,0.5); font-weight: 600; margin-top: 2px; }
+  .sas-close {
+    background: rgba(255,255,255,0.1); border: none; color: #fff; width: 30px; height: 30px;
+    border-radius: 50%; font-size: 13px; cursor: pointer; flex-shrink: 0;
+  }
+  .sas-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px 8px; }
+  .sas-action {
+    display: flex; flex-direction: column; align-items: center; gap: 6px; cursor: pointer; position: relative;
+    padding: 10px 4px; border-radius: 16px; background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.09); transition: transform .15s, background .15s;
+  }
+  .sas-action:active { transform: scale(0.93); background: rgba(255,255,255,0.12); }
+  .sas-action.danger { background: rgba(255,77,107,0.1); border-color: rgba(255,77,107,0.25); }
+  .sas-icon { font-size: 21px; }
+  .sas-label { font-size: 10px; font-weight: 700; font-family: 'Fredoka', 'Inter', sans-serif; color: #fff; text-align: center; }
+  .sas-action.danger .sas-label { color: #ff8a8a; }
+  .sas-soon {
+    position: absolute; top: -5px; right: -2px; font-size: 7px; font-weight: 700; color: #3a2410;
+    background: linear-gradient(90deg,#ffd76a,#ffb347); padding: 2px 5px; border-radius: 6px;
+  }

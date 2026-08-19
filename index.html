@@ -611,17 +611,26 @@
     </div>
   </div>
 
-  <!-- ===== SEAT ACTIONS MENU ===== -->
-  <div class="ttt-overlay" id="seatActionsOverlay">
-    <div class="ttt-header">
-      <button onclick="closeSeatActionsMenu()">←</button>
-      <h2 id="seatActionsName">User</h2>
+  <div class="seat-actions-sheet" id="seatActionsOverlay">
+    <div class="sas-handle"></div>
+    <div class="sas-header">
+      <div class="sas-avatar" id="seatActionsAvatar">?</div>
+      <div class="sas-info">
+        <div class="sas-name" id="seatActionsName">User</div>
+        <div class="sas-sub" id="seatActionsSub">🆔 ID Lv. 1</div>
+      </div>
+      <button class="sas-close" onclick="closeSeatActionsMenu()">✕</button>
     </div>
-    <div class="owner-menu-list">
-      <div class="owner-menu-item" onclick="seatActionsViewProfile()">👤 View Profile</div>
-      <div class="owner-menu-item" id="seatActionsMicItem" onclick="seatActionsToggleMic()">🎤 Mute Mic</div>
-      <div class="owner-menu-item" id="seatActionsStandItem" style="display:none;" onclick="seatActionsStandUp()">🧍 Stand Up</div>
-      <div class="owner-menu-item danger" id="seatActionsKickItem" style="display:none;" onclick="seatActionsKick()">🚪 Kick From Seat</div>
+    <div class="sas-grid">
+      <div class="sas-action" onclick="seatActionsViewProfile()"><div class="sas-icon">👤</div><div class="sas-label">Profile</div></div>
+      <div class="sas-action" id="seatActionsGiftBtn" onclick="seatActionsGift()"><div class="sas-icon">🎁</div><div class="sas-label">Gift</div></div>
+      <div class="sas-action" id="seatActionsChatBtn" onclick="seatActionsChat()"><div class="sas-icon">💬</div><div class="sas-label">Chat</div></div>
+      <div class="sas-action" id="seatActionsMicItem" onclick="seatActionsToggleMic()"><div class="sas-icon">🎤</div><div class="sas-label" id="seatActionsMicLabel">Mute</div></div>
+      <div class="sas-action" id="seatActionsStandItem" style="display:none;" onclick="seatActionsStandUp()"><div class="sas-icon">🧍</div><div class="sas-label">Stand Up</div></div>
+      <div class="sas-action" id="seatActionsReportBtn" onclick="seatActionsReport()"><div class="sas-icon">🚩</div><div class="sas-label">Report</div></div>
+      <div class="sas-action danger" id="seatActionsKickItem" style="display:none;" onclick="seatActionsKick()"><div class="sas-icon">🚪</div><div class="sas-label">Kick Out</div></div>
+      <div class="sas-action danger" id="seatActionsBanItem" style="display:none;" onclick="toast('Ban system is coming soon!')"><div class="sas-icon">⛔</div><div class="sas-label">Ban</div><div class="sas-soon">Soon</div></div>
+      <div class="sas-action" id="seatActionsModItem" style="display:none;" onclick="toast('Moderator roles are coming soon!')"><div class="sas-icon">🛡️</div><div class="sas-label">Moderator</div><div class="sas-soon">Soon</div></div>
     </div>
   </div>
 
