@@ -179,8 +179,9 @@
   ];
   // Gem cost to upgrade to the NEXT level, as a function of the level being left.
   // Superlinear growth so higher levels take meaningfully longer to reach.
-  const UPGRADE_COST_BASE = 500;
-  const UPGRADE_COST_EXPONENT = 1.5;
+  // Farm Tier upgrades now cost GOLD, scaled to the balanced production curve above —
+  // roughly this many 30-minute harvest cycles worth of gold per upgrade.
+  const UPGRADE_COST_CYCLES = 30;
 
   function getProductionForLevel(level) {
     const cps = FARM_PRODUCTION_CHECKPOINTS;
@@ -1225,7 +1226,7 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
 
   function getUpgradeCost() {
     const level = getFarmLevel();
-    return Math.round(UPGRADE_COST_BASE * Math.pow(level, UPGRADE_COST_EXPONENT));
+    return Math.round(UPGRADE_COST_CYCLES * getProductionForLevel(level));
   }
 
   let harvestAtBeingFixed = false;
@@ -1251,8 +1252,8 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
 
     const cost = getUpgradeCost();
     const upgradeBtn = document.getElementById('upgradeFarmBtn');
-    upgradeBtn.textContent = "Upgrade Farm Tier — 💎 " + formatNum(cost);
-    upgradeBtn.disabled = (currentUserData.gems || 0) < cost;
+    upgradeBtn.textContent = "Upgrade Farm Tier — 🪙 " + formatNum(cost);
+    upgradeBtn.disabled = (currentUserData.coins || 0) < cost;
 
     if (!harvestIntervalStarted) {
       harvestIntervalStarted = true;
@@ -1286,11 +1287,11 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
   function upgradeFarm() {
     if (!currentUser || !currentUserData) return;
     const cost = getUpgradeCost();
-    const gems = currentUserData.gems || 0;
-    if (gems < cost) { toast('Not enough Gems for this upgrade.', 'error'); return; }
+    const coins = currentUserData.coins || 0;
+    if (coins < cost) { toast('Not enough Gold for this upgrade.', 'error'); return; }
 
     db.ref('users/' + currentUser.uid).update({
-      gems: gems - cost,
+      coins: coins - cost,
       level: getFarmLevel() + 1
     }).then(() => toast('Farm Level upgraded! 🌾'));
   }
@@ -1325,12 +1326,6 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
     }
   }
 
-  const GEMS_PER_DAY = 10;
-  const GEM_INTERVAL_MS = (24 * 60 * 60 * 1000) / GEMS_PER_DAY; // ~2.4 hours worth of "gem time" per gem on average
-
-  const LOVE_PER_DAY = 20;
-  const LOVE_INTERVAL_MS = (24 * 60 * 60 * 1000) / LOVE_PER_DAY;
-
   let harvestInProgress = false;
 
   function doHarvest() {
@@ -1348,33 +1343,6 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
       lastHarvestAt: Date.now()
     };
 
-    // Random gem reward — averages to GEMS_PER_DAY over 24h regardless of how often you collect
-    const now = Date.now();
-    const lastGemAt = currentUserData.lastGemAwardAt || now;
-    const elapsed = Math.max(0, now - lastGemAt);
-    const wholeGems = Math.floor(elapsed / GEM_INTERVAL_MS);
-    const remainder = elapsed % GEM_INTERVAL_MS;
-    const bonusChance = remainder / GEM_INTERVAL_MS;
-    const gemsAwarded = wholeGems + (Math.random() < bonusChance ? 1 : 0);
-
-    update.lastGemAwardAt = now;
-    if (gemsAwarded > 0) {
-      update.gems = (currentUserData.gems || 0) + gemsAwarded;
-    }
-
-    // Random Love Coin reward — averages to LOVE_PER_DAY over 24h, for gifting
-    const lastLoveAt = currentUserData.lastLoveAwardAt || now;
-    const loveElapsed = Math.max(0, now - lastLoveAt);
-    const wholeLove = Math.floor(loveElapsed / LOVE_INTERVAL_MS);
-    const loveRemainder = loveElapsed % LOVE_INTERVAL_MS;
-    const loveBonusChance = loveRemainder / LOVE_INTERVAL_MS;
-    const loveAwarded = wholeLove + (Math.random() < loveBonusChance ? 1 : 0);
-
-    update.lastLoveAwardAt = now;
-    if (loveAwarded > 0) {
-      update.love = (currentUserData.love || 0) + loveAwarded;
-    }
-
     // ID Level XP — earned from harvesting (not just chatting)
     const xpFromHarvest = 10;
     const newXp = (currentUserData.xp || 0) + xpFromHarvest;
@@ -1383,11 +1351,7 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
     update.level = Math.max(currentUserData.level || 1, xpBasedLevel);
 
     db.ref('users/' + currentUser.uid).update(update).then(() => {
-      if (gemsAwarded > 0) {
-        showGiftFlash('💎');
-      } else if (loveAwarded > 0) {
-        showGiftFlash('💕');
-      }
+      showGiftFlash('🪙');
     }).finally(() => {
       harvestInProgress = false;
       const harvestBtnEl = document.getElementById('harvestBtn');
