@@ -611,6 +611,24 @@
     </div>
   </div>
 
+  <div class="seat-actions-sheet" id="famMemberManageOverlay">
+    <div class="sas-handle"></div>
+    <div class="sas-header">
+      <div class="sas-info" style="margin-left:4px;">
+        <div class="sas-name" id="famManageName">Member</div>
+        <div class="sas-sub" id="famManageRole">Member</div>
+      </div>
+      <button class="sas-close" onclick="closeFamilyMemberManageMenu()">✕</button>
+    </div>
+    <div class="owner-menu-list" style="padding:0 0 4px;">
+      <div class="owner-menu-item" onclick="setFamilyMemberRoleFromMenu('leader')">⭐ Make Leader</div>
+      <div class="owner-menu-item" onclick="setFamilyMemberRoleFromMenu('star')">🌟 Make Star</div>
+      <div class="owner-menu-item" onclick="setFamilyMemberRoleFromMenu('member')">👤 Set as Member</div>
+      <div class="owner-menu-item" onclick="transferFamilyCaptainFromMenu()">👑 Transfer Captain</div>
+      <div class="owner-menu-item danger" onclick="kickFamilyMemberFromMenu()">🚪 Remove from Family</div>
+    </div>
+  </div>
+
   <div class="seat-actions-sheet" id="seatActionsOverlay">
     <div class="sas-handle"></div>
     <div class="sas-header">

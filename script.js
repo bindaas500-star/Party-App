@@ -1991,6 +1991,95 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
 
   // ---------- FAMILY DETAILS PAGE ----------
   let familyDetailMembersCache = [];
+  let familyRolesCache = {};
+
+  // ---------- FAMILY ROLES & PERMISSIONS ----------
+  // Roles: 'captain' (= family owner, only one), 'leader', 'star', 'member' (default)
+  const FAMILY_ROLE_LIMITS = { leader: 13, star: 8 };
+
+  function getFamilyRole(uid) {
+    if (uid === currentFamilyOwnerUid) return 'captain';
+    return familyRolesCache[uid] || 'member';
+  }
+
+  function getFamilyRoleLabel(role) {
+    if (role === 'captain') return '👑 Captain';
+    if (role === 'leader') return '⭐ Leader';
+    if (role === 'star') return '🌟 Star';
+    return '';
+  }
+
+  function canManageFamilyRoles() {
+    return !!(currentUser && currentFamilyOwnerUid === currentUser.uid);
+  }
+
+  function countFamilyRole(role) {
+    return Object.values(familyRolesCache).filter(r => r === role).length;
+  }
+
+  function setFamilyMemberRole(famId, uid, newRole) {
+    if (!canManageFamilyRoles()) return;
+    if (uid === currentFamilyOwnerUid) { toast('The Captain\'s role cannot be changed this way.', 'error'); return; }
+    if ((newRole === 'leader' || newRole === 'star') && countFamilyRole(newRole) >= FAMILY_ROLE_LIMITS[newRole] && familyRolesCache[uid] !== newRole) {
+      toast('This Family already has the maximum number of ' + newRole + 's.', 'error');
+      return;
+    }
+    const path = 'families/' + famId + '/roles/' + uid;
+    const write = newRole === 'member' ? db.ref(path).remove() : db.ref(path).set(newRole);
+    write.then(() => {
+      familyRolesCache[uid] = newRole === 'member' ? undefined : newRole;
+      toast('Role updated!');
+      renderFamilyDetailMembers();
+    });
+  }
+
+  function transferFamilyCaptain(famId, newCaptainUid, newCaptainName) {
+    if (!canManageFamilyRoles()) return;
+    if (!confirm('Transfer Captain to ' + newCaptainName + '? You will become a normal member.')) return;
+    const oldCaptainUid = currentUser.uid;
+    db.ref('families/' + famId).update({ ownerUid: newCaptainUid }).then(() => {
+      // Clear any leader/star role the new captain had, and clear old captain's leftover role entry
+      db.ref('families/' + famId + '/roles/' + newCaptainUid).remove();
+      db.ref('families/' + famId + '/roles/' + oldCaptainUid).remove();
+      currentFamilyOwnerUid = newCaptainUid;
+      toast('Captain transferred to ' + newCaptainName + '.');
+      openFamilyDetails();
+    });
+  }
+
+  let famManageTargetUid = null;
+  let famManageTargetName = null;
+
+  function openFamilyMemberManageMenu(uid, name) {
+    if (!canManageFamilyRoles()) return;
+    famManageTargetUid = uid;
+    famManageTargetName = name;
+    document.getElementById('famManageName').textContent = name;
+    document.getElementById('famManageRole').textContent = getFamilyRoleLabel(getFamilyRole(uid)) || 'Member';
+    document.getElementById('famMemberManageOverlay').classList.add('show');
+  }
+
+  function closeFamilyMemberManageMenu() {
+    document.getElementById('famMemberManageOverlay').classList.remove('show');
+  }
+
+  function setFamilyMemberRoleFromMenu(newRole) {
+    if (!famManageTargetUid || !currentFamilyId) return;
+    setFamilyMemberRole(currentFamilyId, famManageTargetUid, newRole);
+    closeFamilyMemberManageMenu();
+  }
+
+  function transferFamilyCaptainFromMenu() {
+    if (!famManageTargetUid || !currentFamilyId) return;
+    closeFamilyMemberManageMenu();
+    transferFamilyCaptain(currentFamilyId, famManageTargetUid, famManageTargetName);
+  }
+
+  function kickFamilyMemberFromMenu() {
+    if (!famManageTargetUid || !currentFamilyId) return;
+    closeFamilyMemberManageMenu();
+    kickFamilyMember(currentFamilyId, famManageTargetUid, famManageTargetName);
+  }
 
   function openFamilyDetails() {
     if (!currentFamilyId) return;
@@ -2024,6 +2113,7 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
       const members = fam.members || {};
       const memberUids = Object.keys(members);
       familyDetailMembersCache = memberUids;
+      familyRolesCache = fam.roles || {};
       document.getElementById('familyDetailMembers').textContent = memberUids.length;
       document.getElementById('familyDetailCreated').textContent = fam.createdAt ? new Date(fam.createdAt).toLocaleDateString() : '—';
 
@@ -2082,30 +2172,31 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
         const card = document.createElement('div');
         card.className = 'detail-member-card';
         const avatarStyle = u.photoURL ? `style="background-image:url('${u.photoURL}');"` : '';
-        const isOwner = currentFamilyOwnerUid === uid;
-        const canKick = currentUser && currentFamilyOwnerUid === currentUser.uid && uid !== currentUser.uid;
+        const role = getFamilyRole(uid);
+        const roleLabel = getFamilyRoleLabel(role);
+        const canManage = canManageFamilyRoles() && uid !== currentUser.uid;
         card.innerHTML = `
           <div class="dmc-avatar" ${avatarStyle}>${u.photoURL ? '' : escapeHtml(u.name.charAt(0).toUpperCase())}</div>
           <div class="dmc-info">
             <div class="dmc-name-row">
               <div class="dmc-name">${escapeHtml(u.name)}</div>
-              ${isOwner ? '<span class="dmc-owner-tag">LEADER</span>' : ''}
+              ${roleLabel ? '<span class="dmc-owner-tag">' + roleLabel + '</span>' : ''}
             </div>
             <div class="dmc-badges">
               <span class="dmc-badge">🆔 Lv.${u.level || 1}</span>
               <span class="dmc-badge">👑 VIP ${u.realVipTier || 0}</span>
             </div>
           </div>
-          ${canKick ? '<div class="dmc-actions"><button class="dmc-action-btn" data-kick-uid="' + escapeHtml(uid) + '">✕</button></div>' : ''}
+          ${canManage ? '<div class="dmc-actions"><button class="dmc-action-btn" data-manage-uid="' + escapeHtml(uid) + '" data-manage-name="' + escapeHtml(u.name) + '">⋮</button></div>' : ''}
         `;
         card.onclick = (e) => {
           if (e.target.closest('.dmc-action-btn')) return;
           closeFamilyDetails();
           openSeatProfile(uid, u.name);
         };
-        const kickBtn = card.querySelector('.dmc-action-btn');
-        if (kickBtn) {
-          kickBtn.onclick = (e) => { e.stopPropagation(); kickFamilyMember(currentFamilyId, uid, u.name); };
+        const manageBtn = card.querySelector('.dmc-action-btn');
+        if (manageBtn) {
+          manageBtn.onclick = (e) => { e.stopPropagation(); openFamilyMemberManageMenu(manageBtn.dataset.manageUid, manageBtn.dataset.manageName); };
         }
         listEl.appendChild(card);
       });
