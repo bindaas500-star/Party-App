@@ -1749,14 +1749,54 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
   }
 
   const FAMILY_DAILY_TASKS = [
-    { id: 'chat', xp: 200 },
-    { id: 'sit', xp: 200 },
-    { id: 'addfriend', xp: 300 }
+    { id: 'chat', xp: 200, assets: 20, icon: '💬', name: 'Send a Family Message', desc: 'Chat in your Family chat' },
+    { id: 'sit', xp: 200, assets: 20, icon: '🪑', name: 'Sit in a Seat', desc: 'Take a seat in Room or Family' },
+    { id: 'addfriend', xp: 300, assets: 30, icon: '➕', name: 'Add a Family Friend', desc: 'Add a Family member as friend' }
   ];
 
   function getTodayDateString() {
     const d = new Date();
     return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate();
+  }
+
+  function openFamilyTasks() {
+    if (!currentFamilyId || !currentUser) return;
+    closeFamilyDetails();
+    document.getElementById('familyTasksOverlay').classList.add('show');
+    renderFamilyTasksList();
+  }
+
+  function closeFamilyTasks() {
+    document.getElementById('familyTasksOverlay').classList.remove('show');
+  }
+
+  function renderFamilyTasksList() {
+    const listEl = document.getElementById('familyTasksList');
+    listEl.innerHTML = '<div class="loading">Loading tasks...</div>';
+    const today = getTodayDateString();
+    db.ref('families/' + currentFamilyId + '/dailyTasks/' + currentUser.uid + '/' + today).once('value').then((snap) => {
+      const doneToday = snap.val() || {};
+      listEl.innerHTML = '';
+      FAMILY_DAILY_TASKS.forEach((task) => {
+        const isDone = !!doneToday[task.id];
+        const card = document.createElement('div');
+        card.className = 'fam-task-card' + (isDone ? ' done' : '');
+        card.innerHTML = `
+          <div class="ftc-icon">${task.icon}</div>
+          <div class="ftc-info">
+            <div class="ftc-name">${escapeHtml(task.name)}</div>
+            <div class="ftc-desc">${escapeHtml(task.desc)}</div>
+            <div class="ftc-reward">+${task.xp} XP · +${task.assets} 💰 Assets</div>
+          </div>
+          <div class="ftc-status">${isDone ? '✓' : ''}</div>
+        `;
+        listEl.appendChild(card);
+      });
+      const footNote = document.createElement('div');
+      footNote.style.cssText = 'text-align:center; color:rgba(255,255,255,0.35); font-size:11px; margin-top:8px;';
+      footNote.textContent = 'Resets daily · completed automatically as you do these things';
+      listEl.appendChild(footNote);
+    });
   }
 
   function completeFamilyTask(famId, taskId) {
@@ -1769,7 +1809,8 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
       if (snap.val()) return; // already completed today
       db.ref(path).set(true);
       addGroupActivityXp('families/' + famId + '/activityXp', task.xp);
-      toast('Task complete! +' + task.xp + ' Family XP 🎉');
+      addGroupActivityXp('families/' + famId + '/assets', task.assets);
+      toast('Task complete! +' + task.xp + ' Family XP, +' + task.assets + ' Assets 🎉');
     });
   }
 
@@ -2101,6 +2142,8 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
       }
 
       document.getElementById('familyDetailName').textContent = fam.name;
+      document.getElementById('familyDetailAssets').textContent = formatNum(fam.assets || 0);
+      computeFamilyRank(currentFamilyId, fam.activityXp || 0);
 
       if (!fam.familyNumericId) {
         const numericId = Math.floor(1000000 + Math.random() * 8999999);
@@ -2149,6 +2192,19 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
       document.getElementById('familyMemberSearch').value = '';
       renderFamilyDetailMembers();
       document.getElementById('familyDetailsOverlay').classList.add('show');
+    });
+  }
+
+  function computeFamilyRank(famId, myActivityXp) {
+    const rankEl = document.getElementById('familyDetailRank');
+    rankEl.textContent = '…';
+    db.ref('families').once('value').then((snap) => {
+      const all = snap.val() || {};
+      const sorted = Object.entries(all)
+        .map(([id, f]) => ({ id, xp: f.activityXp || 0 }))
+        .sort((a, b) => b.xp - a.xp);
+      const position = sorted.findIndex(f => f.id === famId);
+      rankEl.textContent = position >= 0 ? ('#' + (position + 1)) : '—';
     });
   }
 

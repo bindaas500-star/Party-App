@@ -593,10 +593,14 @@
         <div class="detail-xp-bar-bg"><div class="detail-xp-bar-fill" id="familyDetailXpFill" style="width:0%;"></div></div>
         <div class="detail-xp-text" id="familyDetailXpText">0 / 15000 XP</div>
       </div>
+      <div class="detail-stats-row" style="margin-bottom:16px;">
+        <div class="detail-stat"><div class="ds-value" id="familyDetailRank">—</div><div class="ds-label">Family Rank</div></div>
+        <div class="detail-stat"><div class="ds-value" id="familyDetailAssets">0</div><div class="ds-label">💰 Assets</div></div>
+      </div>
       <div class="detail-owner-row" id="familyDetailOwnerRow">
         <div class="dor-avatar" id="familyDetailOwnerAvatar">?</div>
         <div>
-          <div class="dor-label">Family Leader</div>
+          <div class="dor-label">Captain</div>
           <div class="dor-name" id="familyDetailOwnerName">—</div>
         </div>
       </div>
@@ -604,6 +608,7 @@
       <div class="detail-action-row">
         <button class="detail-action-btn" onclick="shareFamilyDetails()">🔗 Share Family</button>
         <button class="detail-action-btn" onclick="inviteFriendsToFamily()">➕ Invite Friends</button>
+        <button class="detail-action-btn" onclick="openFamilyTasks()">📋 Tasks</button>
       </div>
       <input type="text" id="familyMemberSearch" class="detail-search" placeholder="🔍 Search members..." oninput="renderFamilyDetailMembers()">
       <div class="detail-section-label">Members</div>
@@ -649,6 +654,18 @@
       <div class="sas-action danger" id="seatActionsKickItem" style="display:none;" onclick="seatActionsKick()"><div class="sas-icon">🚪</div><div class="sas-label">Kick Out</div></div>
       <div class="sas-action danger" id="seatActionsBanItem" style="display:none;" onclick="toast('Ban system is coming soon!')"><div class="sas-icon">⛔</div><div class="sas-label">Ban</div><div class="sas-soon">Soon</div></div>
       <div class="sas-action" id="seatActionsModItem" style="display:none;" onclick="toast('Moderator roles are coming soon!')"><div class="sas-icon">🛡️</div><div class="sas-label">Moderator</div><div class="sas-soon">Soon</div></div>
+    </div>
+  </div>
+
+  <!-- ===== FAMILY TASKS ===== -->
+  <div class="rank-overlay" id="familyTasksOverlay">
+    <div class="rank-header">
+      <button onclick="closeFamilyTasks()">←</button>
+      <h2>📋 Family Tasks</h2>
+    </div>
+    <div style="padding: 0 16px 12px; color:rgba(255,255,255,0.5); font-size:12px;">Complete these each day to earn Family XP and Assets for your Family.</div>
+    <div id="familyTasksList" style="padding: 0 16px 30px;">
+      <div class="loading">Loading tasks...</div>
     </div>
   </div>
 
