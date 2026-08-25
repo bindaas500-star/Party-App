@@ -545,39 +545,85 @@
     loadLeaderboard();
   }
 
+  const RANK_CATEGORY_CONFIG = {
+    honor: { field: 'coins', icon: '🪙', label: 'ID Lv.', labelField: 'level' },
+    vip: { field: 'realVipTier', icon: '👑', label: 'VIP', labelField: null },
+    charm: { field: 'charmScore', icon: '💖', label: 'Charm', labelField: null },
+    boss: { field: 'bossScore', icon: '💸', label: 'Boss', labelField: null }
+  };
+
   function loadLeaderboard() {
     const listEl = document.getElementById('rankList');
     listEl.innerHTML = '<div class="loading">Loading leaderboard...</div>';
 
-    if (currentRankTab !== 'honor') {
-      listEl.innerHTML = '<div class="loading">Coming soon for this category.</div>';
-      return;
-    }
     if (currentRankSubtab !== 'today') {
       listEl.innerHTML = '<div class="loading">Coming soon — check back later.</div>';
       return;
     }
 
-    db.ref('users').orderByChild('coins').limitToLast(30).once('value').then((snap) => {
+    if (currentRankTab === 'rooms') {
+      loadRoomsLeaderboard(listEl);
+      return;
+    }
+
+    const config = RANK_CATEGORY_CONFIG[currentRankTab];
+    if (!config) {
+      listEl.innerHTML = '<div class="loading">Coming soon for this category.</div>';
+      return;
+    }
+
+    db.ref('users').orderByChild(config.field).limitToLast(30).once('value').then((snap) => {
       const data = snap.val();
       listEl.innerHTML = '';
       if (!data) {
         listEl.innerHTML = '<div class="loading">No players yet.</div>';
         return;
       }
-      const players = Object.values(data).sort((a, b) => (b.coins || 0) - (a.coins || 0));
+      const players = Object.values(data).sort((a, b) => (b[config.field] || 0) - (a[config.field] || 0));
       players.forEach((p, i) => {
         const row = document.createElement('div');
         row.className = 'rank-row';
+        const subText = config.labelField ? (config.label + ' ' + (p[config.labelField] || 1)) : ('ID Lv. ' + (p.level || 1));
         row.innerHTML = `
           <div class="rank-num">${i + 1}</div>
           <div class="rank-avatar">${escapeHtml((p.name || 'U').charAt(0).toUpperCase())}</div>
           <div class="rank-info">
             <div class="rank-name">${escapeHtml(p.name || 'User')}</div>
-            <div class="rank-sub">ID Lv. ${p.level || 1}</div>
+            <div class="rank-sub">${subText}</div>
           </div>
-          <div class="rank-value">🪙 ${formatNum(p.coins || 0)}</div>
+          <div class="rank-value">${config.icon} ${formatNum(p[config.field] || 0)}</div>
         `;
+        listEl.appendChild(row);
+      });
+    });
+  }
+
+  function loadRoomsLeaderboard(listEl) {
+    db.ref('liveRooms').orderByChild('activityScore').limitToLast(30).once('value').then((snap) => {
+      const data = snap.val();
+      listEl.innerHTML = '';
+      if (!data) {
+        listEl.innerHTML = '<div class="loading">No active rooms yet.</div>';
+        return;
+      }
+      const rooms = Object.entries(data)
+        .map(([id, r]) => ({ id, ...r }))
+        .sort((a, b) => (b.activityScore || 0) - (a.activityScore || 0));
+      rooms.forEach((r, i) => {
+        const onlineCount = r.seats ? Object.keys(r.seats).length : 0;
+        const row = document.createElement('div');
+        row.className = 'rank-row';
+        row.style.cursor = 'pointer';
+        row.innerHTML = `
+          <div class="rank-num">${i + 1}</div>
+          <div class="rank-avatar">${escapeHtml((r.name || 'R').charAt(0).toUpperCase())}</div>
+          <div class="rank-info">
+            <div class="rank-name">${escapeHtml(r.name || 'Room')}</div>
+            <div class="rank-sub">🟢 ${onlineCount} online</div>
+          </div>
+          <div class="rank-value">🔥 ${formatNum(r.activityScore || 0)}</div>
+        `;
+        row.onclick = () => { closeRankView(); switchTab('room'); enterRoom(r.id, r.name); };
         listEl.appendChild(row);
       });
     });
@@ -3438,7 +3484,15 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
     const perRecipientCost = giftSelectedItem.cost * giftQty;
     const perRecipientReward = Math.floor(perRecipientCost * 0.5);
 
-    db.ref('users/' + currentUser.uid).update({ love: myLove - totalCost });
+    db.ref('users/' + currentUser.uid).update({
+      love: myLove - totalCost,
+      bossScore: (currentUserData.bossScore || 0) + totalCost
+    });
+    if (giftContext === 'room') {
+      db.ref('liveRooms/' + giftContextId + '/activityScore').once('value').then((s) => {
+        db.ref('liveRooms/' + giftContextId + '/activityScore').set((s.val() || 0) + totalCost);
+      });
+    }
     addUserRoomXp(currentUser.uid, totalCost);
     if (giftContext === 'family') completeFamilyTask(giftContextId, 'sendgift');
 
@@ -3451,7 +3505,10 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
       db.ref('users/' + uid).once('value').then((snap) => {
         const rData = snap.val();
         if (rData) {
-          db.ref('users/' + uid).update({ love: (rData.love || 0) + perRecipientReward });
+          db.ref('users/' + uid).update({
+            love: (rData.love || 0) + perRecipientReward,
+            charmScore: (rData.charmScore || 0) + perRecipientCost
+          });
         }
         addUserRoomXp(uid, perRecipientCost);
         if (giftContext === 'family') completeFamilyTask(giftContextId, 'receivegift', uid);
