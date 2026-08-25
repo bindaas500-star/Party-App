@@ -1632,6 +1632,7 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
     document.getElementById('familyInsideView').style.display = 'flex';
     listenToFamilySeats(famId);
     spawnFloatingHearts('familyFloatingHearts');
+    completeFamilyTask(famId, 'login');
 
     const famRef = db.ref('families/' + famId);
     famRef.once('value').then((snap) => {
@@ -1749,9 +1750,12 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
   }
 
   const FAMILY_DAILY_TASKS = [
+    { id: 'login', xp: 100, assets: 10, icon: '📅', name: 'Daily Login', desc: 'Open the app today' },
     { id: 'chat', xp: 200, assets: 20, icon: '💬', name: 'Send a Family Message', desc: 'Chat in your Family chat' },
     { id: 'sit', xp: 200, assets: 20, icon: '🪑', name: 'Sit in a Seat', desc: 'Take a seat in Room or Family' },
-    { id: 'addfriend', xp: 300, assets: 30, icon: '➕', name: 'Add a Family Friend', desc: 'Add a Family member as friend' }
+    { id: 'addfriend', xp: 300, assets: 30, icon: '➕', name: 'Add a Family Friend', desc: 'Add a Family member as friend' },
+    { id: 'sendgift', xp: 250, assets: 25, icon: '🎁', name: 'Send a Gift', desc: 'Send a gift to a Family member' },
+    { id: 'receivegift', xp: 150, assets: 15, icon: '🎉', name: 'Receive a Gift', desc: 'Receive a gift from a Family member' }
   ];
 
   function getTodayDateString() {
@@ -1799,18 +1803,21 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
     });
   }
 
-  function completeFamilyTask(famId, taskId) {
+  function completeFamilyTask(famId, taskId, forUid) {
     if (!currentUser || !famId) return;
+    const targetUid = forUid || currentUser.uid;
     const task = FAMILY_DAILY_TASKS.find(t => t.id === taskId);
     if (!task) return;
     const today = getTodayDateString();
-    const path = 'families/' + famId + '/dailyTasks/' + currentUser.uid + '/' + today + '/' + taskId;
+    const path = 'families/' + famId + '/dailyTasks/' + targetUid + '/' + today + '/' + taskId;
     db.ref(path).once('value').then((snap) => {
       if (snap.val()) return; // already completed today
       db.ref(path).set(true);
       addGroupActivityXp('families/' + famId + '/activityXp', task.xp);
       addGroupActivityXp('families/' + famId + '/assets', task.assets);
-      toast('Task complete! +' + task.xp + ' Family XP, +' + task.assets + ' Assets 🎉');
+      if (targetUid === currentUser.uid) {
+        toast('Task complete! +' + task.xp + ' Family XP, +' + task.assets + ' Assets 🎉');
+      }
     });
   }
 
@@ -3433,6 +3440,7 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
 
     db.ref('users/' + currentUser.uid).update({ love: myLove - totalCost });
     addUserRoomXp(currentUser.uid, totalCost);
+    if (giftContext === 'family') completeFamilyTask(giftContextId, 'sendgift');
 
     const recipientNames = [];
     let pending = recipientUids.length;
@@ -3446,6 +3454,7 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
           db.ref('users/' + uid).update({ love: (rData.love || 0) + perRecipientReward });
         }
         addUserRoomXp(uid, perRecipientCost);
+        if (giftContext === 'family') completeFamilyTask(giftContextId, 'receivegift', uid);
         addActivity(uid, 'social', currentUserData.name + ' sent you ' + giftQty + '× ' + giftSelectedItem.emoji + ' ' + giftSelectedItem.name + '!');
         pending--;
         if (pending === 0) finishGiftSend(recipientNames);
