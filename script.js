@@ -565,6 +565,10 @@
       loadRoomsLeaderboard(listEl);
       return;
     }
+    if (currentRankTab === 'soulmate') {
+      loadSoulmateLeaderboard(listEl);
+      return;
+    }
 
     const config = RANK_CATEGORY_CONFIG[currentRankTab];
     if (!config) {
@@ -592,6 +596,40 @@
             <div class="rank-sub">${subText}</div>
           </div>
           <div class="rank-value">${config.icon} ${formatNum(p[config.field] || 0)}</div>
+        `;
+        listEl.appendChild(row);
+      });
+    });
+  }
+
+  function loadSoulmateLeaderboard(listEl) {
+    db.ref('users').orderByChild('soulmateScore').limitToLast(60).once('value').then((snap) => {
+      const data = snap.val();
+      listEl.innerHTML = '';
+      if (!data) { listEl.innerHTML = '<div class="loading">No Soulmate pairs yet.</div>'; return; }
+      const seenPairs = new Set();
+      const pairs = [];
+      Object.entries(data).forEach(([uid, u]) => {
+        if (!u.soulmateUid || !u.soulmateScore) return;
+        const pairKey = [uid, u.soulmateUid].sort().join('_');
+        if (seenPairs.has(pairKey)) return;
+        seenPairs.add(pairKey);
+        const partner = data[u.soulmateUid];
+        pairs.push({ name: u.name, partnerName: partner ? partner.name : 'User', score: u.soulmateScore });
+      });
+      pairs.sort((a, b) => b.score - a.score);
+      if (!pairs.length) { listEl.innerHTML = '<div class="loading">No Soulmate pairs yet.</div>'; return; }
+      pairs.forEach((pair, i) => {
+        const row = document.createElement('div');
+        row.className = 'rank-row';
+        row.innerHTML = `
+          <div class="rank-num">${i + 1}</div>
+          <div class="rank-avatar">💞</div>
+          <div class="rank-info">
+            <div class="rank-name">${escapeHtml(pair.name)} & ${escapeHtml(pair.partnerName)}</div>
+            <div class="rank-sub">Soulmates</div>
+          </div>
+          <div class="rank-value">💖 ${formatNum(pair.score)}</div>
         `;
         listEl.appendChild(row);
       });
@@ -726,18 +764,38 @@
   }
 
   function loadActivityList(contentEl, filterType) {
-    db.ref('users/' + currentUser.uid + '/activity').limitToLast(50).once('value').then((snap) => {
-      const data = snap.val();
-      const emptyMsg = filterType === 'social' ? '🔔 No notifications yet — gifts and friend activity will show up here.' : '🎁 No activity yet — your actions will show up here.';
+    const soulmateRequestsPromise = filterType === 'social'
+      ? db.ref('soulmateRequests/' + currentUser.uid).once('value')
+      : Promise.resolve(null);
+
+    soulmateRequestsPromise.then((reqSnap) => {
       contentEl.innerHTML = '';
-      if (!data) { contentEl.innerHTML = `<div class="loading">${emptyMsg}</div>`; return; }
-      const items = Object.values(data).filter(a => a.type === filterType).sort((a, b) => b.timestamp - a.timestamp);
-      if (!items.length) { contentEl.innerHTML = `<div class="loading">${emptyMsg}</div>`; return; }
-      items.forEach((item) => {
-        const row = document.createElement('div');
-        row.className = 'rank-row';
-        row.innerHTML = `<div class="rank-info"><div class="rank-name">${escapeHtml(item.text)}</div><div class="rank-sub">${timeAgo(item.timestamp)}</div></div>`;
-        contentEl.appendChild(row);
+      if (reqSnap) {
+        const requests = reqSnap.val() || {};
+        Object.entries(requests).forEach(([fromUid, req]) => {
+          const row = document.createElement('div');
+          row.className = 'rank-row';
+          row.innerHTML = `<div class="rank-info"><div class="rank-name">💞 ${escapeHtml(req.fromName)} wants to be your Soulmate</div><div class="rank-sub">${timeAgo(req.timestamp)}</div></div>
+            <button style="background:linear-gradient(90deg,#ff6b9d,#c44dff);border:none;color:#fff;padding:7px 12px;border-radius:12px;font-size:11.5px;font-weight:700;cursor:pointer;margin-right:6px;">Accept</button>
+            <button style="background:rgba(255,255,255,0.1);border:none;color:#fff;padding:7px 12px;border-radius:12px;font-size:11.5px;font-weight:700;cursor:pointer;">✕</button>`;
+          const buttons = row.querySelectorAll('button');
+          buttons[0].onclick = () => acceptSoulmateRequest(fromUid, req.fromName);
+          buttons[1].onclick = () => rejectSoulmateRequest(fromUid);
+          contentEl.appendChild(row);
+        });
+      }
+
+      db.ref('users/' + currentUser.uid + '/activity').limitToLast(50).once('value').then((snap) => {
+        const data = snap.val();
+        const emptyMsg = filterType === 'social' ? '🔔 No notifications yet — gifts and friend activity will show up here.' : '🎁 No activity yet — your actions will show up here.';
+        const items = data ? Object.values(data).filter(a => a.type === filterType).sort((a, b) => b.timestamp - a.timestamp) : [];
+        if (!items.length && !contentEl.children.length) { contentEl.innerHTML = `<div class="loading">${emptyMsg}</div>`; return; }
+        items.forEach((item) => {
+          const row = document.createElement('div');
+          row.className = 'rank-row';
+          row.innerHTML = `<div class="rank-info"><div class="rank-name">${escapeHtml(item.text)}</div><div class="rank-sub">${timeAgo(item.timestamp)}</div></div>`;
+          contentEl.appendChild(row);
+        });
       });
     });
   }
@@ -2904,6 +2962,14 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
           document.getElementById('seatProfFamilyValue').textContent = fam ? fam.name : 'None';
         });
       }
+      const soulmateBannerEl = document.querySelector('.seat-prof-banner.soulmate');
+      if (currentUserData && currentUserData.soulmateUid === uid) {
+        soulmateBannerEl.innerHTML = '<span>💔 End Soulmate Bond (Score: ' + formatNum(currentUserData.soulmateScore || 0) + ')</span>';
+        soulmateBannerEl.onclick = endSoulmateBond;
+      } else {
+        soulmateBannerEl.innerHTML = '<span>💞 Become a Soulmate</span>';
+        soulmateBannerEl.onclick = sendSoulmateRequest;
+      }
     });
 
     document.getElementById('seatProfileOverlay').classList.add('show');
@@ -2911,6 +2977,85 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
 
   function closeSeatProfile() {
     document.getElementById('seatProfileOverlay').classList.remove('show');
+  }
+
+  // ---------- SOULMATE SYSTEM ----------
+  const SOULMATE_REQUEST_COST = 900;
+  const SOULMATE_ACCEPT_REWARD_PCT = 0.5; // accepter gets this fraction of the cost as a welcome gift
+
+  function sendSoulmateRequest() {
+    if (!currentUser || !seatProfileUid) return;
+    if (seatProfileUid === currentUser.uid) { alert("You can't become soulmates with yourself."); return; }
+    if (currentUserData.soulmateUid === seatProfileUid) { toast('You are already soulmates with ' + seatProfileName + '!'); return; }
+    if (currentUserData.soulmateUid) { toast('You already have a Soulmate. End that bond first.', 'error'); return; }
+    if ((currentUserData.love || 0) < SOULMATE_REQUEST_COST) { toast('You need 💕 ' + SOULMATE_REQUEST_COST + ' Love Coins to send a Soulmate request.', 'error'); return; }
+
+    db.ref('users/' + seatProfileUid).once('value').then((snap) => {
+      const target = snap.val();
+      if (!target) return;
+      if (target.soulmateUid) { toast(seatProfileName + ' already has a Soulmate.', 'error'); return; }
+
+      db.ref('soulmateRequests/' + seatProfileUid + '/' + currentUser.uid).once('value').then((reqSnap) => {
+        if (reqSnap.val()) { toast('Request already sent.', 'error'); return; }
+        db.ref('users/' + currentUser.uid).update({ love: (currentUserData.love || 0) - SOULMATE_REQUEST_COST });
+        db.ref('soulmateRequests/' + seatProfileUid + '/' + currentUser.uid).set({
+          fromName: currentUserData.name,
+          timestamp: Date.now(),
+          cost: SOULMATE_REQUEST_COST
+        });
+        addActivity(seatProfileUid, 'social', currentUserData.name + ' wants to become your Soulmate! 💞');
+        toast('Soulmate request sent to ' + seatProfileName + '! (−💕 ' + SOULMATE_REQUEST_COST + ')');
+      });
+    });
+  }
+
+  function acceptSoulmateRequest(fromUid, fromName) {
+    if (!currentUser || !currentUserData) return;
+    if (currentUserData.soulmateUid) { toast('You already have a Soulmate.', 'error'); return; }
+    db.ref('soulmateRequests/' + currentUser.uid + '/' + fromUid).once('value').then((reqSnap) => {
+      const req = reqSnap.val();
+      const cost = (req && req.cost) || SOULMATE_REQUEST_COST;
+      const welcomeGift = Math.round(cost * SOULMATE_ACCEPT_REWARD_PCT);
+
+      db.ref('users/' + fromUid).once('value').then((snap) => {
+        const other = snap.val();
+        if (other && other.soulmateUid) {
+          toast(fromName + ' already has a Soulmate.', 'error');
+          db.ref('soulmateRequests/' + currentUser.uid + '/' + fromUid).remove();
+          db.ref('users/' + fromUid).update({ love: (other.love || 0) + cost }); // refund sender
+          return;
+        }
+        db.ref('users/' + currentUser.uid).update({ soulmateUid: fromUid, soulmateScore: 0, love: (currentUserData.love || 0) + welcomeGift });
+        db.ref('users/' + fromUid).update({ soulmateUid: currentUser.uid, soulmateScore: 0 });
+        db.ref('soulmateRequests/' + currentUser.uid + '/' + fromUid).remove();
+        addActivity(fromUid, 'social', currentUserData.name + ' accepted your Soulmate request! 💞');
+        toast('You are now Soulmates with ' + fromName + '! (+💕 ' + welcomeGift + ' welcome gift) 💞');
+        loadListOverlayContent();
+      });
+    });
+  }
+
+  function rejectSoulmateRequest(fromUid) {
+    if (!currentUser) return;
+    db.ref('soulmateRequests/' + currentUser.uid + '/' + fromUid).once('value').then((reqSnap) => {
+      const req = reqSnap.val();
+      const cost = (req && req.cost) || SOULMATE_REQUEST_COST;
+      db.ref('users/' + fromUid).once('value').then((snap) => {
+        const sender = snap.val();
+        if (sender) db.ref('users/' + fromUid).update({ love: (sender.love || 0) + cost }); // refund
+        db.ref('soulmateRequests/' + currentUser.uid + '/' + fromUid).remove().then(() => loadListOverlayContent());
+      });
+    });
+  }
+
+  function endSoulmateBond() {
+    if (!currentUser || !currentUserData || !currentUserData.soulmateUid) return;
+    if (!confirm('End your Soulmate bond? This cannot be undone.')) return;
+    const otherUid = currentUserData.soulmateUid;
+    db.ref('users/' + currentUser.uid).update({ soulmateUid: null, soulmateScore: 0 });
+    db.ref('users/' + otherUid).update({ soulmateUid: null, soulmateScore: 0 });
+    toast('Soulmate bond ended.');
+    closeSeatProfile();
   }
 
   function giftFromSeatProfile() {
@@ -3511,6 +3656,10 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
           });
         }
         addUserRoomXp(uid, perRecipientCost);
+        if (currentUserData.soulmateUid === uid) {
+          db.ref('users/' + currentUser.uid + '/soulmateScore').once('value').then((s) => db.ref('users/' + currentUser.uid + '/soulmateScore').set((s.val() || 0) + perRecipientCost));
+          db.ref('users/' + uid + '/soulmateScore').once('value').then((s) => db.ref('users/' + uid + '/soulmateScore').set((s.val() || 0) + perRecipientCost));
+        }
         if (giftContext === 'family') completeFamilyTask(giftContextId, 'receivegift', uid);
         addActivity(uid, 'social', currentUserData.name + ' sent you ' + giftQty + '× ' + giftSelectedItem.emoji + ' ' + giftSelectedItem.name + '!');
         pending--;
