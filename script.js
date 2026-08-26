@@ -1337,6 +1337,7 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
 
   function renderHome() {
     if (!currentUserData) return;
+    initFarm3D();
 
     // Fix old accounts that were created before the harvest system existed —
     // without this, lastHarvestAt is missing and coins never accumulate.
@@ -1369,6 +1370,116 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
 
   const CROP_EMOJIS = ['🥕','🌽','🥬','🍅','🌻','🥦','🍆','🌾','🥔','🌿'];
 
+  // ---------- 3D FARM SCENE (Three.js, low-poly, mobile-friendly) ----------
+  let farm3D = null; // { scene, camera, renderer, plotMeshes, animId, visible }
+  let farm3DFailed = false;
+
+  function initFarm3D() {
+    if (farm3D || farm3DFailed) return;
+    if (typeof THREE === 'undefined') {
+      // Three.js failed to load (e.g. offline/CDN blocked) — fall back to the classic 2D grid
+      farm3DFailed = true;
+      const wrap3d = document.getElementById('farm3dWrap');
+      const grid2d = document.getElementById('plotsGrid10');
+      if (wrap3d) wrap3d.style.display = 'none';
+      if (grid2d) grid2d.style.display = 'grid';
+      return;
+    }
+    const wrap = document.getElementById('farm3dWrap');
+    const canvas = document.getElementById('farm3dCanvas');
+    if (!wrap || !canvas) return;
+
+    const scene = new THREE.Scene();
+    scene.fog = new THREE.Fog(0x2d5a2f, 8, 20);
+
+    const camera = new THREE.PerspectiveCamera(42, wrap.clientWidth / wrap.clientHeight, 0.1, 100);
+    camera.position.set(0, 6.2, 7.2);
+    camera.lookAt(0, 0, 0);
+
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.setSize(wrap.clientWidth, wrap.clientHeight);
+
+    // Lighting — simple, cheap
+    scene.add(new THREE.AmbientLight(0xffffff, 0.65));
+    const sun = new THREE.DirectionalLight(0xfff3d6, 0.9);
+    sun.position.set(4, 8, 3);
+    scene.add(sun);
+
+    // Ground
+    const groundGeo = new THREE.CircleGeometry(6, 24);
+    const groundMat = new THREE.MeshLambertMaterial({ color: 0x3a7a3f });
+    const ground = new THREE.Mesh(groundGeo, groundMat);
+    ground.rotation.x = -Math.PI / 2;
+    scene.add(ground);
+
+    // Plots — arranged in 2 rows of 5, matching PLOTS array order
+    const plotMeshes = [];
+    const cols = 5, rows = 2, spacing = 1.15;
+    for (let i = 0; i < 10; i++) {
+      const col = i % cols;
+      const row = Math.floor(i / cols);
+      const x = (col - (cols - 1) / 2) * spacing;
+      const z = (row - (rows - 1) / 2) * spacing * 1.3;
+
+      const boxGeo = new THREE.BoxGeometry(0.85, 0.35, 0.85);
+      const boxMat = new THREE.MeshLambertMaterial({ color: 0x3a2a1a });
+      const box = new THREE.Mesh(boxGeo, boxMat);
+      box.position.set(x, 0.18, z);
+      scene.add(box);
+
+      const cropGeo = new THREE.ConeGeometry(0.22, 0.4, 6);
+      const cropMat = new THREE.MeshLambertMaterial({ color: 0x2a5a2a });
+      const crop = new THREE.Mesh(cropGeo, cropMat);
+      crop.position.set(x, 0.55, z);
+      crop.visible = false;
+      scene.add(crop);
+
+      plotMeshes.push({ box, boxMat, crop, cropMat });
+    }
+
+    farm3D = { scene, camera, renderer, plotMeshes, wrap, animId: null, visible: true, angle: 0 };
+
+    function animate() {
+      if (!farm3D) return;
+      farm3D.animId = requestAnimationFrame(animate);
+      if (!farm3D.visible) return;
+      farm3D.angle += 0.0025;
+      farm3D.camera.position.x = Math.sin(farm3D.angle) * 1.1;
+      farm3D.camera.lookAt(0, 0, 0);
+      farm3D.renderer.render(farm3D.scene, farm3D.camera);
+    }
+    animate();
+
+    // Pause rendering when the tab/page isn't visible (battery/perf safeguard)
+    document.addEventListener('visibilitychange', () => {
+      if (farm3D) farm3D.visible = !document.hidden;
+    });
+
+    window.addEventListener('resize', () => {
+      if (!farm3D) return;
+      const w = wrap.clientWidth, h = wrap.clientHeight;
+      farm3D.camera.aspect = w / h;
+      farm3D.camera.updateProjectionMatrix();
+      farm3D.renderer.setSize(w, h);
+    });
+  }
+
+  function updateFarm3DPlots(farmLevel) {
+    if (!farm3D && !farm3DFailed) {
+      // Attempt lazy init in case Three.js finished loading after first renderPlots() call
+      initFarm3D();
+    }
+    if (!farm3D) return; // Three.js unavailable — fallback grid stays visible via CSS below
+    PLOTS.forEach((plot, i) => {
+      const mesh = farm3D.plotMeshes[i];
+      if (!mesh) return;
+      const isUnlocked = farmLevel >= plot.requiredLevel;
+      mesh.boxMat.color.set(isUnlocked ? 0x7a4f24 : 0x2a2a2a);
+      mesh.crop.visible = isUnlocked;
+    });
+  }
+
   function renderPlots() {
     const farmLevel = getFarmLevel();
     const gridEl = document.getElementById('plotsGrid10');
@@ -1386,6 +1497,8 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
       }
       gridEl.appendChild(cell);
     });
+
+    updateFarm3DPlots(farmLevel);
   }
 
   function upgradeFarm() {

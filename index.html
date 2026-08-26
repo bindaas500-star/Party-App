@@ -189,7 +189,11 @@
 
       <!-- Farm -->
 
-      <div class="farm-grid" id="plotsGrid10" style="position:relative; z-index:1;">
+      <div class="farm3d-wrap" id="farm3dWrap" style="position:relative; z-index:1;">
+        <canvas id="farm3dCanvas"></canvas>
+      </div>
+
+      <div class="farm-grid" id="plotsGrid10" style="position:relative; z-index:1; display:none;">
 
       </div>
 
@@ -993,6 +997,7 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
 <script>
   window.onerror = function(msg, url, line, col, error) {
