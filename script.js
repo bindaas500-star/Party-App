@@ -1377,7 +1377,6 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
   function initFarm3D() {
     if (farm3D || farm3DFailed) return;
     if (typeof THREE === 'undefined') {
-      // Three.js failed to load (e.g. offline/CDN blocked) — fall back to the classic 2D grid
       farm3DFailed = true;
       const wrap3d = document.getElementById('farm3dWrap');
       const grid2d = document.getElementById('plotsGrid10');
@@ -1390,68 +1389,325 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
     if (!wrap || !canvas) return;
 
     const scene = new THREE.Scene();
-    scene.fog = new THREE.Fog(0x2d5a2f, 8, 20);
+    scene.fog = new THREE.Fog(0x9fd8e8, 14, 26);
 
-    const camera = new THREE.PerspectiveCamera(42, wrap.clientWidth / wrap.clientHeight, 0.1, 100);
-    camera.position.set(0, 6.2, 7.2);
+    // Isometric-style camera — orthographic gives that clean mobile-game farm look
+    const aspect = wrap.clientWidth / wrap.clientHeight;
+    const viewSize = 7.2;
+    const camera = new THREE.OrthographicCamera(
+      -viewSize * aspect, viewSize * aspect, viewSize, -viewSize, 0.1, 100
+    );
+    camera.position.set(9, 9, 9);
     camera.lookAt(0, 0, 0);
 
     const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     renderer.setSize(wrap.clientWidth, wrap.clientHeight);
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
-    // Lighting — simple, cheap
-    scene.add(new THREE.AmbientLight(0xffffff, 0.65));
-    const sun = new THREE.DirectionalLight(0xfff3d6, 0.9);
-    sun.position.set(4, 8, 3);
+    // ---- Lighting ----
+    scene.add(new THREE.HemisphereLight(0xbde3ff, 0x4a7a3f, 0.7));
+    const sun = new THREE.DirectionalLight(0xfff3d6, 1.05);
+    sun.position.set(6, 10, 4);
+    sun.castShadow = true;
+    sun.shadow.mapSize.set(1024, 1024);
+    sun.shadow.camera.left = -9; sun.shadow.camera.right = 9;
+    sun.shadow.camera.top = 9; sun.shadow.camera.bottom = -9;
+    sun.shadow.camera.far = 30;
     scene.add(sun);
 
-    // Ground
-    const groundGeo = new THREE.CircleGeometry(6, 24);
-    const groundMat = new THREE.MeshLambertMaterial({ color: 0x3a7a3f });
-    const ground = new THREE.Mesh(groundGeo, groundMat);
-    ground.rotation.x = -Math.PI / 2;
-    scene.add(ground);
+    const island = new THREE.Group();
+    scene.add(island);
 
-    // Plots — arranged in 2 rows of 5, matching PLOTS array order
+    // ---- Base terrain (rounded island, layered for depth) ----
+    const baseGeo = new THREE.CylinderGeometry(6.4, 6.9, 1, 8, 1);
+    const baseMat = new THREE.MeshLambertMaterial({ color: 0x8a6a45 });
+    const base = new THREE.Mesh(baseGeo, baseMat);
+    base.position.y = -0.5;
+    base.receiveShadow = true;
+    island.add(base);
+
+    const grassGeo = new THREE.CylinderGeometry(6.3, 6.3, 0.35, 8, 1);
+    const grassMat = new THREE.MeshLambertMaterial({ color: 0x5fae4f });
+    const grass = new THREE.Mesh(grassGeo, grassMat);
+    grass.position.y = 0.17;
+    grass.receiveShadow = true;
+    island.add(grass);
+
+    // Pathway ring (light dirt path connecting plots/buildings)
+    const pathGeo = new THREE.RingGeometry(3.1, 3.5, 32);
+    const pathMat = new THREE.MeshLambertMaterial({ color: 0xd8bd8a, side: THREE.DoubleSide });
+    const path = new THREE.Mesh(pathGeo, pathMat);
+    path.rotation.x = -Math.PI / 2;
+    path.position.y = 0.36;
+    island.add(path);
+
+    // Small pond
+    const pondGeo = new THREE.CircleGeometry(1.0, 24);
+    const pondMat = new THREE.MeshPhongMaterial({ color: 0x5fb8d9, shininess: 80 });
+    const pond = new THREE.Mesh(pondGeo, pondMat);
+    pond.rotation.x = -Math.PI / 2;
+    pond.position.set(-4.4, 0.37, 3.6);
+    island.add(pond);
+    const pondRim = new THREE.Mesh(new THREE.RingGeometry(1.0, 1.18, 24), new THREE.MeshLambertMaterial({ color: 0xc9c2a8 }));
+    pondRim.rotation.x = -Math.PI / 2;
+    pondRim.position.set(-4.4, 0.365, 3.6);
+    island.add(pondRim);
+
+    // ---- Helper builders ----
+    function lowPolyTree(x, z, scale) {
+      const g = new THREE.Group();
+      const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.11, 0.55, 6), new THREE.MeshLambertMaterial({ color: 0x6b4726 }));
+      trunk.position.y = 0.27; trunk.castShadow = true;
+      g.add(trunk);
+      const leafColors = [0x4f9a4a, 0x5fae4f, 0x3f8a44];
+      for (let i = 0; i < 3; i++) {
+        const leaf = new THREE.Mesh(new THREE.ConeGeometry(0.42 - i * 0.08, 0.55, 7), new THREE.MeshLambertMaterial({ color: leafColors[i] }));
+        leaf.position.y = 0.62 + i * 0.38;
+        leaf.castShadow = true;
+        g.add(leaf);
+      }
+      g.position.set(x, 0.36, z);
+      g.scale.setScalar(scale || 1);
+      return g;
+    }
+
+    function bush(x, z) {
+      const g = new THREE.Group();
+      for (let i = 0; i < 3; i++) {
+        const s = new THREE.Mesh(new THREE.SphereGeometry(0.22, 8, 6), new THREE.MeshLambertMaterial({ color: 0x4a9a4a }));
+        s.position.set((Math.random() - 0.5) * 0.25, 0.2 + Math.random() * 0.06, (Math.random() - 0.5) * 0.25);
+        s.castShadow = true;
+        g.add(s);
+      }
+      g.position.set(x, 0.36, z);
+      return g;
+    }
+
+    function flowerPatch(x, z) {
+      const g = new THREE.Group();
+      const colors = [0xff6b9d, 0xffd76a, 0xffffff, 0xc44dff];
+      for (let i = 0; i < 4; i++) {
+        const f = new THREE.Mesh(new THREE.SphereGeometry(0.055, 6, 5), new THREE.MeshLambertMaterial({ color: colors[i % colors.length] }));
+        f.position.set((Math.random() - 0.5) * 0.4, 0.07, (Math.random() - 0.5) * 0.4);
+        g.add(f);
+      }
+      g.position.set(x, 0.36, z);
+      return g;
+    }
+
+    function rock(x, z, scale) {
+      const r = new THREE.Mesh(new THREE.DodecahedronGeometry(0.18, 0), new THREE.MeshLambertMaterial({ color: 0x9a958c }));
+      r.position.set(x, 0.42, z);
+      r.rotation.set(Math.random(), Math.random(), Math.random());
+      r.scale.setScalar(scale || 1);
+      r.castShadow = true;
+      return r;
+    }
+
+    // Scatter environment decorations around the ring (outside the plot area)
+    [[5.2, 1.2, 1], [5.5, -1.6, 0.85], [-5.3, -2.4, 1.05], [-5.0, 2.6, 0.9], [4.0, -4.2, 0.8], [-2.2, -5.0, 0.95]]
+      .forEach(([x, z, s]) => island.add(lowPolyTree(x, z, s)));
+    [[4.5, 3.4], [-4.6, -1.2], [3.0, 4.6], [-3.4, 4.4]].forEach(([x, z]) => island.add(bush(x, z)));
+    [[3.6, 2.6], [-2.0, 4.8], [4.8, -2.0]].forEach(([x, z]) => island.add(flowerPatch(x, z)));
+    [[5.6, 0], [-5.8, 1.0], [2.6, 5.4]].forEach(([x, z]) => island.add(rock(x, z, 0.9 + Math.random() * 0.5)));
+
+    // ---- Wooden fence around the plot area ----
+    const fenceGroup = new THREE.Group();
+    const fenceRadius = 3.85;
+    const fenceCount = 20;
+    for (let i = 0; i < fenceCount; i++) {
+      const a = (i / fenceCount) * Math.PI * 2;
+      if (a > Math.PI * 0.32 && a < Math.PI * 0.55) continue; // gap for entrance
+      const post = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.045, 0.42, 5), new THREE.MeshLambertMaterial({ color: 0x8a6a45 }));
+      post.position.set(Math.cos(a) * fenceRadius, 0.55, Math.sin(a) * fenceRadius);
+      post.castShadow = true;
+      fenceGroup.add(post);
+    }
+    island.add(fenceGroup);
+
+    // ---- Small wooden sign near entrance ----
+    const signGroup = new THREE.Group();
+    const signPost = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.5, 5), new THREE.MeshLambertMaterial({ color: 0x6b4726 }));
+    signPost.position.y = 0.25;
+    const signBoard = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.28, 0.04), new THREE.MeshLambertMaterial({ color: 0xd9b16a }));
+    signBoard.position.y = 0.5;
+    signGroup.add(signPost, signBoard);
+    signGroup.position.set(2.55, 0.36, 4.6);
+    signGroup.rotation.y = -0.4;
+    island.add(signGroup);
+
+    // ---- Buildings ----
+    function farmhouse() {
+      const g = new THREE.Group();
+      const walls = new THREE.Mesh(new THREE.BoxGeometry(1.3, 0.9, 1.1), new THREE.MeshLambertMaterial({ color: 0xf2d9a8 }));
+      walls.position.y = 0.45; walls.castShadow = true; walls.receiveShadow = true;
+      g.add(walls);
+      const roof = new THREE.Mesh(new THREE.ConeGeometry(1.05, 0.7, 4), new THREE.MeshLambertMaterial({ color: 0xc0503f }));
+      roof.position.y = 1.25; roof.rotation.y = Math.PI / 4; roof.castShadow = true;
+      g.add(roof);
+      const door = new THREE.Mesh(new THREE.BoxGeometry(0.26, 0.42, 0.05), new THREE.MeshLambertMaterial({ color: 0x6b4726 }));
+      door.position.set(0, 0.24, 0.58);
+      g.add(door);
+      const win1 = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.2, 0.04), new THREE.MeshLambertMaterial({ color: 0x8fd8f0 }));
+      win1.position.set(0.4, 0.55, 0.58); g.add(win1);
+      const win2 = win1.clone(); win2.position.x = -0.4; g.add(win2);
+      const chimney = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.35, 0.14), new THREE.MeshLambertMaterial({ color: 0x9a7a5a }));
+      chimney.position.set(0.35, 1.35, -0.1);
+      g.add(chimney);
+      return g;
+    }
+
+    function barn() {
+      const g = new THREE.Group();
+      const walls = new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.75, 0.9), new THREE.MeshLambertMaterial({ color: 0xb8503f }));
+      walls.position.y = 0.375; walls.castShadow = true; walls.receiveShadow = true;
+      g.add(walls);
+      const roofGeo = new THREE.CylinderGeometry(0.01, 0.01, 1.15, 3, 1, false);
+      const roof = new THREE.Mesh(roofGeo, new THREE.MeshLambertMaterial({ color: 0x6b4726 }));
+      roof.rotation.z = Math.PI / 2; roof.scale.set(1, 0.65, 1);
+      roof.position.y = 0.9;
+      roof.castShadow = true;
+      g.add(roof);
+      const doorFrame = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.5, 0.05), new THREE.MeshLambertMaterial({ color: 0xf2d9a8 }));
+      doorFrame.position.set(0, 0.28, 0.48);
+      g.add(doorFrame);
+      return g;
+    }
+
+    function silo() {
+      const g = new THREE.Group();
+      const body = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.28, 0.85, 12), new THREE.MeshLambertMaterial({ color: 0xd7dbe0 }));
+      body.position.y = 0.42; body.castShadow = true;
+      g.add(body);
+      const cap = new THREE.Mesh(new THREE.ConeGeometry(0.3, 0.28, 12), new THREE.MeshLambertMaterial({ color: 0xb0464f }));
+      cap.position.y = 0.98; cap.castShadow = true;
+      g.add(cap);
+      return g;
+    }
+
+    const farmhouseMesh = farmhouse();
+    farmhouseMesh.position.set(-2.7, 0.36, -3.0);
+    farmhouseMesh.rotation.y = 0.5;
+    island.add(farmhouseMesh);
+
+    const barnMesh = barn();
+    barnMesh.position.set(3.4, 0.36, -3.2);
+    barnMesh.rotation.y = -0.35;
+    island.add(barnMesh);
+
+    const siloMesh = silo();
+    siloMesh.position.set(4.35, 0.36, -2.4);
+    island.add(siloMesh);
+
+    // Small bridge over the pond edge
+    const bridge = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.06, 1.1), new THREE.MeshLambertMaterial({ color: 0x9a7a5a }));
+    bridge.position.set(-3.5, 0.4, 3.6);
+    bridge.rotation.y = Math.PI / 2;
+    bridge.castShadow = true;
+    island.add(bridge);
+
+    // Soft background clouds (billboarded flat shapes, cheap)
+    for (let i = 0; i < 4; i++) {
+      const cloud = new THREE.Mesh(new THREE.SphereGeometry(0.5 + Math.random() * 0.3, 6, 5), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.75 }));
+      cloud.position.set(-8 + Math.random() * 16, 6 + Math.random() * 1.5, -8 + Math.random() * 4);
+      scene.add(cloud);
+    }
+
+    // ---- Farm plots — real raised soil beds with growth-stage crops, 2 rows of 5 ----
     const plotMeshes = [];
-    const cols = 5, rows = 2, spacing = 1.15;
+    const cols = 5, rows = 2, spacing = 1.02;
+    const plotGroup = new THREE.Group();
+    plotGroup.position.set(0, 0, 0.4);
+    island.add(plotGroup);
+
+    const cropStageBuilders = {
+      // stage 0: empty prepared soil (no crop mesh)
+      empty: () => null,
+      // stage 1: newly planted — tiny sprout
+      sprout: () => {
+        const m = new THREE.Mesh(new THREE.ConeGeometry(0.05, 0.09, 5), new THREE.MeshLambertMaterial({ color: 0x6fae4f }));
+        m.position.y = 0.05;
+        return m;
+      },
+      // stage 2: small plant
+      small: () => {
+        const g = new THREE.Group();
+        for (let i = 0; i < 3; i++) {
+          const leaf = new THREE.Mesh(new THREE.ConeGeometry(0.06, 0.16, 5), new THREE.MeshLambertMaterial({ color: 0x5fae4f }));
+          leaf.position.set((Math.random() - 0.5) * 0.15, 0.08, (Math.random() - 0.5) * 0.15);
+          g.add(leaf);
+        }
+        return g;
+      },
+      // stage 3: mature/harvestable crop — colorful
+      mature: (cropColor) => {
+        const g = new THREE.Group();
+        const stalk = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.04, 0.28, 5), new THREE.MeshLambertMaterial({ color: 0x4f8a3f }));
+        stalk.position.y = 0.14;
+        g.add(stalk);
+        const fruit = new THREE.Mesh(new THREE.SphereGeometry(0.1, 8, 6), new THREE.MeshLambertMaterial({ color: cropColor }));
+        fruit.position.y = 0.3;
+        g.add(fruit);
+        return g;
+      }
+    };
+    const cropColors = [0xff6b4a, 0xffd76a, 0xc44dff, 0x4aa8ff, 0xff8fc4, 0x9adf5a, 0xffb347, 0xff5a7a, 0x5adfd0, 0xe8c86a];
+
     for (let i = 0; i < 10; i++) {
       const col = i % cols;
       const row = Math.floor(i / cols);
       const x = (col - (cols - 1) / 2) * spacing;
-      const z = (row - (rows - 1) / 2) * spacing * 1.3;
+      const z = (row - (rows - 1) / 2) * spacing * 1.2;
 
-      const boxGeo = new THREE.BoxGeometry(0.85, 0.35, 0.85);
-      const boxMat = new THREE.MeshLambertMaterial({ color: 0x3a2a1a });
-      const box = new THREE.Mesh(boxGeo, boxMat);
-      box.position.set(x, 0.18, z);
-      scene.add(box);
+      const plotWrap = new THREE.Group();
+      plotWrap.position.set(x, 0.36, z);
 
-      const cropGeo = new THREE.ConeGeometry(0.22, 0.4, 6);
-      const cropMat = new THREE.MeshLambertMaterial({ color: 0x2a5a2a });
-      const crop = new THREE.Mesh(cropGeo, cropMat);
-      crop.position.set(x, 0.55, z);
-      crop.visible = false;
-      scene.add(crop);
+      // Raised soil bed with edge border (two-layer geometry gives a real "raised bed" look)
+      const border = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.16, 0.9), new THREE.MeshLambertMaterial({ color: 0x6b4726 }));
+      border.position.y = 0.08;
+      border.castShadow = true; border.receiveShadow = true;
+      plotWrap.add(border);
 
-      plotMeshes.push({ box, boxMat, crop, cropMat });
+      const soilMat = new THREE.MeshLambertMaterial({ color: 0x3a2a1a });
+      const soil = new THREE.Mesh(new THREE.BoxGeometry(0.76, 0.1, 0.76), soilMat);
+      soil.position.y = 0.14;
+      soil.receiveShadow = true;
+      plotWrap.add(soil);
+
+      // locked overlay (semi-transparent gray dome) shown when plot isn't unlocked yet
+      const lockMat = new THREE.MeshLambertMaterial({ color: 0x222222, transparent: true, opacity: 0.55 });
+      const lockMesh = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.05, 0.9), lockMat);
+      lockMesh.position.y = 0.2;
+      plotWrap.add(lockMesh);
+
+      const cropSlot = new THREE.Group();
+      cropSlot.position.y = 0.19;
+      plotWrap.add(cropSlot);
+
+      plotGroup.add(plotWrap);
+      plotMeshes.push({ plotWrap, border, soilMat, lockMesh, cropSlot, index: i });
     }
 
-    farm3D = { scene, camera, renderer, plotMeshes, wrap, animId: null, visible: true, angle: 0 };
+    farm3D = {
+      scene, camera, renderer, plotMeshes, wrap, animId: null, visible: true, angle: 0,
+      cropStageBuilders, cropColors, raycaster: new THREE.Raycaster(), pointer: new THREE.Vector2()
+    };
 
     function animate() {
       if (!farm3D) return;
       farm3D.animId = requestAnimationFrame(animate);
       if (!farm3D.visible) return;
-      farm3D.angle += 0.0025;
-      farm3D.camera.position.x = Math.sin(farm3D.angle) * 1.1;
+      farm3D.angle += 0.0018;
+      const r = 12.7;
+      farm3D.camera.position.x = Math.sin(farm3D.angle) * 1.4 + 9;
+      farm3D.camera.position.z = Math.cos(farm3D.angle) * 1.4 + 9;
       farm3D.camera.lookAt(0, 0, 0);
       farm3D.renderer.render(farm3D.scene, farm3D.camera);
     }
     animate();
 
-    // Pause rendering when the tab/page isn't visible (battery/perf safeguard)
     document.addEventListener('visibilitychange', () => {
       if (farm3D) farm3D.visible = !document.hidden;
     });
@@ -1459,15 +1715,44 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
     window.addEventListener('resize', () => {
       if (!farm3D) return;
       const w = wrap.clientWidth, h = wrap.clientHeight;
-      farm3D.camera.aspect = w / h;
+      const asp = w / h;
+      farm3D.camera.left = -viewSize * asp; farm3D.camera.right = viewSize * asp;
+      farm3D.camera.top = viewSize; farm3D.camera.bottom = -viewSize;
       farm3D.camera.updateProjectionMatrix();
       farm3D.renderer.setSize(w, h);
     });
+
+    // Tap a plot to see its growth info
+    canvas.addEventListener('click', (e) => {
+      if (!farm3D) return;
+      const rect = canvas.getBoundingClientRect();
+      farm3D.pointer.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+      farm3D.pointer.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+      farm3D.raycaster.setFromCamera(farm3D.pointer, farm3D.camera);
+      const targets = farm3D.plotMeshes.map(m => m.border);
+      const hits = farm3D.raycaster.intersectObjects(targets);
+      if (hits.length) {
+        const hitMesh = hits[0].object;
+        const plotInfo = farm3D.plotMeshes.find(m => m.border === hitMesh);
+        if (plotInfo) showPlotTapInfo(plotInfo.index);
+      }
+    });
+  }
+
+  function showPlotTapInfo(index) {
+    const plot = PLOTS[index];
+    if (!plot) return;
+    const farmLevel = getFarmLevel();
+    const isUnlocked = farmLevel >= plot.requiredLevel;
+    if (isUnlocked) {
+      toast('🌾 ' + plot.label + ' — producing +' + plot.bonus + ' coins/cycle');
+    } else {
+      toast('🔒 Unlocks at Farm Level ' + plot.requiredLevel);
+    }
   }
 
   function updateFarm3DPlots(farmLevel) {
     if (!farm3D && !farm3DFailed) {
-      // Attempt lazy init in case Three.js finished loading after first renderPlots() call
       initFarm3D();
     }
     if (!farm3D) return; // Three.js unavailable — fallback grid stays visible via CSS below
@@ -1475,8 +1760,18 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
       const mesh = farm3D.plotMeshes[i];
       if (!mesh) return;
       const isUnlocked = farmLevel >= plot.requiredLevel;
-      mesh.boxMat.color.set(isUnlocked ? 0x7a4f24 : 0x2a2a2a);
-      mesh.crop.visible = isUnlocked;
+      mesh.lockMesh.visible = !isUnlocked;
+      mesh.soilMat.color.set(isUnlocked ? 0x4a3320 : 0x2a2015);
+
+      // Clear old crop mesh and grow a new one appropriate to how "established" this plot is
+      while (mesh.cropSlot.children.length) mesh.cropSlot.remove(mesh.cropSlot.children[0]);
+      if (!isUnlocked) return;
+      const levelsAbove = farmLevel - plot.requiredLevel;
+      let stageMesh;
+      if (levelsAbove >= 3) stageMesh = farm3D.cropStageBuilders.mature(farm3D.cropColors[i % farm3D.cropColors.length]);
+      else if (levelsAbove >= 1) stageMesh = farm3D.cropStageBuilders.small();
+      else stageMesh = farm3D.cropStageBuilders.sprout();
+      if (stageMesh) mesh.cropSlot.add(stageMesh);
     });
   }
 
