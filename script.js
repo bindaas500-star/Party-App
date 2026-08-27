@@ -1435,15 +1435,19 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
     grass.receiveShadow = true;
     island.add(grass);
 
-    // Pathway ring (light dirt path connecting plots/buildings)
+    // unlockGroups collects every decorative element keyed by the Farm Level that reveals it
+    const unlockGroups = { 1: [], 2: [], 3: [], 4: [], 6: [], 8: [], 10: [], 12: [], 15: [] };
+
+    // Pathway ring (light dirt path connecting plots/buildings) — unlocks Lv.3
     const pathGeo = new THREE.RingGeometry(3.1, 3.5, 32);
     const pathMat = new THREE.MeshLambertMaterial({ color: 0xd8bd8a, side: THREE.DoubleSide });
     const path = new THREE.Mesh(pathGeo, pathMat);
     path.rotation.x = -Math.PI / 2;
     path.position.y = 0.36;
     island.add(path);
+    unlockGroups[3].push(path);
 
-    // Small pond
+    // Small pond — unlocks Lv.6
     const pondGeo = new THREE.CircleGeometry(1.0, 24);
     const pondMat = new THREE.MeshPhongMaterial({ color: 0x5fb8d9, shininess: 80 });
     const pond = new THREE.Mesh(pondGeo, pondMat);
@@ -1454,6 +1458,7 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
     pondRim.rotation.x = -Math.PI / 2;
     pondRim.position.set(-4.4, 0.365, 3.6);
     island.add(pondRim);
+    unlockGroups[6].push(pond, pondRim);
 
     // ---- Helper builders ----
     function lowPolyTree(x, z, scale) {
@@ -1506,12 +1511,22 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
       return r;
     }
 
-    // Scatter environment decorations around the ring (outside the plot area)
-    [[5.2, 1.2, 1], [5.5, -1.6, 0.85], [-5.3, -2.4, 1.05], [-5.0, 2.6, 0.9], [4.0, -4.2, 0.8], [-2.2, -5.0, 0.95]]
-      .forEach(([x, z, s]) => island.add(lowPolyTree(x, z, s)));
-    [[4.5, 3.4], [-4.6, -1.2], [3.0, 4.6], [-3.4, 4.4]].forEach(([x, z]) => island.add(bush(x, z)));
-    [[3.6, 2.6], [-2.0, 4.8], [4.8, -2.0]].forEach(([x, z]) => island.add(flowerPatch(x, z)));
-    [[5.6, 0], [-5.8, 1.0], [2.6, 5.4]].forEach(([x, z]) => island.add(rock(x, z, 0.9 + Math.random() * 0.5)));
+    // Scatter environment decorations around the ring (outside the plot area) — trees unlock Lv.2, then progressively more
+    const treeSpots = [[5.2, 1.2, 1], [5.5, -1.6, 0.85], [-5.3, -2.4, 1.05], [-5.0, 2.6, 0.9], [4.0, -4.2, 0.8], [-2.2, -5.0, 0.95]];
+    treeSpots.forEach(([x, z, s], i) => {
+      const t = lowPolyTree(x, z, s);
+      island.add(t);
+      unlockGroups[i < 2 ? 2 : 4].push(t);
+    });
+    [[4.5, 3.4], [-4.6, -1.2], [3.0, 4.6], [-3.4, 4.4]].forEach(([x, z]) => {
+      const b = bush(x, z); island.add(b); unlockGroups[4].push(b);
+    });
+    [[3.6, 2.6], [-2.0, 4.8], [4.8, -2.0]].forEach(([x, z]) => {
+      const f = flowerPatch(x, z); island.add(f); unlockGroups[4].push(f);
+    });
+    [[5.6, 0], [-5.8, 1.0], [2.6, 5.4]].forEach(([x, z]) => {
+      const r = rock(x, z, 0.9 + Math.random() * 0.5); island.add(r); unlockGroups[10].push(r);
+    });
 
     // ---- Wooden fence around the plot area ----
     const fenceGroup = new THREE.Group();
@@ -1526,8 +1541,7 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
       fenceGroup.add(post);
     }
     island.add(fenceGroup);
-
-    // ---- Small wooden sign near entrance ----
+    unlockGroups[1].push(fenceGroup);
     const signGroup = new THREE.Group();
     const signPost = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.5, 5), new THREE.MeshLambertMaterial({ color: 0x6b4726 }));
     signPost.position.y = 0.25;
@@ -1537,6 +1551,7 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
     signGroup.position.set(2.55, 0.36, 4.6);
     signGroup.rotation.y = -0.4;
     island.add(signGroup);
+    unlockGroups[1].push(signGroup);
 
     // ---- Buildings ----
     function farmhouse() {
@@ -1591,15 +1606,18 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
     farmhouseMesh.position.set(-2.7, 0.36, -3.0);
     farmhouseMesh.rotation.y = 0.5;
     island.add(farmhouseMesh);
+    unlockGroups[8].push(farmhouseMesh);
 
     const barnMesh = barn();
     barnMesh.position.set(3.4, 0.36, -3.2);
     barnMesh.rotation.y = -0.35;
     island.add(barnMesh);
+    unlockGroups[12].push(barnMesh);
 
     const siloMesh = silo();
     siloMesh.position.set(4.35, 0.36, -2.4);
     island.add(siloMesh);
+    unlockGroups[15].push(siloMesh);
 
     // Small bridge over the pond edge
     const bridge = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.06, 1.1), new THREE.MeshLambertMaterial({ color: 0x9a7a5a }));
@@ -1607,6 +1625,7 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
     bridge.rotation.y = Math.PI / 2;
     bridge.castShadow = true;
     island.add(bridge);
+    unlockGroups[6].push(bridge);
 
     // Soft background clouds (billboarded flat shapes, cheap)
     for (let i = 0; i < 4; i++) {
@@ -1690,9 +1709,13 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
       plotMeshes.push({ plotWrap, border, soilMat, lockMesh, cropSlot, index: i });
     }
 
+    // Everything in unlockGroups starts hidden — updateFarm3DPlots() reveals by Farm Level
+    Object.values(unlockGroups).forEach(group => group.forEach(obj => { obj.visible = false; }));
+
     farm3D = {
       scene, camera, renderer, plotMeshes, wrap, animId: null, visible: true, angle: 0,
-      cropStageBuilders, cropColors, raycaster: new THREE.Raycaster(), pointer: new THREE.Vector2()
+      cropStageBuilders, cropColors, unlockGroups, unlockedSoFar: 0,
+      raycaster: new THREE.Raycaster(), pointer: new THREE.Vector2()
     };
 
     function animate() {
@@ -1756,6 +1779,15 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
       initFarm3D();
     }
     if (!farm3D) return; // Three.js unavailable — fallback grid stays visible via CSS below
+
+    // Reveal environment pieces gated to this Farm Level (buildings, pond, fence, trees, etc.)
+    Object.keys(farm3D.unlockGroups).forEach((levelStr) => {
+      const level = parseInt(levelStr, 10);
+      if (farmLevel >= level) {
+        farm3D.unlockGroups[level].forEach(obj => { obj.visible = true; });
+      }
+    });
+
     PLOTS.forEach((plot, i) => {
       const mesh = farm3D.plotMeshes[i];
       if (!mesh) return;
