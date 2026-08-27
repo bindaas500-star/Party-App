@@ -682,6 +682,7 @@
     <div class="admin-tabs">
       <div class="admin-tab active" data-tab="dashboard" onclick="switchAdminTab('dashboard')">Dashboard</div>
       <div class="admin-tab" data-tab="users" onclick="switchAdminTab('users')">Users</div>
+      <div class="admin-tab" data-tab="relationships" onclick="switchAdminTab('relationships')">Relationships</div>
     </div>
 
     <div class="admin-tab-content" id="adminDashboardTab">
@@ -693,6 +694,23 @@
     <div class="admin-tab-content" id="adminUsersTab" style="display:none;">
       <input type="text" id="adminUserSearch" class="detail-search" placeholder="🔍 Search by name..." oninput="renderAdminUserList()">
       <div id="adminUserList"></div>
+    </div>
+
+    <div class="admin-tab-content" id="adminRelationshipsTab" style="display:none;">
+      <div class="admin-stat-card" style="margin-bottom:16px;">
+        <div class="asc-value" id="adminPoolBalance">💕 0</div>
+        <div class="asc-label">System Reward Pool (Love Coins)</div>
+      </div>
+      <div class="admin-adjust-label" style="margin-bottom:10px;">💞 Soulmate Request Settings</div>
+      <div class="admin-adjust-box" style="margin:0 0 12px;">
+        <div class="admin-adjust-label">Request Cost (Love Coins)</div>
+        <div class="admin-adjust-row"><input type="number" id="adminSoulmateCost" placeholder="900"></div>
+      </div>
+      <div class="admin-adjust-box" style="margin:0 0 12px;">
+        <div class="admin-adjust-label">Receiver % (System Pool gets the rest)</div>
+        <div class="admin-adjust-row"><input type="number" id="adminSoulmateReceiverPct" placeholder="30"></div>
+      </div>
+      <button class="detail-action-btn" style="width:100%; margin:6px 0 20px;" onclick="saveSoulmateConfig()">Save Soulmate Settings</button>
     </div>
   </div>
 

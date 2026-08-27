@@ -453,6 +453,7 @@
 
   function closeRankView() {
     document.getElementById('rankOverlay').classList.remove('show');
+    detachRankListener();
   }
 
   // ---------- VIP BENEFITS (currency-localized, payment not yet connected) ----------
@@ -552,7 +553,21 @@
     boss: { field: 'bossScore', icon: '💸', label: 'Boss', labelField: null }
   };
 
+  let currentRankListenerCleanup = null;
+
+  function detachRankListener() {
+    if (currentRankListenerCleanup) { currentRankListenerCleanup(); currentRankListenerCleanup = null; }
+  }
+
+  function showRankError(listEl) {
+    listEl.innerHTML = `
+      <div class="loading">Unable to load leaderboard.</div>
+      <button class="btn" style="max-width:200px; margin:10px auto 0;" onclick="loadLeaderboard()">Retry</button>
+    `;
+  }
+
   function loadLeaderboard() {
+    detachRankListener();
     const listEl = document.getElementById('rankList');
     listEl.innerHTML = '<div class="loading">Loading leaderboard...</div>';
 
@@ -576,7 +591,10 @@
       return;
     }
 
-    db.ref('users').orderByChild(config.field).limitToLast(30).once('value').then((snap) => {
+    // Live listener — Firebase Realtime Database pushes updates automatically,
+    // no polling/manual refresh needed. Server does the ordering/limiting, not the phone.
+    const rankRef = db.ref('users').orderByChild(config.field).limitToLast(30);
+    const handler = rankRef.on('value', (snap) => {
       const data = snap.val();
       listEl.innerHTML = '';
       if (!data) {
@@ -599,11 +617,13 @@
         `;
         listEl.appendChild(row);
       });
-    });
+    }, () => showRankError(listEl));
+    currentRankListenerCleanup = () => rankRef.off('value', handler);
   }
 
   function loadSoulmateLeaderboard(listEl) {
-    db.ref('users').orderByChild('soulmateScore').limitToLast(60).once('value').then((snap) => {
+    const rankRef = db.ref('users').orderByChild('soulmateScore').limitToLast(60);
+    const handler = rankRef.on('value', (snap) => {
       const data = snap.val();
       listEl.innerHTML = '';
       if (!data) { listEl.innerHTML = '<div class="loading">No Soulmate pairs yet.</div>'; return; }
@@ -633,11 +653,13 @@
         `;
         listEl.appendChild(row);
       });
-    });
+    }, () => showRankError(listEl));
+    currentRankListenerCleanup = () => rankRef.off('value', handler);
   }
 
   function loadRoomsLeaderboard(listEl) {
-    db.ref('liveRooms').orderByChild('activityScore').limitToLast(30).once('value').then((snap) => {
+    const rankRef = db.ref('liveRooms').orderByChild('activityScore').limitToLast(30);
+    const handler = rankRef.on('value', (snap) => {
       const data = snap.val();
       listEl.innerHTML = '';
       if (!data) {
@@ -664,7 +686,8 @@
         row.onclick = () => { closeRankView(); switchTab('room'); enterRoom(r.id, r.name); };
         listEl.appendChild(row);
       });
-    });
+    }, () => showRankError(listEl));
+    currentRankListenerCleanup = () => rankRef.off('value', handler);
   }
 
   // ---------- NOTIFICATIONS / ACTIVITY / FRIENDS ----------
@@ -2897,8 +2920,33 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
     document.querySelectorAll('.admin-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
     document.getElementById('adminDashboardTab').style.display = tab === 'dashboard' ? 'block' : 'none';
     document.getElementById('adminUsersTab').style.display = tab === 'users' ? 'block' : 'none';
+    document.getElementById('adminRelationshipsTab').style.display = tab === 'relationships' ? 'block' : 'none';
     if (tab === 'dashboard') loadAdminDashboard();
     if (tab === 'users') loadAdminUsers();
+    if (tab === 'relationships') loadAdminRelationshipsConfig();
+  }
+
+  function loadAdminRelationshipsConfig() {
+    db.ref('systemPool/love').once('value').then((snap) => {
+      document.getElementById('adminPoolBalance').textContent = '💕 ' + formatNum(snap.val() || 0);
+    });
+    getSoulmateConfig().then((cfg) => {
+      document.getElementById('adminSoulmateCost').value = cfg.cost;
+      document.getElementById('adminSoulmateReceiverPct').value = cfg.receiverPct;
+    });
+  }
+
+  function saveSoulmateConfig() {
+    if (!isAdminUser) { toast('Admin access only.', 'error'); return; }
+    const cost = parseInt(document.getElementById('adminSoulmateCost').value, 10);
+    const receiverPct = parseInt(document.getElementById('adminSoulmateReceiverPct').value, 10);
+    if (isNaN(cost) || cost < 0) { alert('Enter a valid cost.'); return; }
+    if (isNaN(receiverPct) || receiverPct < 0 || receiverPct > 100) { alert('Receiver % must be between 0 and 100.'); return; }
+    const poolPct = 100 - receiverPct;
+    db.ref('relationshipConfig/soulmate').set({ cost, receiverPct, poolPct }).then(() => {
+      writeAdminAuditLog('Updated Soulmate config', 'relationshipConfig', null, { cost, receiverPct, poolPct });
+      toast('Soulmate settings saved! Cost: 💕' + cost + ', Receiver: ' + receiverPct + '%, Pool: ' + poolPct + '%');
+    });
   }
 
   function loadAdminDashboard() {
@@ -3420,33 +3468,52 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
   }
 
   // ---------- SOULMATE SYSTEM ----------
-  const SOULMATE_REQUEST_COST = 900;
-  const SOULMATE_ACCEPT_REWARD_PCT = 0.5; // accepter gets this fraction of the cost as a welcome gift
+  // Default config — used only if Admin hasn't set relationshipConfig/soulmate in the DB yet
+  const SOULMATE_DEFAULT_CONFIG = { cost: 900, receiverPct: 30, poolPct: 70 };
+
+  function getSoulmateConfig() {
+    return db.ref('relationshipConfig/soulmate').once('value').then((snap) => {
+      const cfg = snap.val();
+      return cfg || SOULMATE_DEFAULT_CONFIG;
+    });
+  }
 
   function sendSoulmateRequest() {
     if (!currentUser || !seatProfileUid) return;
     if (seatProfileUid === currentUser.uid) { alert("You can't become soulmates with yourself."); return; }
     if (currentUserData.soulmateUid === seatProfileUid) { toast('You are already soulmates with ' + seatProfileName + '!'); return; }
     if (currentUserData.soulmateUid) { toast('You already have a Soulmate. End that bond first.', 'error'); return; }
-    if ((currentUserData.love || 0) < SOULMATE_REQUEST_COST) { toast('You need 💕 ' + SOULMATE_REQUEST_COST + ' Love Coins to send a Soulmate request.', 'error'); return; }
 
-    db.ref('users/' + seatProfileUid).once('value').then((snap) => {
-      const target = snap.val();
-      if (!target) return;
-      if (target.soulmateUid) { toast(seatProfileName + ' already has a Soulmate.', 'error'); return; }
+    getSoulmateConfig().then((cfg) => {
+      if ((currentUserData.love || 0) < cfg.cost) { toast('You need 💕 ' + cfg.cost + ' Love Coins to send a Soulmate request.', 'error'); return; }
 
-      db.ref('soulmateRequests/' + seatProfileUid + '/' + currentUser.uid).once('value').then((reqSnap) => {
-        if (reqSnap.val()) { toast('Request already sent.', 'error'); return; }
-        db.ref('users/' + currentUser.uid).update({ love: (currentUserData.love || 0) - SOULMATE_REQUEST_COST });
-        db.ref('soulmateRequests/' + seatProfileUid + '/' + currentUser.uid).set({
-          fromName: currentUserData.name,
-          timestamp: Date.now(),
-          cost: SOULMATE_REQUEST_COST
+      db.ref('users/' + seatProfileUid).once('value').then((snap) => {
+        const target = snap.val();
+        if (!target) return;
+        if (target.soulmateUid) { toast(seatProfileName + ' already has a Soulmate.', 'error'); return; }
+
+        db.ref('soulmateRequests/' + seatProfileUid + '/' + currentUser.uid).once('value').then((reqSnap) => {
+          if (reqSnap.val()) { toast('Request already sent.', 'error'); return; }
+          db.ref('users/' + currentUser.uid).update({ love: (currentUserData.love || 0) - cfg.cost });
+          db.ref('soulmateRequests/' + seatProfileUid + '/' + currentUser.uid).set({
+            fromName: currentUserData.name,
+            timestamp: Date.now(),
+            cost: cfg.cost,
+            receiverPct: cfg.receiverPct,
+            poolPct: cfg.poolPct
+          });
+          addActivity(seatProfileUid, 'social', currentUserData.name + ' wants to become your Soulmate! 💞');
+          toast('Soulmate request sent to ' + seatProfileName + '! (−💕 ' + cfg.cost + ')');
         });
-        addActivity(seatProfileUid, 'social', currentUserData.name + ' wants to become your Soulmate! 💞');
-        toast('Soulmate request sent to ' + seatProfileName + '! (−💕 ' + SOULMATE_REQUEST_COST + ')');
       });
     });
+  }
+
+  function addToSystemPool(currency, amount, source) {
+    db.ref('systemPool/' + currency).once('value').then((snap) => {
+      db.ref('systemPool/' + currency).set((snap.val() || 0) + amount);
+    });
+    db.ref('systemPoolLedger').push({ currency, amount, source, timestamp: Date.now() });
   }
 
   function acceptSoulmateRequest(fromUid, fromName) {
@@ -3454,8 +3521,11 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
     if (currentUserData.soulmateUid) { toast('You already have a Soulmate.', 'error'); return; }
     db.ref('soulmateRequests/' + currentUser.uid + '/' + fromUid).once('value').then((reqSnap) => {
       const req = reqSnap.val();
-      const cost = (req && req.cost) || SOULMATE_REQUEST_COST;
-      const welcomeGift = Math.round(cost * SOULMATE_ACCEPT_REWARD_PCT);
+      const cost = (req && req.cost) || SOULMATE_DEFAULT_CONFIG.cost;
+      const receiverPct = (req && req.receiverPct != null) ? req.receiverPct : SOULMATE_DEFAULT_CONFIG.receiverPct;
+      const poolPct = (req && req.poolPct != null) ? req.poolPct : SOULMATE_DEFAULT_CONFIG.poolPct;
+      const receiverAmount = Math.round(cost * (receiverPct / 100));
+      const poolAmount = cost - receiverAmount; // whatever's left, so it always totals the full cost exactly
 
       db.ref('users/' + fromUid).once('value').then((snap) => {
         const other = snap.val();
@@ -3465,11 +3535,12 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
           db.ref('users/' + fromUid).update({ love: (other.love || 0) + cost }); // refund sender
           return;
         }
-        db.ref('users/' + currentUser.uid).update({ soulmateUid: fromUid, soulmateScore: 0, love: (currentUserData.love || 0) + welcomeGift });
+        db.ref('users/' + currentUser.uid).update({ soulmateUid: fromUid, soulmateScore: 0, love: (currentUserData.love || 0) + receiverAmount });
         db.ref('users/' + fromUid).update({ soulmateUid: currentUser.uid, soulmateScore: 0 });
         db.ref('soulmateRequests/' + currentUser.uid + '/' + fromUid).remove();
+        addToSystemPool('love', poolAmount, 'Soulmate request: ' + fromName + ' → ' + currentUserData.name);
         addActivity(fromUid, 'social', currentUserData.name + ' accepted your Soulmate request! 💞');
-        toast('You are now Soulmates with ' + fromName + '! (+💕 ' + welcomeGift + ' welcome gift) 💞');
+        toast('You are now Soulmates with ' + fromName + '! (+💕 ' + receiverAmount + ' welcome gift) 💞');
         loadListOverlayContent();
       });
     });
@@ -3479,7 +3550,7 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
     if (!currentUser) return;
     db.ref('soulmateRequests/' + currentUser.uid + '/' + fromUid).once('value').then((reqSnap) => {
       const req = reqSnap.val();
-      const cost = (req && req.cost) || SOULMATE_REQUEST_COST;
+      const cost = (req && req.cost) || SOULMATE_DEFAULT_CONFIG.cost;
       db.ref('users/' + fromUid).once('value').then((snap) => {
         const sender = snap.val();
         if (sender) db.ref('users/' + fromUid).update({ love: (sender.love || 0) + cost }); // refund
