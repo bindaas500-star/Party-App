@@ -324,6 +324,7 @@
           }
           maybeShowOnboarding();
           checkAdminStatus();
+          claimDailyLoveBonus();
         }
       });
 
@@ -342,6 +343,20 @@
       document.getElementById('splashScreen').style.display = 'none';
     }
   });
+
+  const DAILY_LOVE_BONUS = 100;
+
+  function claimDailyLoveBonus() {
+    if (!currentUser || !currentUserData) return;
+    const today = getTodayDateString();
+    if (currentUserData.lastLoveClaimDate === today) return; // already claimed today
+    db.ref('users/' + currentUser.uid).update({
+      love: (currentUserData.love || 0) + DAILY_LOVE_BONUS,
+      lastLoveClaimDate: today
+    }).then(() => {
+      toast('💕 Daily bonus: +' + DAILY_LOVE_BONUS + ' Love Coins!');
+    });
+  }
 
   function renderUserHeader() {
     document.getElementById('userName').textContent = currentUserData.name;
