@@ -585,6 +585,29 @@
     });
   }
 
+  function renderVipFramePreviews() {
+    const rowEl = document.getElementById('vipFramePreviewRow');
+    if (!rowEl) return;
+    const currentTier = (currentUserData && currentUserData.realVipTier) || 0;
+    const milestones = [0, 5, 10, 15, 20, 25, 30]; // one preview per frame tier boundary
+    rowEl.innerHTML = '';
+    milestones.forEach((vipLevel) => {
+      const isLocked = vipLevel > currentTier;
+      const cell = document.createElement('div');
+      cell.className = 'vip-frame-preview-cell' + (isLocked ? ' locked' : '');
+      const avatarId = 'vfp_' + vipLevel;
+      cell.innerHTML = `
+        <div class="profile-avatar" id="${avatarId}" style="width:52px; height:52px; font-size:18px;">${escapeHtml((currentUserData.name || 'U').charAt(0).toUpperCase())}</div>
+        <div class="vfp-label">${vipLevel === 0 ? 'No Frame' : 'VIP ' + vipLevel}</div>
+        ${isLocked ? '<div class="vfp-lock">🔒 Unlock at VIP ' + vipLevel + '</div>' : ''}
+      `;
+      rowEl.appendChild(cell);
+      const avatarEl = document.getElementById(avatarId);
+      applyAvatarPhoto(avatarEl, currentUserData);
+      applyVipFrame(avatarEl, vipLevel);
+    });
+  }
+
   function openVipBenefits() {
     const currentTier = (currentUserData && currentUserData.realVipTier) || 0;
     const nextTierInfo = VIP_TIERS.find(t => t.tier === currentTier + 1) || VIP_TIERS[VIP_TIERS.length - 1];
@@ -595,6 +618,7 @@
     document.getElementById('vtcProgressText').textContent = '0 / 100';
     document.getElementById('vtcProgressFill').style.width = '0%';
     renderGemsPackages();
+    renderVipFramePreviews();
 
     document.getElementById('vipBenefitsOverlay').classList.add('show');
   }
@@ -693,6 +717,7 @@
           <div class="rank-value">${config.icon} ${formatNum(p[config.field] || 0)}</div>
         `;
         listEl.appendChild(row);
+        applyVipFrame(row.querySelector('.rank-avatar'), p.realVipTier || 0);
       });
     }, () => showRankError(listEl));
     currentRankListenerCleanup = () => rankRef.off('value', handler);
@@ -2240,6 +2265,7 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
         }
         cell.onclick = () => tapFamilySeat(famId, i, !!seatData, seatData);
         gridEl.appendChild(cell);
+        if (seatData) applyVipFrame(cell.querySelector('.seat-avatar'), seatData.realVipTier || 0);
       }
     });
     currentFamilySeatsListener = () => seatsRef.off('value', handler);
@@ -2257,6 +2283,7 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
         uid: currentUser.uid,
         name: currentUserData.name,
         photoURL: currentUserData.photoURL || null,
+        realVipTier: currentUserData.realVipTier || 0,
         muted: false
       });
       db.ref('users/' + currentUser.uid + '/activeSeat').set({ type: 'family', containerId: famId, seatIndex: index });
@@ -3842,6 +3869,7 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
         }
         cell.onclick = () => tapSeat(i, !!seatData, seatData);
         gridEl.appendChild(cell);
+        if (seatData) applyVipFrame(cell.querySelector('.seat-avatar'), seatData.realVipTier || 0);
         const giftBtn = cell.querySelector('.seat-gift-btn');
         if (giftBtn) {
           giftBtn.onclick = (e) => {
@@ -3894,6 +3922,7 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
         uid: currentUser.uid,
         name: currentUserData.name,
         photoURL: currentUserData.photoURL || null,
+        realVipTier: currentUserData.realVipTier || 0,
         muted: false
       });
       db.ref('users/' + currentUser.uid + '/activeSeat').set({ type: 'room', containerId: currentRoomId, seatIndex: index });
