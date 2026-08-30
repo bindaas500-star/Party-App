@@ -1485,3 +1485,123 @@
     content: 'Loading farm...'; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
     color: rgba(255,255,255,0.6); font-size: 12px; font-family: 'Fredoka', 'Inter', sans-serif; font-weight: 600;
   }
+
+  /* ---- Family Store ---- */
+  .fam-store-card {
+    display: flex; align-items: center; gap: 12px; background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 14px; margin-bottom: 10px;
+  }
+  .fsc-preview {
+    padding: 8px 16px; border-radius: 14px; font-family: 'Fredoka', 'Inter', sans-serif; font-weight: 700;
+    font-size: 13px; color: #fff; text-align: center; flex-shrink: 0; min-width: 90px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+  }
+  .fsc-info { flex: 1; min-width: 0; }
+  .fsc-name { font-family: 'Fredoka', 'Inter', sans-serif; font-weight: 700; font-size: 13.5px; color: #fff; }
+  .fsc-cost { font-size: 11.5px; color: #ffd76a; font-weight: 600; margin-top: 3px; }
+  .fsc-btn {
+    border: none; padding: 8px 14px; border-radius: 12px; font-size: 11.5px; font-weight: 700;
+    font-family: 'Fredoka', 'Inter', sans-serif; cursor: pointer; flex-shrink: 0;
+  }
+  .fsc-btn.buy { background: linear-gradient(90deg,#ff6b9d,#c44dff); color: #fff; }
+  .fsc-btn.equip { background: rgba(255,255,255,0.1); color: #fff; }
+  .fsc-btn.equipped { background: rgba(78,205,196,0.25); color: #4ecdc4; }
+  .family-nameplate-badge {
+    display: inline-block; padding: 3px 10px; border-radius: 10px; font-size: 10.5px; font-weight: 700;
+    font-family: 'Fredoka', 'Inter', sans-serif; color: #fff; margin-top: 4px;
+  }
+
+  /* ==================================================
+     VIP PROFILE FRAME SYSTEM
+     6 progressive tiers, CSS-only (no external assets).
+     Tier boundaries follow VIP level ranges 1-5/6-10/11-15/16-20/21-25/26-30.
+     ================================================== */
+  .vip-frame-wrap {
+    position: relative; display: inline-flex; align-items: center; justify-content: center;
+    border-radius: 50%; flex-shrink: 0; width: 100%; height: 100%;
+  }
+  .vip-frame-wrap .vip-frame-avatar-slot {
+    position: relative; z-index: 2; width: 100%; height: 100%; border-radius: 50%; overflow: hidden;
+  }
+  .vip-frame-ring {
+    position: absolute; inset: -6%; border-radius: 50%; z-index: 1; pointer-events: none;
+  }
+  .vip-frame-crown {
+    position: absolute; top: -14%; left: 50%; transform: translateX(-50%); font-size: 55%;
+    z-index: 3; filter: drop-shadow(0 2px 3px rgba(0,0,0,0.5)); pointer-events: none;
+  }
+
+  /* Tier 1 (VIP 1-5): elegant simple metallic frame, soft glow */
+  .vip-frame-tier1 .vip-frame-ring {
+    background: linear-gradient(135deg, #d7dbe0, #9aa3ad, #d7dbe0);
+    box-shadow: 0 0 8px rgba(200,210,220,0.5);
+  }
+
+  /* Tier 2 (VIP 6-10): diamond/crystal accents, stronger glow */
+  .vip-frame-tier2 .vip-frame-ring {
+    background: linear-gradient(135deg, #7dd3ff, #3a9bd9, #7dd3ff);
+    box-shadow: 0 0 12px rgba(78,180,255,0.6);
+  }
+  .vip-frame-tier2::before, .vip-frame-tier2::after {
+    content: '💎'; position: absolute; font-size: 40%; z-index: 3;
+  }
+  .vip-frame-tier2::before { top: -6%; right: -6%; }
+  .vip-frame-tier2::after { bottom: -6%; left: -6%; }
+
+  /* Tier 3 (VIP 11-15): animated rotating energy ring */
+  .vip-frame-tier3 .vip-frame-ring {
+    background: conic-gradient(from 0deg, #c44dff, #7dd3ff, #ffd76a, #c44dff);
+    box-shadow: 0 0 14px rgba(196,77,255,0.6);
+    animation: vipRingSpin 4s linear infinite;
+  }
+
+  /* Tier 4 (VIP 16-20): luxury crown design, pulsing glow */
+  .vip-frame-tier4 .vip-frame-ring {
+    background: linear-gradient(135deg, #ffd76a, #ff9d3d, #ffd76a);
+    box-shadow: 0 0 16px rgba(255,183,71,0.7);
+    animation: vipRingPulse 2s ease-in-out infinite;
+  }
+
+  /* Tier 5 (VIP 21-25): detailed layered frame with orbiting sparkle */
+  .vip-frame-tier5 .vip-frame-ring {
+    background: conic-gradient(from 0deg, #ff6b9d, #ffd76a, #c44dff, #ff6b9d);
+    box-shadow: 0 0 18px rgba(255,107,157,0.7);
+    animation: vipRingSpin 3s linear infinite;
+  }
+  .vip-frame-tier5 .vip-frame-sparkle {
+    position: absolute; width: 12%; height: 12%; border-radius: 50%;
+    background: radial-gradient(circle, #fff, transparent); top: 0; left: 50%;
+    animation: vipSparkleOrbit 2.4s linear infinite; z-index: 3; pointer-events: none;
+  }
+
+  /* Tier 6 (VIP 26-30): legendary aurora aura, strongest effect */
+  .vip-frame-tier6 .vip-frame-ring {
+    background: conic-gradient(from 0deg, #ff6b6b, #ffd76a, #4ecdc4, #c44dff, #ff6b6b);
+    box-shadow: 0 0 24px rgba(255,183,71,0.85), 0 0 40px rgba(196,77,255,0.5);
+    animation: vipRingSpin 2.4s linear infinite, vipRingPulse 1.6s ease-in-out infinite;
+  }
+  .vip-frame-tier6 .vip-frame-sparkle {
+    position: absolute; width: 10%; height: 10%; border-radius: 50%;
+    background: radial-gradient(circle, #fff, transparent); top: 0; left: 50%;
+    animation: vipSparkleOrbit 1.8s linear infinite; z-index: 3; pointer-events: none;
+  }
+  .vip-frame-tier6 .vip-frame-sparkle.s2 { animation-delay: -0.9s; opacity: 0.7; }
+
+  @keyframes vipRingSpin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+  @keyframes vipRingPulse { 0%, 100% { filter: brightness(1); } 50% { filter: brightness(1.35); } }
+  @keyframes vipSparkleOrbit {
+    from { transform: rotate(0deg) translateX(50%) rotate(0deg); }
+    to   { transform: rotate(360deg) translateX(50%) rotate(-360deg); }
+  }
+
+  /* Respect reduced-motion / low-performance preference — freeze frames to a static glow */
+  @media (prefers-reduced-motion: reduce) {
+    .vip-frame-ring, .vip-frame-sparkle { animation: none !important; }
+  }
+
+  /* VIP page frame preview grid */
+  .vip-frame-preview-row { display: flex; gap: 14px; padding: 4px 16px 18px; overflow-x: auto; }
+  .vip-frame-preview-cell { flex-shrink: 0; text-align: center; }
+  .vip-frame-preview-cell .vfp-label { font-size: 10px; color: rgba(255,255,255,0.5); font-weight: 700; margin-top: 6px; }
+  .vip-frame-preview-cell.locked .vip-frame-wrap { opacity: 0.35; filter: grayscale(0.6); }
+  .vip-frame-preview-cell .vfp-lock { font-size: 9.5px; color: #ff8a8a; font-weight: 700; margin-top: 2px; }

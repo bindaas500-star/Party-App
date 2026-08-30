@@ -367,6 +367,67 @@
     setTimeout(setAppHeight, 150);
   }
 
+  // ---------- VIP PROFILE FRAME (reusable "component" for this vanilla-JS app) ----------
+  // Maps a VIP level to one of 6 progressive visual tiers. Purely visual — never touches
+  // the real VIP level/economy, which stays driven by realVipTier as before.
+  function getVipFrameTier(vipLevel) {
+    const lvl = vipLevel || 0;
+    if (lvl <= 0) return 0; // no frame
+    if (lvl <= 5) return 1;
+    if (lvl <= 10) return 2;
+    if (lvl <= 15) return 3;
+    if (lvl <= 20) return 4;
+    if (lvl <= 25) return 5;
+    return 6;
+  }
+
+  // Wraps (or reuses) a wrapper around an existing avatar element and applies the correct
+  // VIP frame tier. Safe to call repeatedly — it updates the existing wrapper in place.
+  // Usage: applyVipFrame(avatarEl, vipLevel) — call AFTER applyAvatarPhoto() sets the photo.
+  function applyVipFrame(avatarEl, vipLevel) {
+    if (!avatarEl) return;
+    let wrap = avatarEl.closest('.vip-frame-wrap');
+    const tier = getVipFrameTier(vipLevel);
+
+    if (!wrap) {
+      // First time — build the wrapper around the existing avatar element in place.
+      // Sized via CSS (100%) rather than offsetWidth, so it works correctly even if
+      // the avatar's overlay is hidden (display:none) at the moment this first runs.
+      wrap = document.createElement('div');
+      wrap.className = 'vip-frame-wrap';
+      avatarEl.parentNode.insertBefore(wrap, avatarEl);
+      const slot = document.createElement('div');
+      slot.className = 'vip-frame-avatar-slot';
+      slot.appendChild(avatarEl);
+      wrap.appendChild(slot);
+    }
+
+    wrap.className = 'vip-frame-wrap' + (tier > 0 ? ' vip-frame-tier' + tier : '');
+    wrap.querySelectorAll('.vip-frame-ring, .vip-frame-sparkle, .vip-frame-crown').forEach(el => el.remove());
+    if (tier === 0) return;
+
+    const ring = document.createElement('div');
+    ring.className = 'vip-frame-ring';
+    wrap.appendChild(ring);
+
+    if (tier >= 4) {
+      const crown = document.createElement('div');
+      crown.className = 'vip-frame-crown';
+      crown.textContent = '👑';
+      wrap.appendChild(crown);
+    }
+    if (tier >= 5) {
+      const sparkle = document.createElement('div');
+      sparkle.className = 'vip-frame-sparkle';
+      wrap.appendChild(sparkle);
+    }
+    if (tier === 6) {
+      const sparkle2 = document.createElement('div');
+      sparkle2.className = 'vip-frame-sparkle s2';
+      wrap.appendChild(sparkle2);
+    }
+  }
+
   function applyAvatarPhoto(el, userData) {
     const fallbackLetter = (userData && userData.name ? userData.name.charAt(0).toUpperCase() : '?');
     if (userData && userData.photoURL) {
@@ -396,6 +457,7 @@
   function renderProfile() {
     if (!currentUserData) return;
     applyAvatarPhoto(document.getElementById('profileAvatarBig'), currentUserData);
+    applyVipFrame(document.getElementById('profileAvatarBig'), currentUserData.realVipTier || 0);
     document.getElementById('profileNameBig').textContent = currentUserData.name;
     document.getElementById('profileIdLevelBadge').textContent = "🆔 ID Lv. " + (currentUserData.level || 1);
     document.getElementById('profileVipLevelBadge').textContent = "👑 VIP " + (currentUserData.realVipTier || 0);
@@ -2356,6 +2418,92 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
     document.getElementById('familyTasksOverlay').classList.remove('show');
   }
 
+  // ---------- FAMILY STORE (Nameplates) ----------
+  const FAMILY_NAMEPLATES = [
+    { id: 'classic', name: 'Classic', cost: 0, gradient: 'linear-gradient(90deg,#4ecdc4,#3a7bd5)' },
+    { id: 'golden', name: 'Golden Family', cost: 500, gradient: 'linear-gradient(90deg,#ffd76a,#ff9d3d)' },
+    { id: 'royal', name: 'Royal Purple', cost: 1200, gradient: 'linear-gradient(90deg,#c44dff,#7b2f8f)' },
+    { id: 'fire', name: 'Blazing Family', cost: 2000, gradient: 'linear-gradient(90deg,#ff6b6b,#ff9d3d)' },
+    { id: 'diamond', name: 'Diamond Elite', cost: 4000, gradient: 'linear-gradient(90deg,#7dd3ff,#a78bfa)' }
+  ];
+
+  function openFamilyStore() {
+    if (!currentFamilyId) return;
+    closeFamilyDetails();
+    document.getElementById('familyStoreOverlay').classList.add('show');
+    renderFamilyStore();
+  }
+
+  function closeFamilyStore() {
+    document.getElementById('familyStoreOverlay').classList.remove('show');
+  }
+
+  function renderFamilyStore() {
+    const listEl = document.getElementById('familyStoreList');
+    listEl.innerHTML = '<div class="loading">Loading store...</div>';
+    db.ref('families/' + currentFamilyId).once('value').then((snap) => {
+      const fam = snap.val();
+      if (!fam) return;
+      const assets = fam.assets || 0;
+      const unlocked = fam.unlockedNameplates || { classic: true };
+      const activeId = fam.nameplateId || 'classic';
+      document.getElementById('familyStoreBalance').textContent = formatNum(assets);
+
+      const isCaptain = canManageFamilyRoles();
+      listEl.innerHTML = '';
+      FAMILY_NAMEPLATES.forEach((plate) => {
+        const owned = !!unlocked[plate.id];
+        const isActive = activeId === plate.id;
+        const card = document.createElement('div');
+        card.className = 'fam-store-card';
+        let btnHtml;
+        if (isActive) btnHtml = '<button class="fsc-btn equipped" disabled>Equipped</button>';
+        else if (owned) btnHtml = '<button class="fsc-btn equip">Equip</button>';
+        else if (isCaptain) btnHtml = '<button class="fsc-btn buy">Buy</button>';
+        else btnHtml = '<button class="fsc-btn equip" disabled style="opacity:0.4;">Captain only</button>';
+
+        card.innerHTML = `
+          <div class="fsc-preview" style="background:${plate.gradient};">${escapeHtml(plate.name)}</div>
+          <div class="fsc-info">
+            <div class="fsc-name">${escapeHtml(plate.name)}</div>
+            <div class="fsc-cost">${plate.cost === 0 ? 'Free (default)' : '💰 ' + formatNum(plate.cost) + ' Assets'}</div>
+          </div>
+        `;
+        card.insertAdjacentHTML('beforeend', btnHtml);
+        const btn = card.querySelector('.fsc-btn');
+        if (!isActive && (owned || isCaptain)) {
+          btn.onclick = () => owned ? equipFamilyNameplate(plate.id) : buyFamilyNameplate(plate);
+        }
+        listEl.appendChild(card);
+      });
+    });
+  }
+
+  function buyFamilyNameplate(plate) {
+    if (!canManageFamilyRoles()) { toast('Only the Captain can buy nameplates.', 'error'); return; }
+    db.ref('families/' + currentFamilyId).once('value').then((snap) => {
+      const fam = snap.val();
+      const assets = fam.assets || 0;
+      if (assets < plate.cost) { toast('Not enough Family Assets.', 'error'); return; }
+      db.ref('families/' + currentFamilyId).update({
+        assets: assets - plate.cost,
+        ['unlockedNameplates/' + plate.id]: true,
+        nameplateId: plate.id
+      }).then(() => {
+        toast('Nameplate "' + plate.name + '" purchased and equipped! 🎉');
+        renderFamilyStore();
+      });
+    });
+  }
+
+  function equipFamilyNameplate(plateId) {
+    if (!canManageFamilyRoles()) { toast('Only the Captain can equip nameplates.', 'error'); return; }
+    db.ref('families/' + currentFamilyId).update({ nameplateId: plateId }).then(() => {
+      toast('Nameplate equipped!');
+      renderFamilyStore();
+    });
+  }
+
   function renderFamilyTasksList() {
     const listEl = document.getElementById('familyTasksList');
     listEl.innerHTML = '<div class="loading">Loading tasks...</div>';
@@ -2731,6 +2879,9 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
       }
 
       document.getElementById('familyDetailName').textContent = fam.name;
+      const activePlate = FAMILY_NAMEPLATES.find(p => p.id === (fam.nameplateId || 'classic')) || FAMILY_NAMEPLATES[0];
+      document.getElementById('familyDetailNameplate').innerHTML =
+        '<span class="family-nameplate-badge" style="background:' + activePlate.gradient + ';">' + escapeHtml(activePlate.name) + '</span>';
       document.getElementById('familyDetailAssets').textContent = formatNum(fam.assets || 0);
       computeFamilyRank(currentFamilyId, fam.activityXp || 0);
 
@@ -3455,6 +3606,7 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
       const u = snap.val();
       if (!u) return;
       applyAvatarPhoto(document.getElementById('seatProfAvatar'), u);
+      applyVipFrame(document.getElementById('seatProfAvatar'), u.realVipTier || 0);
       document.getElementById('seatProfIdBadge').textContent = '🆔 ID Lv. ' + (u.level || 1);
       document.getElementById('seatProfVipBadge').textContent = '👑 VIP ' + (u.realVipTier || 0);
       document.getElementById('seatProfRoomBadge').textContent = '🎁 Room Lv. ' + getGroupLevelInfo(u.roomXP || 0).level;

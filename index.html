@@ -584,6 +584,7 @@
       <div class="detail-cover-info">
         <div class="detail-avatar" id="familyDetailAvatar">?</div>
         <div class="detail-name" id="familyDetailName">Family</div>
+        <div id="familyDetailNameplate"></div>
         <div class="detail-id" id="familyDetailId">ID: —</div>
       </div>
     </div>
@@ -613,6 +614,7 @@
         <button class="detail-action-btn" onclick="shareFamilyDetails()">🔗 Share Family</button>
         <button class="detail-action-btn" onclick="inviteFriendsToFamily()">➕ Invite Friends</button>
         <button class="detail-action-btn" onclick="openFamilyTasks()">📋 Tasks</button>
+        <button class="detail-action-btn" onclick="openFamilyStore()">🏪 Store</button>
       </div>
       <input type="text" id="familyMemberSearch" class="detail-search" placeholder="🔍 Search members..." oninput="renderFamilyDetailMembers()">
       <div class="detail-section-label">Members</div>
@@ -670,6 +672,21 @@
     <div style="padding: 0 16px 12px; color:rgba(255,255,255,0.5); font-size:12px;">Complete these each day to earn Family XP and Assets for your Family.</div>
     <div id="familyTasksList" style="padding: 0 16px 30px;">
       <div class="loading">Loading tasks...</div>
+    </div>
+  </div>
+
+  <!-- ===== FAMILY STORE ===== -->
+  <div class="rank-overlay" id="familyStoreOverlay">
+    <div class="rank-header">
+      <button onclick="closeFamilyStore()">←</button>
+      <h2>🏪 Family Store</h2>
+    </div>
+    <div style="padding: 0 16px 12px; display:flex; align-items:center; justify-content:space-between;">
+      <span style="color:rgba(255,255,255,0.5); font-size:12px;">Spend Family Assets on a Nameplate</span>
+      <span style="color:#ffd76a; font-weight:700; font-size:13px;">💰 <span id="familyStoreBalance">0</span></span>
+    </div>
+    <div id="familyStoreList" style="padding: 0 16px 30px;">
+      <div class="loading">Loading store...</div>
     </div>
   </div>
 
