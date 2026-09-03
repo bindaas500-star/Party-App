@@ -294,9 +294,21 @@
   // ---------- AUTH STATE ----------
   let initialRestoreDone = false;
 
+  function setupPresence() {
+    if (!currentUser) return;
+    const myPresenceRef = db.ref('presence/' + currentUser.uid);
+    db.ref('.info/connected').on('value', (snap) => {
+      if (snap.val() === true) {
+        myPresenceRef.onDisconnect().remove();
+        myPresenceRef.set(true);
+      }
+    });
+  }
+
   auth.onAuthStateChanged((user) => {
     if (user) {
       currentUser = user;
+      setupPresence();
       db.ref('users/' + user.uid).on('value', (snap) => {
         currentUserData = snap.val() || { name: "User", level: 1, xp: 0, familyId: null, coins: 0, gems: 0, lastHarvestAt: Date.now() };
         renderUserHeader();
@@ -2134,7 +2146,7 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
     document.getElementById('familyInsideView').style.display = 'none';
     if (currentFamilyChatListener) { currentFamilyChatListener(); currentFamilyChatListener = null; }
     if (currentFamilyMembersListener) { currentFamilyMembersListener(); currentFamilyMembersListener = null; }
-    if (currentFamilySeatsListener) { currentFamilySeatsListener(); currentFamilySeatsListener = null; }
+    if (currentFamilyStatsListener) { currentFamilyStatsListener(); currentFamilyStatsListener = null; }
     if (floatingHeartIntervals['familyFloatingHearts']) { clearInterval(floatingHeartIntervals['familyFloatingHearts']); delete floatingHeartIntervals['familyFloatingHearts']; }
   }
 
@@ -2294,6 +2306,7 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
   // ---------- INSIDE FAMILY VIEW ----------
   let currentFamilyChatListener = null;
   let currentFamilyMembersListener = null;
+  let currentFamilyStatsListener = null;
 
   let currentFamilyOwnerUid = null;
   let currentFamilyNoticeListener = null;
@@ -2301,7 +2314,6 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
   function showInsideFamily(famId) {
     document.getElementById('familyBrowseView').style.display = 'none';
     document.getElementById('familyInsideView').style.display = 'flex';
-    listenToFamilySeats(famId);
     spawnFloatingHearts('familyFloatingHearts');
     completeFamilyTask(famId, 'login');
 
@@ -2347,34 +2359,65 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
     });
     currentFamilyNoticeListener = () => famRef.child('notice').off('value', noticeHandler);
 
-    // Members strip
+    // Quick stats row (level, assets) — live listener so it updates in real time
+    const statsHandler = famRef.on('value', (snap) => {
+      const famData = snap.val();
+      if (!famData) return;
+      const levelInfo = getGroupLevelInfo(famData.activityXp || 0);
+      document.getElementById('famQuickStats').innerHTML = `
+        <div class="fam-quick-stat"><div class="fqs-value">Lv.${levelInfo.level}</div><div class="fqs-label">Family Level</div></div>
+        <div class="fam-quick-stat"><div class="fqs-value">💰 ${formatNum(famData.assets || 0)}</div><div class="fqs-label">Assets</div></div>
+      `;
+    });
+    currentFamilyStatsListener = () => famRef.off('value', statsHandler);
+
+    // Member list — real Family members with roles, NOT room seats
     const membersHandler = famRef.child('members').on('value', (snap) => {
       const members = snap.val() || {};
       const uids = Object.keys(members);
       document.getElementById('insideFamMemberCount').textContent = "👥 " + uids.length + " member" + (uids.length !== 1 ? 's' : '');
-      const stripEl = document.getElementById('membersStrip');
-      stripEl.innerHTML = '';
-      uids.forEach((uid) => {
-        db.ref('users/' + uid).once('value').then((uSnap) => {
-          const u = uSnap.val();
-          if (!u) return;
-          const chip = document.createElement('div');
-          chip.className = 'member-chip';
-          const canKick = currentUser && currentFamilyOwnerUid === currentUser.uid && uid !== currentUser.uid;
-          const memberAvatarStyle = u.photoURL ? `style="background-image:url('${u.photoURL}');background-size:cover;background-position:center;"` : '';
-          chip.innerHTML = `<div class="m-avatar" ${memberAvatarStyle}>${u.photoURL ? '' : escapeHtml(u.name.charAt(0).toUpperCase())}</div><div class="m-name">${escapeHtml(u.name)}</div>` +
-            (canKick ? `<div class="member-kick-btn" data-kick-uid="${escapeHtml(uid)}">✕</div>` : '');
-          stripEl.appendChild(chip);
-          if (uid !== currentUser.uid) {
-            chip.onclick = (e) => {
-              if (e.target.classList.contains('member-kick-btn')) return;
+      familyRolesCache = {}; // refreshed below via family record read
+      const listEl = document.getElementById('famMemberList');
+      listEl.innerHTML = '';
+      if (!uids.length) { listEl.innerHTML = '<div class="loading">No members yet.</div>'; return; }
+
+      db.ref('families/' + famId + '/roles').once('value').then((rolesSnap) => {
+        familyRolesCache = rolesSnap.val() || {};
+        uids.forEach((uid) => {
+          Promise.all([
+            db.ref('users/' + uid).once('value'),
+            db.ref('presence/' + uid).once('value').catch(() => null)
+          ]).then(([uSnap, pSnap]) => {
+            const u = uSnap.val();
+            if (!u) return;
+            const isOnline = !!(pSnap && pSnap.val());
+            const role = getFamilyRole(uid);
+            const roleLabel = getFamilyRoleLabel(role);
+            const canManage = canManageFamilyRoles() && uid !== currentUser.uid;
+            const avatarStyle = u.photoURL ? `style="background-image:url('${u.photoURL}');background-size:cover;background-position:center;"` : '';
+
+            const card = document.createElement('div');
+            card.className = 'fam-member-card';
+            card.innerHTML = `
+              <div class="fmc-avatar" id="famCardAvatar_${uid}" ${avatarStyle}>${u.photoURL ? '' : escapeHtml((u.name || 'U').charAt(0).toUpperCase())}<span class="fmc-online-dot" style="${isOnline ? '' : 'display:none;'}"></span></div>
+              <div class="fmc-info">
+                <div class="fmc-name-row">
+                  <div class="fmc-name">${escapeHtml(u.name || 'User')}</div>
+                  ${roleLabel ? '<span class="dmc-owner-tag">' + roleLabel + '</span>' : ''}
+                </div>
+                <div class="fmc-meta">🆔 ${escapeHtml(u.profileId || '—')} · 🆔 Lv.${u.level || 1} · ${isOnline ? '🟢 Online' : '⚪ Offline'}</div>
+              </div>
+              ${canManage ? '<button class="fmc-menu-btn">⋮</button>' : ''}
+            `;
+            card.onclick = (e) => {
+              if (e.target.closest('.fmc-menu-btn')) return;
               openSeatProfile(uid, u.name);
             };
-          }
-          const kickBtn = chip.querySelector('.member-kick-btn');
-          if (kickBtn) {
-            kickBtn.onclick = (e) => { e.stopPropagation(); kickFamilyMember(famId, kickBtn.dataset.kickUid, u.name); };
-          }
+            const menuBtn = card.querySelector('.fmc-menu-btn');
+            if (menuBtn) menuBtn.onclick = (e) => { e.stopPropagation(); openFamilyMemberManageMenu(uid, u.name); };
+            listEl.appendChild(card);
+            applyVipFrame(document.getElementById('famCardAvatar_' + uid), u.realVipTier || 0);
+          });
         });
       });
     });

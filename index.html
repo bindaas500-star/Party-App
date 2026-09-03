@@ -268,9 +268,11 @@
         <button onclick="openFamilyOwnerMenu()" style="background:rgba(255,255,255,0.08); border:none; color:#fff; width:32px; height:32px; border-radius:50%; font-size:18px; cursor:pointer; margin-left:auto;">⋮</button>
       </div>
       <div class="notice-banner" id="familyNoticeBanner" style="display:none;"></div>
-      <div class="seat-grid" id="familySeatGrid"></div>
-      <div class="members-strip-label" style="display:none;">All Members</div>
-      <div class="members-strip" id="membersStrip" style="display:none;"></div>
+      <div class="fam-quick-stats" id="famQuickStats"></div>
+      <div class="fam-members-label">👥 Members</div>
+      <div class="fam-member-list" id="famMemberList">
+        <div class="loading">Loading members...</div>
+      </div>
       <div class="chat-area" id="familyChatArea"></div>
       <div class="input-bar">
         <button class="quick-icon-btn" onclick="openEmojiPicker('famMsgInput')" title="Emoji">😊</button>
