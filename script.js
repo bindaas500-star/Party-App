@@ -2326,7 +2326,7 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
 
       const insideEl = document.getElementById('familyInsideView');
       if (fam.wallpaperURL) {
-        insideEl.style.backgroundImage = `linear-gradient(rgba(20,10,35,0.75),rgba(20,10,35,0.75)), url('${fam.wallpaperURL}')`;
+        insideEl.style.backgroundImage = `linear-gradient(rgba(20,10,35,0.55),rgba(20,10,35,0.62)), url('${fam.wallpaperURL}')`;
         insideEl.style.backgroundSize = 'cover';
         insideEl.style.backgroundPosition = 'center';
       } else {
