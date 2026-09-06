@@ -1225,7 +1225,7 @@
   }
   .dor-avatar {
     width: 42px; height: 42px; border-radius: 50%; background: linear-gradient(135deg,#ffd76a,#ff9d3d);
-    background-size: cover; background-position: center;
+    background-size: contain; background-repeat: no-repeat; background-position: center;
     display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 16px;
     font-family: 'Fredoka', 'Inter', sans-serif; flex-shrink: 0;
   }
@@ -1260,7 +1260,7 @@
   }
   .dmc-avatar {
     width: 44px; height: 44px; border-radius: 50%; background: linear-gradient(135deg,#ff6b9d,#c44dff);
-    background-size: cover; background-position: center; flex-shrink: 0;
+    background-size: contain; background-repeat: no-repeat; background-position: center; flex-shrink: 0;
     display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 16px;
     font-family: 'Fredoka', 'Inter', sans-serif;
   }
@@ -1426,7 +1426,7 @@
   .sas-header { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
   .sas-avatar {
     width: 46px; height: 46px; border-radius: 50%; background: linear-gradient(135deg,#ff6b9d,#c44dff);
-    background-size: cover; background-position: center; flex-shrink: 0;
+    background-size: contain; background-repeat: no-repeat; background-position: center; flex-shrink: 0;
     display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 17px;
     font-family: 'Fredoka', 'Inter', sans-serif; box-shadow: 0 4px 14px rgba(0,0,0,0.35), 0 0 0 2px rgba(255,215,106,0.5);
   }
@@ -1632,7 +1632,7 @@
   }
   .fam-member-card .fmc-avatar {
     width: 46px; height: 46px; min-width: 46px; border-radius: 50%; background: linear-gradient(135deg,#ff6b9d,#c44dff);
-    background-size: cover; background-position: center 25%; flex-shrink: 0; overflow: hidden;
+    background-size: contain; background-repeat: no-repeat; background-position: center; flex-shrink: 0; overflow: hidden;
     display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 17px;
     font-family: 'Fredoka', 'Inter', sans-serif; position: relative; box-sizing: border-box;
   }

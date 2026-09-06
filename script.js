@@ -449,7 +449,8 @@
       const testImg = new Image();
       testImg.onload = () => {
         el.style.backgroundImage = `url('${userData.photoURL}')`;
-        el.style.backgroundSize = 'cover';
+        el.style.backgroundSize = 'contain';
+        el.style.backgroundRepeat = 'no-repeat';
         el.style.backgroundPosition = 'center';
         el.textContent = '';
       };
@@ -2265,7 +2266,7 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
         if (seatData) {
           cell.className = 'seat-cell occupied' + (seatData.uid === currentFamilyOwnerUid ? ' host' : '');
           const avatarInner = seatData.photoURL
-            ? `style="background-image:url('${seatData.photoURL}');background-size:cover;background-position:center;"`
+            ? `style="background-image:url('${seatData.photoURL}');background-size:contain;background-repeat:no-repeat;background-position:center;"`
             : '';
           const crownBadge = seatData.uid === currentFamilyOwnerUid ? '<div class="seat-crown-badge">👑</div>' : '';
           const isMuted = !!seatData.muted;
@@ -2394,7 +2395,7 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
             const role = getFamilyRole(uid);
             const roleLabel = getFamilyRoleLabel(role);
             const canManage = canManageFamilyRoles() && uid !== currentUser.uid;
-            const avatarStyle = u.photoURL ? `style="background-image:url('${u.photoURL}');background-size:cover;background-position:center;"` : '';
+            const avatarStyle = u.photoURL ? `style="background-image:url('${u.photoURL}');background-size:contain;background-repeat:no-repeat;background-position:center;"` : '';
 
             const card = document.createElement('div');
             card.className = 'fam-member-card';
@@ -3251,7 +3252,7 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
     filtered.forEach((u) => {
       const row = document.createElement('div');
       row.className = 'admin-user-row';
-      const avatarStyle = u.photoURL ? `style="background-image:url('${u.photoURL}');background-size:cover;background-position:center;"` : '';
+      const avatarStyle = u.photoURL ? `style="background-image:url('${u.photoURL}');background-size:contain;background-repeat:no-repeat;background-position:center;"` : '';
       row.innerHTML = `
         <div class="dmc-avatar" ${avatarStyle}>${u.photoURL ? '' : escapeHtml((u.name || 'U').charAt(0).toUpperCase())}</div>
         <div class="dmc-info">
@@ -3406,7 +3407,8 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
     if (!currentUser) return;
     promptImageUrl('users/' + currentUser.uid + '/photoURL', 'your profile picture', (url) => {
       document.getElementById('editAvatarBig').style.backgroundImage = `url('${url}')`;
-      document.getElementById('editAvatarBig').style.backgroundSize = 'cover';
+      document.getElementById('editAvatarBig').style.backgroundSize = 'contain';
+      document.getElementById('editAvatarBig').style.backgroundRepeat = 'no-repeat';
       document.getElementById('editAvatarBig').style.backgroundPosition = 'center';
       document.getElementById('editAvatarBig').textContent = '';
       toast('Profile photo updated!');
@@ -3583,7 +3585,8 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
       const avatarEl = document.getElementById('roomHeaderOwnerAvatar');
       if (room && room.photoURL) {
         avatarEl.style.backgroundImage = `url('${room.photoURL}')`;
-        avatarEl.style.backgroundSize = 'cover';
+        avatarEl.style.backgroundSize = 'contain';
+        avatarEl.style.backgroundRepeat = 'no-repeat';
         avatarEl.style.backgroundPosition = 'center';
         avatarEl.textContent = '';
       } else {
@@ -3898,7 +3901,7 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
         if (seatData) {
           cell.className = 'seat-cell occupied' + (seatData.uid === currentRoomOwnerUid ? ' host' : '');
           const avatarInner = seatData.photoURL
-            ? `style="background-image:url('${seatData.photoURL}');background-size:cover;background-position:center;"`
+            ? `style="background-image:url('${seatData.photoURL}');background-size:contain;background-repeat:no-repeat;background-position:center;"`
             : '';
           const crownBadge = seatData.uid === currentRoomOwnerUid ? '<div class="seat-crown-badge">👑</div>' : '';
           const isMuted = !!seatData.muted;
