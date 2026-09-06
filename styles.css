@@ -1196,7 +1196,7 @@
   .detail-cover-info { position: relative; z-index: 1; margin-top: auto; text-align: center; }
   .detail-avatar {
     width: 78px; height: 78px; border-radius: 20px; margin: 0 auto 10px;
-    background: linear-gradient(135deg,#ff6b9d,#c44dff); background-size: cover; background-position: center;
+    background: linear-gradient(135deg,#ff6b9d,#c44dff); background-size: contain; background-repeat: no-repeat; background-position: center;
     display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: 700;
     font-family: 'Fredoka', 'Inter', sans-serif; color: #fff;
     box-shadow: 0 8px 24px rgba(0,0,0,0.4), 0 0 0 3px rgba(255,255,255,0.2);

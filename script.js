@@ -2338,10 +2338,14 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
       const bubbleAvatarEl = document.getElementById('familyBubbleAvatar');
       if (fam.photoURL) {
         famAvatarEl.style.backgroundImage = `url('${fam.photoURL}')`;
-        famAvatarEl.style.backgroundSize = 'cover';
+        famAvatarEl.style.backgroundSize = 'contain';
+        famAvatarEl.style.backgroundRepeat = 'no-repeat';
+        famAvatarEl.style.backgroundPosition = 'center';
         famAvatarEl.textContent = '';
         bubbleAvatarEl.style.backgroundImage = `url('${fam.photoURL}')`;
-        bubbleAvatarEl.style.backgroundSize = 'cover';
+        bubbleAvatarEl.style.backgroundSize = 'contain';
+        bubbleAvatarEl.style.backgroundRepeat = 'no-repeat';
+        bubbleAvatarEl.style.backgroundPosition = 'center';
         bubbleAvatarEl.textContent = '';
       } else {
         famAvatarEl.style.backgroundImage = '';
