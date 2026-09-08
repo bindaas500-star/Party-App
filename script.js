@@ -440,6 +440,13 @@
     }
   }
 
+  // ---------- SHARED AVATAR PHOTO STYLE (used everywhere a person's photo appears) ----------
+  // Always "contain" — shows the complete uploaded photo without cropping the face/head.
+  function getAvatarPhotoStyleAttr(photoURL) {
+    if (!photoURL) return '';
+    return `style="background-image:url('${photoURL}');background-size:contain;background-repeat:no-repeat;background-position:center;"`;
+  }
+
   function applyAvatarPhoto(el, userData) {
     const fallbackLetter = (userData && userData.name ? userData.name.charAt(0).toUpperCase() : '?');
     if (userData && userData.photoURL) {
@@ -2266,7 +2273,7 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
         if (seatData) {
           cell.className = 'seat-cell occupied' + (seatData.uid === currentFamilyOwnerUid ? ' host' : '');
           const avatarInner = seatData.photoURL
-            ? `style="background-image:url('${seatData.photoURL}');background-size:contain;background-repeat:no-repeat;background-position:center;"`
+            ? getAvatarPhotoStyleAttr(seatData.photoURL)
             : '';
           const crownBadge = seatData.uid === currentFamilyOwnerUid ? '<div class="seat-crown-badge">👑</div>' : '';
           const isMuted = !!seatData.muted;
@@ -2399,7 +2406,7 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
             const role = getFamilyRole(uid);
             const roleLabel = getFamilyRoleLabel(role);
             const canManage = canManageFamilyRoles() && uid !== currentUser.uid;
-            const avatarStyle = u.photoURL ? `style="background-image:url('${u.photoURL}');background-size:contain;background-repeat:no-repeat;background-position:center;"` : '';
+            const avatarStyle = getAvatarPhotoStyleAttr(u.photoURL);
 
             const card = document.createElement('div');
             card.className = 'fam-member-card';
@@ -3256,7 +3263,7 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
     filtered.forEach((u) => {
       const row = document.createElement('div');
       row.className = 'admin-user-row';
-      const avatarStyle = u.photoURL ? `style="background-image:url('${u.photoURL}');background-size:contain;background-repeat:no-repeat;background-position:center;"` : '';
+      const avatarStyle = getAvatarPhotoStyleAttr(u.photoURL);
       row.innerHTML = `
         <div class="dmc-avatar" ${avatarStyle}>${u.photoURL ? '' : escapeHtml((u.name || 'U').charAt(0).toUpperCase())}</div>
         <div class="dmc-info">
@@ -3905,7 +3912,7 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
         if (seatData) {
           cell.className = 'seat-cell occupied' + (seatData.uid === currentRoomOwnerUid ? ' host' : '');
           const avatarInner = seatData.photoURL
-            ? `style="background-image:url('${seatData.photoURL}');background-size:contain;background-repeat:no-repeat;background-position:center;"`
+            ? getAvatarPhotoStyleAttr(seatData.photoURL)
             : '';
           const crownBadge = seatData.uid === currentRoomOwnerUid ? '<div class="seat-crown-badge">👑</div>' : '';
           const isMuted = !!seatData.muted;
