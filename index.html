@@ -692,6 +692,16 @@
     </div>
   </div>
 
+  <!-- ===== AVATAR FRAME STORE ===== -->
+  <div class="rank-overlay" id="frameStoreOverlay">
+    <div class="rank-header">
+      <button onclick="closeFrameStore()">←</button>
+      <h2>🏪 Avatar Frame Store</h2>
+    </div>
+    <div style="padding: 0 16px 8px; color:rgba(255,255,255,0.5); font-size:12px;">Decorative frames — spend Love Coins or Gems</div>
+    <div class="frame-store-grid" id="frameStoreGrid"></div>
+  </div>
+
   <!-- ===== ADMIN PANEL ===== -->
   <div class="detail-overlay" id="adminPanelOverlay">
     <div style="padding:16px; display:flex; align-items:center; gap:12px; border-bottom:1px solid rgba(255,255,255,0.1); flex-shrink:0;">
@@ -997,6 +1007,9 @@
 
   <div class="section-title" style="padding: 0 16px;">🖼️ VIP Frames</div>
   <div class="vip-frame-preview-row" id="vipFramePreviewRow"></div>
+  <div style="padding: 0 16px 16px;">
+    <button class="detail-action-btn" style="width:100%;" onclick="openFrameStore()">🏪 Avatar Frame Store</button>
+  </div>
 
   <div class="section-title" style="padding: 0 16px;">💎 Buy Gems</div>
   <div id="gemsPackagesList" style="display:flex; flex-direction:column; gap:10px; padding: 0 16px 16px;"></div>

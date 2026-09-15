@@ -396,6 +396,130 @@
   // Wraps (or reuses) a wrapper around an existing avatar element and applies the correct
   // VIP frame tier. Safe to call repeatedly — it updates the existing wrapper in place.
   // Usage: applyVipFrame(avatarEl, vipLevel) — call AFTER applyAvatarPhoto() sets the photo.
+  // ---------- AVATAR FRAME STORE (purchasable decorative frames, CSS/emoji-themed) ----------
+  const AVATAR_FRAMES = [
+    { id: 'burger', name: 'Burger Treat', category: 'Fun', price: 300, currency: 'love', duration: '3 Days', durationMs: 3 * 86400000, ring: 'linear-gradient(135deg,#ffb347,#ff6b4a,#ffd76a)', accent: '🍔' },
+    { id: 'mewbeat', name: 'Mew-Beat', category: 'Luxury', price: 800, currency: 'love', duration: '7 Days', durationMs: 7 * 86400000, ring: 'linear-gradient(135deg,#ffd76a,#fff3d6,#ff9d3d)', accent: '🐱' },
+    { id: 'purplewing', name: 'Purple Wing', category: 'Fantasy', price: 1500, currency: 'love', duration: '7 Days', durationMs: 7 * 86400000, ring: 'linear-gradient(135deg,#7b2f8f,#c44dff,#4aa8ff)', accent: '🦋' },
+    { id: 'flowerpenguin', name: 'Flower Penguin', category: 'Cute', price: 500, currency: 'love', duration: '5 Days', durationMs: 5 * 86400000, ring: 'linear-gradient(135deg,#ff8fc4,#ffffff,#9adf5a)', accent: '🐧' },
+    { id: 'plume', name: 'Plume', category: 'Fantasy', price: 1200, currency: 'love', duration: '5 Days', durationMs: 5 * 86400000, ring: 'linear-gradient(135deg,#ff5a7a,#ffd76a,#4aa8ff,#c44dff)', accent: '🪶' },
+    { id: 'icecrystal', name: 'Ice Crystal', category: 'Elemental', price: 900, currency: 'love', duration: '7 Days', durationMs: 7 * 86400000, ring: 'linear-gradient(135deg,#bde3ff,#7dd3ff,#ffffff)', accent: '❄️' },
+    { id: 'pinklove', name: 'Pink Love', category: 'Romance', price: 600, currency: 'love', duration: '3 Days', durationMs: 3 * 86400000, ring: 'linear-gradient(135deg,#ff6b9d,#ffb3d1,#ff9dc4)', accent: '💗' },
+    { id: 'goldenroyal', name: 'Golden Royal', category: 'Luxury', price: 3000, currency: 'gems', duration: 'Permanent', durationMs: null, ring: 'linear-gradient(135deg,#ffd76a,#ff9d3d,#fff3d6,#ffd76a)', accent: '👑' },
+    { id: 'firedragon', name: 'Fire Dragon', category: 'Elemental', price: 2500, currency: 'gems', duration: '30 Days', durationMs: 30 * 86400000, ring: 'linear-gradient(135deg,#ff5a3d,#ff9d3d,#ffd76a,#ff5a3d)', accent: '🐉' },
+    { id: 'vipcrown', name: 'VIP Crown', category: 'VIP', price: 5000, currency: 'gems', duration: 'Permanent', durationMs: null, ring: 'linear-gradient(135deg,#ffd76a,#c44dff,#4aa8ff,#ffd76a)', accent: '👑' },
+    { id: 'soulmateframe', name: 'Soulmate', category: 'Romance', price: 700, currency: 'love', duration: '7 Days', durationMs: 7 * 86400000, ring: 'linear-gradient(135deg,#ff6b9d,#c44dff,#ff6b9d)', accent: '💞' },
+    { id: 'bffframe', name: 'BFF', category: 'Friendship', price: 400, currency: 'love', duration: '5 Days', durationMs: 5 * 86400000, ring: 'linear-gradient(135deg,#4ecdc4,#a78bfa)', accent: '🤝' },
+    { id: 'roomchampion', name: 'Room Champion', category: 'Achievement', price: 2000, currency: 'love', duration: '7 Days', durationMs: 7 * 86400000, ring: 'linear-gradient(135deg,#4ecdc4,#3a7bd5,#4ade80)', accent: '🏆' }
+  ];
+
+  function openFrameStore() {
+    document.getElementById('frameStoreOverlay').classList.add('show');
+    renderFrameStore();
+  }
+
+  function closeFrameStore() {
+    document.getElementById('frameStoreOverlay').classList.remove('show');
+  }
+
+  function renderFrameStore() {
+    const gridEl = document.getElementById('frameStoreGrid');
+    gridEl.innerHTML = '';
+    const owned = (currentUserData && currentUserData.ownedFrames) || {};
+    const equippedId = currentUserData && currentUserData.equippedFrameId;
+    const now = Date.now();
+
+    AVATAR_FRAMES.forEach((frame) => {
+      const ownedEntry = owned[frame.id];
+      const isOwned = ownedEntry === true || (typeof ownedEntry === 'number' && ownedEntry > now);
+      const isEquipped = equippedId === frame.id;
+
+      const card = document.createElement('div');
+      card.className = 'frame-store-card';
+      card.innerHTML = `
+        <div class="fsc-frame-preview">
+          <div class="vip-frame-wrap" style="width:64px; height:64px;">
+            <div class="vip-frame-avatar-slot" style="width:64px; height:64px; background:rgba(0,0,0,0.3);"></div>
+            <div class="vip-frame-ring" style="background:${frame.ring};"></div>
+            <div class="vip-frame-crown">${frame.accent}</div>
+          </div>
+        </div>
+        <div class="fsc-frame-name">${escapeHtml(frame.name)}</div>
+        <div class="fsc-frame-duration">${escapeHtml(frame.duration)}</div>
+        <div class="fsc-frame-price">${frame.currency === 'gems' ? '💎' : '💕'} ${formatNum(frame.price)}</div>
+      `;
+      const btn = document.createElement('button');
+      btn.className = 'fsc-frame-btn';
+      if (isEquipped) { btn.textContent = 'Equipped'; btn.disabled = true; btn.classList.add('equipped'); }
+      else if (isOwned) { btn.textContent = 'Equip'; btn.onclick = () => equipAvatarFrame(frame.id); }
+      else { btn.textContent = 'Buy'; btn.onclick = () => buyAvatarFrame(frame); }
+      card.appendChild(btn);
+      gridEl.appendChild(card);
+    });
+  }
+
+  function buyAvatarFrame(frame) {
+    if (!currentUser || !currentUserData) return;
+    const balance = frame.currency === 'gems' ? (currentUserData.gems || 0) : (currentUserData.love || 0);
+    if (balance < frame.price) { toast('Not enough ' + (frame.currency === 'gems' ? 'Gems' : 'Love Coins') + '.', 'error'); return; }
+
+    const update = {};
+    update[frame.currency] = balance - frame.price;
+    const ownedValue = frame.durationMs ? (Date.now() + frame.durationMs) : true;
+    update['ownedFrames/' + frame.id] = ownedValue;
+    update['equippedFrameId'] = frame.id; // auto-equip on purchase
+
+    db.ref('users/' + currentUser.uid).update(update).then(() => {
+      toast(frame.name + ' unlocked and equipped! ' + frame.accent);
+      renderFrameStore();
+    });
+  }
+
+  function equipAvatarFrame(frameId) {
+    if (!currentUser) return;
+    db.ref('users/' + currentUser.uid).update({ equippedFrameId: frameId }).then(() => {
+      toast('Frame equipped!');
+      renderFrameStore();
+    });
+  }
+
+  function unequipAvatarFrame() {
+    if (!currentUser) return;
+    db.ref('users/' + currentUser.uid).update({ equippedFrameId: null }).then(() => {
+      toast('Frame removed — showing your VIP frame instead.');
+      renderFrameStore();
+    });
+  }
+
+  // Applies the user's purchased/equipped frame if they have one; otherwise falls back to the automatic VIP-tier frame.
+  function applyUserFrame(avatarEl, userData) {
+    if (!avatarEl || !userData) return;
+    const equippedId = userData.equippedFrameId;
+    const owned = userData.ownedFrames || {};
+    const ownedEntry = owned[equippedId];
+    const isValidEquip = equippedId && (ownedEntry === true || (typeof ownedEntry === 'number' && ownedEntry > Date.now()));
+    const frame = isValidEquip ? AVATAR_FRAMES.find(f => f.id === equippedId) : null;
+
+    if (!frame) {
+      applyVipFrame(avatarEl, userData.realVipTier || 0);
+      return;
+    }
+
+    applyVipFrame(avatarEl, 0);
+    const wrap = avatarEl.closest('.vip-frame-wrap');
+    if (!wrap) return;
+    wrap.classList.add('custom-frame-active');
+    const ring = document.createElement('div');
+    ring.className = 'vip-frame-ring';
+    ring.style.background = frame.ring;
+    ring.style.animation = 'vipRingSpinSlow 8s linear infinite';
+    wrap.appendChild(ring);
+    const accent = document.createElement('div');
+    accent.className = 'vip-frame-crown';
+    accent.textContent = frame.accent;
+    wrap.appendChild(accent);
+  }
+
   function applyVipFrame(avatarEl, vipLevel) {
     if (!avatarEl) return;
     let wrap = avatarEl.closest('.vip-frame-wrap');
@@ -477,7 +601,7 @@
   function renderProfile() {
     if (!currentUserData) return;
     applyAvatarPhoto(document.getElementById('profileAvatarBig'), currentUserData);
-    applyVipFrame(document.getElementById('profileAvatarBig'), currentUserData.realVipTier || 0);
+    applyUserFrame(document.getElementById('profileAvatarBig'), currentUserData);
     document.getElementById('profileNameBig').textContent = currentUserData.name;
     document.getElementById('profileIdLevelBadge').textContent = "🆔 ID Lv. " + (currentUserData.level || 1);
     document.getElementById('profileVipLevelBadge').textContent = "👑 VIP " + (currentUserData.realVipTier || 0);

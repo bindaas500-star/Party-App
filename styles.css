@@ -1648,3 +1648,23 @@
     width: 30px; height: 30px; border-radius: 50%; background: rgba(255,255,255,0.08); border: none;
     color: #fff; font-size: 15px; cursor: pointer; flex-shrink: 0;
   }
+
+  /* ---- Avatar Frame Store ---- */
+  .frame-store-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 4px 16px 24px; }
+  .frame-store-card {
+    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px;
+    padding: 10px 6px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 4px;
+  }
+  .fsc-frame-preview { margin-bottom: 4px; }
+  .fsc-frame-name { font-size: 11px; font-weight: 700; font-family: 'Fredoka', 'Inter', sans-serif; color: #fff; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
+  .fsc-frame-duration { font-size: 9px; color: rgba(255,255,255,0.45); font-weight: 600; background: rgba(255,255,255,0.06); padding: 2px 8px; border-radius: 8px; }
+  .fsc-frame-price { font-size: 10.5px; color: #ffd76a; font-weight: 700; }
+  .fsc-frame-btn {
+    width: 100%; margin-top: 4px; border: none; border-radius: 10px; padding: 6px 0; font-size: 10.5px;
+    font-weight: 700; font-family: 'Fredoka', 'Inter', sans-serif; cursor: pointer;
+    background: linear-gradient(90deg,#ff6b9d,#c44dff); color: #fff;
+  }
+  .fsc-frame-btn.equipped { background: rgba(78,205,196,0.25); color: #4ecdc4; }
+  .fsc-frame-btn:disabled { opacity: 0.8; cursor: default; }
+
+  @keyframes vipRingSpinSlow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
