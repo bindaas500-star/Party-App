@@ -436,10 +436,11 @@
 
       const card = document.createElement('div');
       card.className = 'frame-store-card';
+      const sampleAvatarId = 'fscSample_' + frame.id;
       card.innerHTML = `
         <div class="fsc-frame-preview">
           <div class="vip-frame-wrap" style="width:64px; height:64px;">
-            <div class="vip-frame-avatar-slot" style="width:64px; height:64px; background:rgba(0,0,0,0.3);"></div>
+            <div class="vip-frame-avatar-slot" id="${sampleAvatarId}" style="width:64px; height:64px; background:linear-gradient(135deg,#ff6b9d,#c44dff); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:20px; font-family:'Fredoka','Inter',sans-serif; color:#fff;">${escapeHtml((currentUserData && currentUserData.name || 'U').charAt(0).toUpperCase())}</div>
             <div class="vip-frame-ring" style="background:${frame.ring};"></div>
             <div class="vip-frame-crown">${frame.accent}</div>
           </div>
@@ -455,6 +456,9 @@
       else { btn.textContent = 'Buy'; btn.onclick = () => buyAvatarFrame(frame); }
       card.appendChild(btn);
       gridEl.appendChild(card);
+      if (currentUserData && currentUserData.photoURL) {
+        applyAvatarPhoto(document.getElementById(sampleAvatarId), currentUserData);
+      }
     });
   }
 
@@ -729,29 +733,6 @@
     });
   }
 
-  function renderVipFramePreviews() {
-    const rowEl = document.getElementById('vipFramePreviewRow');
-    if (!rowEl) return;
-    const currentTier = (currentUserData && currentUserData.realVipTier) || 0;
-    const milestones = [0, 5, 10, 15, 20, 25, 30]; // one preview per frame tier boundary
-    rowEl.innerHTML = '';
-    milestones.forEach((vipLevel) => {
-      const isLocked = vipLevel > currentTier;
-      const cell = document.createElement('div');
-      cell.className = 'vip-frame-preview-cell' + (isLocked ? ' locked' : '');
-      const avatarId = 'vfp_' + vipLevel;
-      cell.innerHTML = `
-        <div class="profile-avatar" id="${avatarId}" style="width:52px; height:52px; font-size:18px;">${escapeHtml((currentUserData.name || 'U').charAt(0).toUpperCase())}</div>
-        <div class="vfp-label">${vipLevel === 0 ? 'No Frame' : 'VIP ' + vipLevel}</div>
-        ${isLocked ? '<div class="vfp-lock">🔒 Unlock at VIP ' + vipLevel + '</div>' : ''}
-      `;
-      rowEl.appendChild(cell);
-      const avatarEl = document.getElementById(avatarId);
-      applyAvatarPhoto(avatarEl, currentUserData);
-      applyVipFrame(avatarEl, vipLevel);
-    });
-  }
-
   function openVipBenefits() {
     const currentTier = (currentUserData && currentUserData.realVipTier) || 0;
     const nextTierInfo = VIP_TIERS.find(t => t.tier === currentTier + 1) || VIP_TIERS[VIP_TIERS.length - 1];
@@ -762,7 +743,6 @@
     document.getElementById('vtcProgressText').textContent = '0 / 100';
     document.getElementById('vtcProgressFill').style.width = '0%';
     renderGemsPackages();
-    renderVipFramePreviews();
 
     document.getElementById('vipBenefitsOverlay').classList.add('show');
   }
@@ -861,7 +841,7 @@
           <div class="rank-value">${config.icon} ${formatNum(p[config.field] || 0)}</div>
         `;
         listEl.appendChild(row);
-        applyVipFrame(row.querySelector('.rank-avatar'), p.realVipTier || 0);
+        applyUserFrame(row.querySelector('.rank-avatar'), p);
       });
     }, () => showRankError(listEl));
     currentRankListenerCleanup = () => rankRef.off('value', handler);
@@ -2409,7 +2389,7 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
         }
         cell.onclick = () => tapFamilySeat(famId, i, !!seatData, seatData);
         gridEl.appendChild(cell);
-        if (seatData) applyVipFrame(cell.querySelector('.seat-avatar'), seatData.realVipTier || 0);
+        if (seatData) applyUserFrame(cell.querySelector('.seat-avatar'), seatData);
       }
     });
     currentFamilySeatsListener = () => seatsRef.off('value', handler);
@@ -2428,6 +2408,8 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
         name: currentUserData.name,
         photoURL: currentUserData.photoURL || null,
         realVipTier: currentUserData.realVipTier || 0,
+        equippedFrameId: currentUserData.equippedFrameId || null,
+        ownedFrames: currentUserData.ownedFrames || null,
         muted: false
       });
       db.ref('users/' + currentUser.uid + '/activeSeat').set({ type: 'family', containerId: famId, seatIndex: index });
@@ -2552,7 +2534,7 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
             const menuBtn = card.querySelector('.fmc-menu-btn');
             if (menuBtn) menuBtn.onclick = (e) => { e.stopPropagation(); openFamilyMemberManageMenu(uid, u.name); };
             listEl.appendChild(card);
-            applyVipFrame(document.getElementById('famCardAvatar_' + uid), u.realVipTier || 0);
+            applyUserFrame(document.getElementById('famCardAvatar_' + uid), u);
           });
         });
       });
@@ -3814,7 +3796,7 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
       const u = snap.val();
       if (!u) return;
       applyAvatarPhoto(document.getElementById('seatProfAvatar'), u);
-      applyVipFrame(document.getElementById('seatProfAvatar'), u.realVipTier || 0);
+      applyUserFrame(document.getElementById('seatProfAvatar'), u);
       document.getElementById('seatProfIdBadge').textContent = '🆔 ID Lv. ' + (u.level || 1);
       document.getElementById('seatProfVipBadge').textContent = '👑 VIP ' + (u.realVipTier || 0);
       document.getElementById('seatProfRoomBadge').textContent = '🎁 Room Lv. ' + getGroupLevelInfo(u.roomXP || 0).level;
@@ -4050,7 +4032,7 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
         }
         cell.onclick = () => tapSeat(i, !!seatData, seatData);
         gridEl.appendChild(cell);
-        if (seatData) applyVipFrame(cell.querySelector('.seat-avatar'), seatData.realVipTier || 0);
+        if (seatData) applyUserFrame(cell.querySelector('.seat-avatar'), seatData);
         const giftBtn = cell.querySelector('.seat-gift-btn');
         if (giftBtn) {
           giftBtn.onclick = (e) => {
@@ -4104,6 +4086,8 @@ Breaking these guidelines may result in a warning, temporary restriction, or per
         name: currentUserData.name,
         photoURL: currentUserData.photoURL || null,
         realVipTier: currentUserData.realVipTier || 0,
+        equippedFrameId: currentUserData.equippedFrameId || null,
+        ownedFrames: currentUserData.ownedFrames || null,
         muted: false
       });
       db.ref('users/' + currentUser.uid + '/activeSeat').set({ type: 'room', containerId: currentRoomId, seatIndex: index });
