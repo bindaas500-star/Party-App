@@ -414,6 +414,7 @@
   ];
 
   function openFrameStore() {
+    closeVipBenefits();
     document.getElementById('frameStoreOverlay').classList.add('show');
     renderFrameStore();
   }
