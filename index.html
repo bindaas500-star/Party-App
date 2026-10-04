@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Party App</title>
 <meta name="description" content="Join Party App — chat live, play games, grow your farm, and hang out with your family in fun social rooms.">
 
@@ -20,6 +20,13 @@
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#1a1030">
 <link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+/* Play Store polish: notched phones (iPhone X+, Android punch-hole) ke liye safe-area.
+   env() un devices par 0 hota hai jin me notch nahi — is liye safe hai. */
+.topbar { padding-top: env(safe-area-inset-top); }
+#mainScreen { padding-bottom: env(safe-area-inset-bottom); }
+</style>
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -1062,5 +1069,13 @@
 </script>
 <script src="script.js"></script>
 
+<script>
+// Service Worker: offline support + installability (Play Store requirement)
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(() => {});
+  });
+}
+</script>
 </body>
 </html>

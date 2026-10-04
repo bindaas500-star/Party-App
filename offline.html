@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Party App — You're Offline</title>
+<meta name="theme-color" content="#1a1030">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    min-height:100vh; min-height:100dvh;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    background:linear-gradient(160deg,#2a1a4a,#1a1030);
+    color:#fff; font-family:'Fredoka','Inter',system-ui,sans-serif; text-align:center;
+    padding:24px;
+  }
+  .logo {
+    width:72px; height:72px; border-radius:50%;
+    background:linear-gradient(135deg,#ff6b9d,#c44dff);
+    display:flex; align-items:center; justify-content:center;
+    font-size:34px; font-weight:700; color:#fff;
+    box-shadow:0 0 0 4px rgba(255,215,106,0.4), 0 10px 30px rgba(0,0,0,0.4);
+    margin-bottom:20px;
+  }
+  h1 { font-size:22px; margin-bottom:10px; }
+  p { color:rgba(255,255,255,0.65); font-size:14px; line-height:1.6; max-width:280px; margin-bottom:24px; }
+  button {
+    background:linear-gradient(135deg,#ff6b9d,#c44dff);
+    border:none; border-radius:999px; color:#fff;
+    font-family:inherit; font-weight:700; font-size:15px;
+    padding:14px 42px; cursor:pointer;
+    box-shadow:0 8px 24px rgba(196,77,255,0.35);
+  }
+  button:active { transform:scale(0.97); }
+</style>
+</head>
+<body>
+  <div class="logo">P</div>
+  <h1>You're offline</h1>
+  <p>Party App ko internet chahiye. Connection wapas aate hi dobara try karo.</p>
+  <button onclick="location.reload()">Try Again</button>
+</body>
+</html>
