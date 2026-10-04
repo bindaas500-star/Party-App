@@ -38,8 +38,12 @@ input, textarea, [contenteditable] {
   pointer-events: none;
   will-change: opacity, transform;
 }
-/* Tab order ke hisaab se direction (JS set karta hai) */
-.panels-wrap[data-dir="back"] .panel { transform: translateX(-36px); }
+/* Tab order ke hisaab se direction (JS set karta hai).
+   :not(.active) zaroori hai — warna direction rule active panel
+   ko bhi shift kar dega (specificity bug). */
+.panels-wrap[data-dir="back"] .panel:not(.active) { transform: translateX(-36px); }
+.panels-wrap[data-dir="fwd"] .panel:not(.active),
+.panels-wrap:not([data-dir]) .panel:not(.active) { transform: translateX(36px); }
 .panel.active {
   opacity: 1;
   visibility: visible;
