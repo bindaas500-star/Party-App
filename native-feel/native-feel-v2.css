@@ -1,0 +1,95 @@
+/* ============================================================
+   Party App — Native Feel Pack v2
+   Purani wali file (native-feel.css) me ek zidddi bug tha, is liye
+   ye nayi file hai — cache purani wali kabhi nahi uthayega.
+   Ise styles.css KE BAAD link karo.
+   ------------------------------------------------------------
+   Design usool: koi bhi rule ACTIVE panel ko mustaqil shift NA kare.
+   Sirf entry animation hai jo khatam hote hi wapas normal ho jati hai.
+   ============================================================ */
+
+/* ---------- 1. Koi browser-ism nahi ---------- */
+html, body {
+  overscroll-behavior: none;
+  -webkit-touch-callout: none;
+}
+body {
+  user-select: none;
+  -webkit-user-select: none;
+}
+input, textarea, [contenteditable] {
+  user-select: text;
+  -webkit-user-select: text;
+}
+::-webkit-scrollbar { width: 0; height: 0; }
+
+/* ---------- 2. Screen transitions — sirf entry animation ----------
+   Original display:none/flex logic waisa ka waisa rehta hai.
+   Animation khatam hote hi panel apni asli jagah par hota hai,
+   is liye screen kabhi side par ATKI nahi reh sakti. */
+.panel.active { animation: nf-in-fwd .26s ease; }
+.panels-wrap[data-dir="back"] .panel.active { animation-name: nf-in-back; }
+@keyframes nf-in-fwd {
+  from { opacity: 0; transform: translateX(30px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes nf-in-back {
+  from { opacity: 0; transform: translateX(-30px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .panel.active { animation: nf-in-fade .15s ease; }
+}
+@keyframes nf-in-fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ---------- 3. Bottom nav — native tab feel ---------- */
+.nav-item {
+  position: relative;
+  overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+  transition: color .2s, background .2s, box-shadow .2s, transform .12s;
+}
+.nav-item:active { transform: scale(0.94); }
+.nav-item .nav-icon { transition: transform .22s cubic-bezier(.34,1.56,.64,1); }
+
+/* Ripple — ungli jahan lage wahan lehar (foran gayab ho jata hai) */
+.ripple {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 215, 106, 0.35);
+  transform: scale(0);
+  animation: nf-ripple .45s ease-out forwards;
+  pointer-events: none;
+}
+@keyframes nf-ripple {
+  to { transform: scale(2.6); opacity: 0; }
+}
+
+/* ---------- 4. Buttons — native press feedback (foran wapas) ---------- */
+.btn {
+  position: relative;
+  overflow: hidden;
+  transition: transform .12s ease, filter .15s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.btn:active { transform: scale(0.96); filter: brightness(1.12); }
+
+/* ---------- 5. Overlays — neeche se slide (bottom-sheet feel) ---------- */
+.profile-overlay.show, .detail-overlay.show, .rank-overlay.show {
+  animation: nf-sheet-up .28s cubic-bezier(.32,.72,.35,1);
+}
+@keyframes nf-sheet-up {
+  from { transform: translateY(48px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+/* ---------- 6. Toast — snackbar jaisa ---------- */
+#toastContainer { pointer-events: none; }
+.toast { animation: nf-toast-in .25s cubic-bezier(.34,1.4,.64,1); }
+@keyframes nf-toast-in {
+  from { transform: translateY(16px) scale(.96); opacity: 0; }
+  to   { transform: translateY(0) scale(1);      opacity: 1; }
+}
