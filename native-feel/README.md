@@ -7,20 +7,20 @@ Sab kuch local me tayyar hai; GitHub par push Imran ki permission se hoga.
 
 `</head>` se pehle (styles.css wali line ke baad):
 ```html
-<link rel="stylesheet" href="native-feel.css">
+<link rel="stylesheet" href="native-feel/native-feel.css">
 ```
 
 `</body>` se pehle (sab se aakhir me):
 ```html
-<script src="native-feel.js"></script>
+<script src="native-feel/native-feel.js"></script>
 ```
 
 Bas. Baqi sab automatic hai.
 
 ## Step 2: Ye files repo ki root me rakho
 
-- `native-feel.css` — screen transitions, ripple, no browser-isms
-- `native-feel.js` — tab direction, ripple effect, double-tap zoom band
+- `native-feel/native-feel.css` — screen transitions, ripple, no browser-isms
+- `native-feel/native-feel.js` — tab direction, ripple effect, double-tap zoom band
 - `sw.js`, `offline.html` — pehle wale polish pack se (agar abhi tak push nahi hue)
 
 ## Is se kya badlega (feel)
