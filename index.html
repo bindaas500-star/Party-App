@@ -4,17 +4,17 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Party App</title>
-<meta name="description" content="Join Party App â chat live, play games, grow your farm, and hang out with your family in fun social rooms.">
+<meta name="description" content="Join Party App — chat live, play games, grow your farm, and hang out with your family in fun social rooms.">
 
 <meta property="og:type" content="website">
 <meta property="og:title" content="Party App">
-<meta property="og:description" content="Join Party App â chat live, play games, grow your farm, and hang out with your family in fun social rooms.">
+<meta property="og:description" content="Join Party App — chat live, play games, grow your farm, and hang out with your family in fun social rooms.">
 <meta property="og:image" content="https://bindaas500-star.github.io/Party-App/icon-512.png">
 <meta property="og:url" content="https://bindaas500-star.github.io/Party-App/">
 
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Party App">
-<meta name="twitter:description" content="Join Party App â chat live, play games, grow your farm, and hang out with your family in fun social rooms.">
+<meta name="twitter:description" content="Join Party App — chat live, play games, grow your farm, and hang out with your family in fun social rooms.">
 <meta name="twitter:image" content="https://bindaas500-star.github.io/Party-App/icon-512.png">
 
 <link rel="manifest" href="manifest.json">
@@ -23,7 +23,7 @@
 <link rel="apple-touch-icon" href="icon-192.png">
 <style>
 /* Play Store polish: notched phones (iPhone X+, Android punch-hole) ke liye safe-area.
-   env() un devices par 0 hota hai jin me notch nahi â is liye safe hai. */
+   env() un devices par 0 hota hai jin me notch nahi — is liye safe hai. */
 .topbar { padding-top: env(safe-area-inset-top); }
 #mainScreen { padding-bottom: env(safe-area-inset-bottom); }
 </style>
@@ -41,7 +41,7 @@
 <div id="authScreen" class="screen active">
   <div>
     <div class="auth-logo">
-      <span class="emoji">ð</span>
+      <span class="emoji">🎉</span>
       <span class="brand">Party App</span>
     </div>
     <div class="auth-box">
@@ -59,7 +59,7 @@
 
 <!-- ===== MAIN APP SCREEN ===== -->
 <div id="mainScreen" class="app-shell" style="display:none; flex-direction: column;">
-  <div id="pullRefreshIndicator">â Pull to refresh</div>
+  <div id="pullRefreshIndicator">↓ Pull to refresh</div>
   <div id="toastContainer"></div>
 
   <div class="emoji-picker" id="emojiPicker">
@@ -70,7 +70,7 @@
   <!-- ===== ONBOARDING ===== -->
   <div class="ttt-overlay" id="onboardingOverlay" style="z-index:900; background:linear-gradient(160deg,#2a1a4a,#1a1030); align-items:stretch; padding:0;">
     <div id="onboardingSlides" style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:30px;">
-      <div id="onbEmoji" style="font-size:64px; margin-bottom:18px;">ð</div>
+      <div id="onbEmoji" style="font-size:64px; margin-bottom:18px;">🎉</div>
       <div id="onbTitle" style="font-family:'Fredoka','Inter',sans-serif; font-weight:700; font-size:22px; color:#fff; margin-bottom:12px;">Welcome to Party App!</div>
       <div id="onbText" style="color:rgba(255,255,255,0.7); font-size:14px; line-height:1.6; max-width:300px;">Let's take a super quick look around before you dive in.</div>
     </div>
@@ -85,13 +85,13 @@
     <div class="avatar-ring" onclick="openProfile()" style="cursor:pointer;"><div class="avatar" id="userAvatar">?</div></div>
     <div>
       <div class="name" id="userName">User</div>
-      <div class="level-badge">ð <span id="userLevelLabel">ID Lv. 1</span></div>
+      <div class="level-badge">🆔 <span id="userLevelLabel">ID Lv. 1</span></div>
     </div>
     <div class="topbar-banner" id="topbarBanner">
       <div class="tbb-track" id="topbarBannerTrack">
-        <div class="tbb-slide" style="background:linear-gradient(135deg,#ff6b9d,#c44dff);">ð Welcome to Party App</div>
-        <div class="tbb-slide" style="background:linear-gradient(135deg,#ffd76a,#ff9d3d);">ð Buy Gems &amp; upgrade VIP</div>
-        <div class="tbb-slide" style="background:linear-gradient(135deg,#4ecdc4,#3a7bd5);">ð Join a Family today</div>
+        <div class="tbb-slide" style="background:linear-gradient(135deg,#ff6b9d,#c44dff);">🎉 Welcome to Party App</div>
+        <div class="tbb-slide" style="background:linear-gradient(135deg,#ffd76a,#ff9d3d);">💎 Buy Gems &amp; upgrade VIP</div>
+        <div class="tbb-slide" style="background:linear-gradient(135deg,#4ecdc4,#3a7bd5);">🎊 Join a Family today</div>
       </div>
     </div>
   </div>
@@ -101,13 +101,13 @@
   <div class="panel active" id="homePanel">
     <div class="home-content">
       <div class="home-decor">
-        <span style="top:6%; left:4%; font-size:34px;">ð³</span>
-        <span style="top:14%; right:8%; font-size:26px;">ð¸</span>
-        <span style="top:38%; left:2%; font-size:22px;">ð¿</span>
-        <span style="top:55%; right:4%; font-size:30px;">ð³</span>
-        <span style="top:72%; left:8%; font-size:24px;">ð»</span>
-        <span style="top:85%; right:12%; font-size:20px;">ð</span>
-        <span style="top:25%; left:45%; font-size:18px;">âï¸</span>
+        <span style="top:6%; left:4%; font-size:34px;">🌳</span>
+        <span style="top:14%; right:8%; font-size:26px;">🌸</span>
+        <span style="top:38%; left:2%; font-size:22px;">🌿</span>
+        <span style="top:55%; right:4%; font-size:30px;">🌳</span>
+        <span style="top:72%; left:8%; font-size:24px;">🌻</span>
+        <span style="top:85%; right:12%; font-size:20px;">🍃</span>
+        <span style="top:25%; left:45%; font-size:18px;">☁️</span>
         <span class="hd-particle" style="top:20%; left:20%; animation-delay:0s;"></span>
         <span class="hd-particle" style="top:45%; left:75%; animation-delay:1.5s;"></span>
         <span class="hd-particle" style="top:65%; left:35%; animation-delay:3s;"></span>
@@ -117,21 +117,21 @@
       <!-- VIP / Rank / Family quick row -->
       <div class="quick-actions-row" style="position:relative; z-index:1;">
         <div class="qa-btn" onclick="openVipBenefits()">
-          <div class="qa-icon">ð</div>
+          <div class="qa-icon">👑</div>
           <div class="qa-label">VIP</div>
         </div>
         <div class="qa-btn" onclick="openRankView()">
-          <div class="qa-icon">ð</div>
+          <div class="qa-icon">🏆</div>
           <div class="qa-label">Rank</div>
         </div>
         <div class="qa-btn" onclick="switchTab('family')">
-          <div class="qa-icon">ð </div>
+          <div class="qa-icon">🏠</div>
           <div class="qa-label">Family</div>
         </div>
       </div>
 
       <!-- Popular Rooms Preview -->
-      <div class="home-section-label" style="position:relative; z-index:1;">ð¥ Popular Rooms</div>
+      <div class="home-section-label" style="position:relative; z-index:1;">🔥 Popular Rooms</div>
       <div class="popular-rooms-row" id="popularRoomsRow" style="position:relative; z-index:1;">
         <div class="loading" style="padding:16px; color:rgba(255,255,255,0.4); font-size:12.5px;">Loading rooms...</div>
       </div>
@@ -139,19 +139,19 @@
       <!-- Wallet -->
       <div class="home-header" style="position:relative; z-index:1;">
 
-          <div class="home-title">ð¾ Your Farm</div>
+          <div class="home-title">🌾 Your Farm</div>
 
           <div class="wallet-box">
 
-              <div class="wallet"><span class="wallet-icon-badge" style="background:linear-gradient(135deg,#ffd76a,#ff9d3d);">ðª</span>
+              <div class="wallet"><span class="wallet-icon-badge" style="background:linear-gradient(135deg,#ffd76a,#ff9d3d);">🪙</span>
                   <span id="coinsDisplay">0</span>
               </div>
 
-              <div class="wallet"><span class="wallet-icon-badge" style="background:linear-gradient(135deg,#7dd3ff,#3a9bd9);">ð</span>
+              <div class="wallet"><span class="wallet-icon-badge" style="background:linear-gradient(135deg,#7dd3ff,#3a9bd9);">💎</span>
                   <span id="gemsDisplay">0</span>
               </div>
 
-              <div class="wallet"><span class="wallet-icon-badge" style="background:linear-gradient(135deg,#ff9dc4,#ff6b9d);">ð</span>
+              <div class="wallet"><span class="wallet-icon-badge" style="background:linear-gradient(135deg,#ff9dc4,#ff6b9d);">💕</span>
                   <span id="loveDisplay">0</span>
               </div>
 
@@ -179,9 +179,9 @@
 
       <div class="farm-card" style="position:relative; z-index:1;">
 
-          <h2 id="homeFarmLevelTag">ð¾ Farm Level 1</h2>
+          <h2 id="homeFarmLevelTag">🌾 Farm Level 1</h2>
 
-          <div class="rate-label" id="rateLabel">In 30 min: ðª 0</div>
+          <div class="rate-label" id="rateLabel">In 30 min: 🪙 0</div>
 
           <h1 id="prodValue">0 Coins</h1>
 
@@ -217,22 +217,22 @@
   <div class="panel" id="chatPanel">
     <div class="msg-shortcuts">
       <div class="msg-shortcut" onclick="openListOverlay('notifications')">
-        <div class="ms-icon">ð</div><div class="ms-label">Notifications</div>
+        <div class="ms-icon">🔔</div><div class="ms-label">Notifications</div>
       </div>
       <div class="msg-shortcut" onclick="openListOverlay('activity')">
-        <div class="ms-icon">ð</div><div class="ms-label">Activity</div>
+        <div class="ms-icon">🎁</div><div class="ms-label">Activity</div>
       </div>
       <div class="msg-shortcut" onclick="openListOverlay('friends')">
-        <div class="ms-icon">â¤ï¸</div><div class="ms-label">Friends</div>
+        <div class="ms-icon">❤️</div><div class="ms-label">Friends</div>
       </div>
     </div>
     <div class="chat-area" id="chatArea">
       <div class="loading">Loading messages...</div>
     </div>
     <div class="input-bar">
-      <button class="quick-icon-btn" onclick="openEmojiPicker('msgInput')" title="Emoji">ð</button>
+      <button class="quick-icon-btn" onclick="openEmojiPicker('msgInput')" title="Emoji">😊</button>
       <input type="text" id="msgInput" placeholder="Say something..." maxlength="300" onkeypress="if(event.key==='Enter') sendMessage()">
-      <button class="send-btn" onclick="sendMessage()">â¤</button>
+      <button class="send-btn" onclick="sendMessage()">➤</button>
     </div>
   </div>
 
@@ -248,7 +248,7 @@
       </div>
 
       <div class="create-family-box">
-        <h3>â¨ Create Your Own Family</h3>
+        <h3>✨ Create Your Own Family</h3>
         <input type="text" id="familyNameInput" placeholder="Family name" maxlength="30">
         <button class="btn" id="createFamilyBtn" onclick="createFamily()">Create Family</button>
         <div class="lock-msg" id="createLockMsg" style="display:none;"></div>
@@ -256,7 +256,7 @@
 
       <div class="section-title">Join a Family</div>
       <div style="padding: 0 16px 10px;">
-        <input type="text" id="familySearchInput" placeholder="ð Search families..." oninput="filterFamilyList()"
+        <input type="text" id="familySearchInput" placeholder="🔍 Search families..." oninput="filterFamilyList()"
           style="width:100%; padding:11px 14px; border-radius:14px; border:1px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.06); color:#fff; font-size:13px; box-sizing:border-box;">
       </div>
       <div id="familyList">
@@ -273,32 +273,32 @@
           <div class="f-title" id="insideFamName">Family</div>
           <div class="f-sub" id="insideFamMemberCount">0 members</div>
         </div>
-        <button onclick="openFamilyOwnerMenu()" style="background:rgba(255,255,255,0.08); border:none; color:#fff; width:32px; height:32px; border-radius:50%; font-size:18px; cursor:pointer; margin-left:auto;">â®</button>
+        <button onclick="openFamilyOwnerMenu()" style="background:rgba(255,255,255,0.08); border:none; color:#fff; width:32px; height:32px; border-radius:50%; font-size:18px; cursor:pointer; margin-left:auto;">⋮</button>
       </div>
       <div class="notice-banner" id="familyNoticeBanner" style="display:none;"></div>
       <div class="fam-quick-stats" id="famQuickStats"></div>
-      <div class="fam-members-label">ð¥ Members</div>
+      <div class="fam-members-label">👥 Members</div>
       <div class="fam-member-list" id="famMemberList">
         <div class="loading">Loading members...</div>
       </div>
       <div class="chat-area" id="familyChatArea"></div>
       <div class="input-bar">
-        <button class="quick-icon-btn" onclick="openEmojiPicker('famMsgInput')" title="Emoji">ð</button>
+        <button class="quick-icon-btn" onclick="openEmojiPicker('famMsgInput')" title="Emoji">😊</button>
         <input type="text" id="famMsgInput" placeholder="Message your family..." maxlength="300" onkeypress="if(event.key==='Enter') sendFamilyMessage()">
-        <button class="send-btn" onclick="sendFamilyMessage()">â¤</button>
+        <button class="send-btn" onclick="sendFamilyMessage()">➤</button>
       </div>
     </div>
   </div>
 
   <div class="family-bubble" id="familyBubble">
     <span id="familyBubbleAvatar">F</span>
-    <span class="bubble-tag">ð¨âð©âð§</span>
-    <span class="bubble-close-btn" id="familyBubbleClose">â</span>
+    <span class="bubble-tag">👨‍👩‍👧</span>
+    <span class="bubble-close-btn" id="familyBubbleClose">✕</span>
   </div>
 
   <!-- ===== MOMENTS PANEL (placeholder) ===== -->
   <div class="panel" id="momentsPanel" style="position: relative; overflow: hidden;">
-    <div class="room-title-bar">ðª Moments</div>
+    <div class="room-title-bar">🪐 Moments</div>
     <div class="moments-feed" id="momentsFeed">
       <div class="loading">Loading moments...</div>
     </div>
@@ -308,8 +308,8 @@
   <!-- ===== NEW POST OVERLAY ===== -->
   <div class="rank-overlay" id="newPostOverlay">
     <div class="rank-header">
-      <button onclick="closeNewPostOverlay()">â</button>
-      <h2>âï¸ New Moment</h2>
+      <button onclick="closeNewPostOverlay()">←</button>
+      <h2>✏️ New Moment</h2>
     </div>
     <div style="padding: 0 16px;">
       <div class="edit-field">
@@ -345,7 +345,7 @@
       </div>
 
       <div style="padding: 0 16px 10px;">
-        <input type="text" id="roomSearchInput" placeholder="ð Search rooms..." oninput="filterRoomList()"
+        <input type="text" id="roomSearchInput" placeholder="🔍 Search rooms..." oninput="filterRoomList()"
           style="width:100%; padding:11px 14px; border-radius:14px; border:1px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.06); color:#fff; font-size:13px; box-sizing:border-box;">
       </div>
 
@@ -357,50 +357,50 @@
     <!-- ===== ROOM INSIDE VIEW ===== -->
     <div id="roomInsideView" style="display:none; flex-direction:column; flex:1; overflow:hidden; position:relative;">
       <div class="room-title-bar">
-        <button class="room-back-btn" onclick="leaveRoomToBrowse()">â</button>
+        <button class="room-back-btn" onclick="leaveRoomToBrowse()">←</button>
         <div class="room-header-avatar" id="roomHeaderOwnerAvatar" onclick="openRoomDetails()">?</div>
         <div class="room-title-text" onclick="openRoomDetails()">
           <span id="roomInsideTitle">Room</span>
           <span class="room-meta-row">
-            <span id="roomIdDisplay">ID: â</span>
+            <span id="roomIdDisplay">ID: —</span>
             <span class="room-online-dot"></span>
             <span id="roomOnlineCount">0 online</span>
-            <span id="roomLevelDisplay">ðï¸ Lv.1</span>
+            <span id="roomLevelDisplay">🎖️ Lv.1</span>
           </span>
         </div>
-        <button class="room-menu-btn" onclick="openRoomOwnerMenu()">â®</button>
+        <button class="room-menu-btn" onclick="openRoomOwnerMenu()">⋮</button>
       </div>
       <div class="floating-hearts" id="roomFloatingHearts"></div>
       <div class="notice-banner" id="roomNoticeBanner" style="display:none;"></div>
 
       <div class="game-lobby" id="gameLobby">
         <div class="game-card" data-game="ttt" onclick="selectGameCard(this); openTicTacToe();">
-          <div class="gc-icon">â­</div>
+          <div class="gc-icon">⭕</div>
           <div class="gc-name">Tic-Tac-Toe</div>
           <button class="gc-play-btn">PLAY</button>
         </div>
         <div class="game-card" data-game="uno" onclick="selectGameCard(this); toast('UNO is coming soon!');">
-          <div class="gc-icon">ð´</div>
+          <div class="gc-icon">🎴</div>
           <div class="gc-name">UNO</div>
           <div class="gc-soon-badge">Coming Soon</div>
         </div>
         <div class="game-card" data-game="pool" onclick="selectGameCard(this); toast('Pool is coming soon!');">
-          <div class="gc-icon">ð±</div>
+          <div class="gc-icon">🎱</div>
           <div class="gc-name">Pool</div>
           <div class="gc-soon-badge">Coming Soon</div>
         </div>
         <div class="game-card" data-game="carrom" onclick="selectGameCard(this); toast('Carrom is coming soon!');">
-          <div class="gc-icon">ð²</div>
+          <div class="gc-icon">🎲</div>
           <div class="gc-name">Carrom</div>
           <div class="gc-soon-badge">Coming Soon</div>
         </div>
         <div class="game-card" data-game="ludo" onclick="selectGameCard(this); toast('Ludo is coming soon!');">
-          <div class="gc-icon">ð¯</div>
+          <div class="gc-icon">🎯</div>
           <div class="gc-name">Ludo</div>
           <div class="gc-soon-badge">Coming Soon</div>
         </div>
         <div class="game-card" data-game="snake" onclick="selectGameCard(this); toast('Snake is coming soon!');">
-          <div class="gc-icon">ð</div>
+          <div class="gc-icon">🐍</div>
           <div class="gc-name">Snake</div>
           <div class="gc-soon-badge">Coming Soon</div>
         </div>
@@ -410,11 +410,11 @@
 
       <div class="chat-area" id="roomChatArea"></div>
       <div class="input-bar">
-        <button class="quick-icon-btn" onclick="openEmojiPicker('roomMsgInput')" title="Emoji">ð</button>
+        <button class="quick-icon-btn" onclick="openEmojiPicker('roomMsgInput')" title="Emoji">😊</button>
         <input type="text" id="roomMsgInput" placeholder="Say something..." maxlength="300" onkeypress="if(event.key==='Enter') sendRoomMessage()">
-        <button class="quick-icon-btn" onclick="openQuickGiftPicker()" title="Send Gift">ð</button>
-        <button class="quick-icon-btn" onclick="openGiftLog()" title="Gift Log">ð¦</button>
-        <button class="send-btn" onclick="sendRoomMessage()">â¤</button>
+        <button class="quick-icon-btn" onclick="openQuickGiftPicker()" title="Send Gift">🎁</button>
+        <button class="quick-icon-btn" onclick="openGiftLog()" title="Gift Log">📦</button>
+        <button class="send-btn" onclick="sendRoomMessage()">➤</button>
       </div>
     </div>
   </div>
@@ -423,8 +423,8 @@
   <!-- ===== TIC-TAC-TOE OVERLAY ===== -->
   <div class="ttt-overlay" id="tttOverlay">
     <div class="ttt-header">
-      <button onclick="closeTicTacToe()">â</button>
-      <h2>â­ Tic-Tac-Toe</h2>
+      <button onclick="closeTicTacToe()">←</button>
+      <h2>⭕ Tic-Tac-Toe</h2>
     </div>
     <div class="ttt-status" id="tttStatus">Waiting for players...</div>
     <div class="ttt-board" id="tttBoard"></div>
@@ -442,8 +442,8 @@
       <span style="left:45%; top:80%; animation-delay:2s;"></span>
     </div>
     <div class="ttt-header" style="padding: 16px 16px 8px;">
-      <button onclick="closeGiftPicker()">â</button>
-      <h2>ð Send Gift</h2>
+      <button onclick="closeGiftPicker()">←</button>
+      <h2>🎁 Send Gift</h2>
     </div>
 
     <div class="gift-recipients-row" id="giftRecipientsRow"></div>
@@ -457,7 +457,7 @@
     <div class="gift-grid" id="giftGrid" style="flex: 1; overflow-y: auto; padding: 4px 16px 16px;"></div>
 
     <div class="gift-send-bar">
-      <div class="gsb-wallet">ð <span id="giftWalletDisplay">0</span></div>
+      <div class="gsb-wallet">💕 <span id="giftWalletDisplay">0</span></div>
       <div class="gift-qty-presets">
         <button class="gqp-btn" onclick="setGiftQty(1)">1</button>
         <button class="gqp-btn" onclick="setGiftQty(10)">10</button>
@@ -465,7 +465,7 @@
         <button class="gqp-btn" onclick="setGiftQty(520)">520</button>
       </div>
       <div class="gsb-qty">
-        <button onclick="changeGiftQty(-1)">â</button>
+        <button onclick="changeGiftQty(-1)">−</button>
         <span id="giftQtyDisplay">1</span>
         <button onclick="changeGiftQty(1)">+</button>
       </div>
@@ -477,34 +477,34 @@
   <!-- ===== SEAT PROFILE POPUP ===== -->
   <div class="profile-overlay" id="seatProfileOverlay">
     <div class="profile-overlay-header" style="display:flex; align-items:center; justify-content:space-between;">
-      <button onclick="closeSeatProfile()">â</button>
+      <button onclick="closeSeatProfile()">←</button>
       <div style="display:flex; gap:8px;">
-        <button onclick="reportSeatProfileUser()" style="background:rgba(255,255,255,0.08); border:none; color:#ffb4b4; padding:7px 12px; border-radius:16px; font-size:11.5px; font-weight:600; cursor:pointer;">ð© Report</button>
-        <button onclick="blockSeatProfileUser()" style="background:rgba(255,255,255,0.08); border:none; color:#ff8a8a; padding:7px 12px; border-radius:16px; font-size:11.5px; font-weight:600; cursor:pointer;">ð« Block</button>
+        <button onclick="reportSeatProfileUser()" style="background:rgba(255,255,255,0.08); border:none; color:#ffb4b4; padding:7px 12px; border-radius:16px; font-size:11.5px; font-weight:600; cursor:pointer;">🚩 Report</button>
+        <button onclick="blockSeatProfileUser()" style="background:rgba(255,255,255,0.08); border:none; color:#ff8a8a; padding:7px 12px; border-radius:16px; font-size:11.5px; font-weight:600; cursor:pointer;">🚫 Block</button>
       </div>
     </div>
     <div class="profile-hero">
       <div class="profile-avatar-ring"><div class="profile-avatar" id="seatProfAvatar">?</div></div>
       <div class="profile-name" id="seatProfName">User</div>
       <div class="profile-badges">
-        <span class="badge-pill" id="seatProfIdBadge">ð ID Lv. 1</span>
-        <span class="badge-pill vip-pill" id="seatProfVipBadge">ð VIP 1</span>
-        <span class="badge-pill room-pill" id="seatProfRoomBadge">ð Room Lv. 1</span>
+        <span class="badge-pill" id="seatProfIdBadge">🆔 ID Lv. 1</span>
+        <span class="badge-pill vip-pill" id="seatProfVipBadge">👑 VIP 1</span>
+        <span class="badge-pill room-pill" id="seatProfRoomBadge">🎁 Room Lv. 1</span>
       </div>
-      <div class="profile-id-row">ID: <span id="seatProfIdNumber">â</span></div>
+      <div class="profile-id-row">ID: <span id="seatProfIdNumber">—</span></div>
     </div>
 
     <div class="seat-prof-banner soulmate" onclick="sendSoulmateRequest()">
-      <span>ð Become a Soulmate</span>
+      <span>💞 Become a Soulmate</span>
     </div>
     <div class="seat-prof-banner bff" onclick="toast('BFF feature is coming soon!')">
-      <span>ð¤ Become BFF</span>
+      <span>🤝 Become BFF</span>
     </div>
 
     <div class="seat-prof-tiles">
       <div class="seat-prof-tile" onclick="toast('Gift Wall is coming soon!')">
         <div class="spt-label">Gift Wall</div>
-        <div class="spt-value">ð â</div>
+        <div class="spt-value">🎁 —</div>
       </div>
       <div class="seat-prof-tile" onclick="toast('Supporter feature is coming soon!')">
         <div class="spt-label">Supporter</div>
@@ -517,23 +517,23 @@
     </div>
 
     <div class="seat-prof-actions">
-      <button class="spa-btn gift" onclick="giftFromSeatProfile()">ð Gift</button>
-      <button class="spa-btn chat" onclick="chatFromSeatProfile()">ð¬ Chat</button>
-      <button class="spa-btn chat" onclick="addFriendFromSeatProfile()">ð¤+ Add Friend</button>
+      <button class="spa-btn gift" onclick="giftFromSeatProfile()">🎁 Gift</button>
+      <button class="spa-btn chat" onclick="chatFromSeatProfile()">💬 Chat</button>
+      <button class="spa-btn chat" onclick="addFriendFromSeatProfile()">👤+ Add Friend</button>
     </div>
   </div>
 
   <div class="ttt-overlay" id="roomOwnerOverlay">
     <div class="ttt-header">
-      <button onclick="closeRoomOwnerMenu()">â</button>
+      <button onclick="closeRoomOwnerMenu()">←</button>
       <h2>Room Menu</h2>
     </div>
     <div class="owner-menu-list" id="roomOwnerOnlyItems" style="display:none;">
-      <div class="owner-menu-item" onclick="uploadRoomPhoto()">ð¼ï¸ Set Room Photo</div>
-      <div class="owner-menu-item" onclick="uploadRoomWallpaper()">ð¨ Set Room Wallpaper</div>
-      <div class="owner-menu-item" onclick="setRoomNotice()">ð¢ Set Notice</div>
-      <div class="owner-menu-item" onclick="clearRoomMessages()">ð§¹ Clear Messages</div>
-      <div class="owner-menu-item danger" onclick="deleteRoom()">ðï¸ Delete Room</div>
+      <div class="owner-menu-item" onclick="uploadRoomPhoto()">🖼️ Set Room Photo</div>
+      <div class="owner-menu-item" onclick="uploadRoomWallpaper()">🎨 Set Room Wallpaper</div>
+      <div class="owner-menu-item" onclick="setRoomNotice()">📢 Set Notice</div>
+      <div class="owner-menu-item" onclick="clearRoomMessages()">🧹 Clear Messages</div>
+      <div class="owner-menu-item danger" onclick="deleteRoom()">🗑️ Delete Room</div>
     </div>
     <div id="roomMemberNotice" style="display:none; text-align:center; color:rgba(255,255,255,0.4); font-size:13px; padding:20px;">Only the room owner can change these settings.</div>
   </div>
@@ -541,13 +541,13 @@
   <!-- ===== IMAGE URL MODAL ===== -->
   <div class="ttt-overlay" id="imageUrlOverlay">
     <div class="ttt-header">
-      <button onclick="closeImageUrlModal()">â</button>
+      <button onclick="closeImageUrlModal()">←</button>
       <h2 id="imageUrlModalTitle">Set Image</h2>
     </div>
     <div style="padding: 8px 20px;">
       <input type="text" id="imageUrlModalInput" placeholder="Paste image link here..." inputmode="url" autocomplete="off"
         style="width:100%; padding:14px; border-radius:14px; border:1px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.06); color:#fff; font-size:14px; margin-bottom:10px; box-sizing:border-box;">
-      <button onclick="pasteFromClipboard()" style="width:100%; padding:12px; border-radius:14px; border:1px solid rgba(255,215,106,0.4); background:rgba(255,215,106,0.1); color:#ffd76a; font-size:13px; font-weight:600; cursor:pointer; margin-bottom:14px;">ð Paste from Clipboard</button>
+      <button onclick="pasteFromClipboard()" style="width:100%; padding:12px; border-radius:14px; border:1px solid rgba(255,215,106,0.4); background:rgba(255,215,106,0.1); color:#ffd76a; font-size:13px; font-weight:600; cursor:pointer; margin-bottom:14px;">📋 Paste from Clipboard</button>
       <div style="color:rgba(255,255,255,0.45); font-size:11.5px; margin-bottom:18px;">Best source: upload to <b style="color:rgba(255,255,255,0.7);">imgur.com</b> (no account needed) and copy the direct image link (ends in .jpg/.png). Google Photos share links usually won't work.</div>
       <button class="btn" onclick="confirmImageUrlModal()">Save</button>
     </div>
@@ -556,32 +556,32 @@
   <!-- ===== ROOM DETAILS PAGE ===== -->
   <div class="detail-overlay" id="roomDetailsOverlay">
     <div class="detail-cover" id="roomDetailCover">
-      <button class="detail-back-btn" onclick="closeRoomDetails()">â</button>
+      <button class="detail-back-btn" onclick="closeRoomDetails()">←</button>
       <div class="detail-cover-info">
         <div class="detail-avatar" id="roomDetailAvatar">?</div>
         <div class="detail-name" id="roomDetailName">Room</div>
-        <div class="detail-id" id="roomDetailId">ID: â</div>
+        <div class="detail-id" id="roomDetailId">ID: —</div>
       </div>
     </div>
     <div class="detail-body">
       <div class="detail-stats-row">
         <div class="detail-stat"><div class="ds-value" id="roomDetailMembers">0</div><div class="ds-label">Members</div></div>
         <div class="detail-stat"><div class="ds-value" id="roomDetailOnline">0</div><div class="ds-label">Online</div></div>
-        <div class="detail-stat"><div class="ds-value" id="roomDetailCreated">â</div><div class="ds-label">Created</div></div>
+        <div class="detail-stat"><div class="ds-value" id="roomDetailCreated">—</div><div class="ds-label">Created</div></div>
       </div>
       <div class="detail-owner-row" id="roomDetailOwnerRow">
         <div class="dor-avatar" id="roomDetailOwnerAvatar">?</div>
         <div>
           <div class="dor-label">Room Owner</div>
-          <div class="dor-name" id="roomDetailOwnerName">â</div>
+          <div class="dor-name" id="roomDetailOwnerName">—</div>
         </div>
       </div>
       <div class="detail-notice" id="roomDetailNotice" style="display:none;"></div>
       <div class="detail-action-row">
-        <button class="detail-action-btn" onclick="shareRoomDetails()">ð Share Room</button>
-        <button class="detail-action-btn" onclick="inviteFriendsToRoom()">â Invite Friends</button>
+        <button class="detail-action-btn" onclick="shareRoomDetails()">🔗 Share Room</button>
+        <button class="detail-action-btn" onclick="inviteFriendsToRoom()">➕ Invite Friends</button>
       </div>
-      <input type="text" id="roomMemberSearch" class="detail-search" placeholder="ð Search members..." oninput="renderRoomDetailMembers()">
+      <input type="text" id="roomMemberSearch" class="detail-search" placeholder="🔍 Search members..." oninput="renderRoomDetailMembers()">
       <div class="detail-section-label">Members</div>
       <div id="roomDetailMemberList"></div>
     </div>
@@ -590,43 +590,43 @@
   <!-- ===== FAMILY DETAILS PAGE ===== -->
   <div class="detail-overlay" id="familyDetailsOverlay">
     <div class="detail-cover" id="familyDetailCover">
-      <button class="detail-back-btn" onclick="closeFamilyDetails()">â</button>
+      <button class="detail-back-btn" onclick="closeFamilyDetails()">←</button>
       <div class="detail-cover-info">
         <div class="detail-avatar" id="familyDetailAvatar">?</div>
         <div class="detail-name" id="familyDetailName">Family</div>
         <div id="familyDetailNameplate"></div>
-        <div class="detail-id" id="familyDetailId">ID: â</div>
+        <div class="detail-id" id="familyDetailId">ID: —</div>
       </div>
     </div>
     <div class="detail-body">
       <div class="detail-stats-row">
         <div class="detail-stat"><div class="ds-value" id="familyDetailMembers">0</div><div class="ds-label">Members</div></div>
         <div class="detail-stat"><div class="ds-value" id="familyDetailLevel">1</div><div class="ds-label">Fam Level</div></div>
-        <div class="detail-stat"><div class="ds-value" id="familyDetailCreated">â</div><div class="ds-label">Created</div></div>
+        <div class="detail-stat"><div class="ds-value" id="familyDetailCreated">—</div><div class="ds-label">Created</div></div>
       </div>
       <div class="detail-xp-bar-wrap">
         <div class="detail-xp-bar-bg"><div class="detail-xp-bar-fill" id="familyDetailXpFill" style="width:0%;"></div></div>
         <div class="detail-xp-text" id="familyDetailXpText">0 / 15000 XP</div>
       </div>
       <div class="detail-stats-row" style="margin-bottom:16px;">
-        <div class="detail-stat"><div class="ds-value" id="familyDetailRank">â</div><div class="ds-label">Family Rank</div></div>
-        <div class="detail-stat"><div class="ds-value" id="familyDetailAssets">0</div><div class="ds-label">ð° Assets</div></div>
+        <div class="detail-stat"><div class="ds-value" id="familyDetailRank">—</div><div class="ds-label">Family Rank</div></div>
+        <div class="detail-stat"><div class="ds-value" id="familyDetailAssets">0</div><div class="ds-label">💰 Assets</div></div>
       </div>
       <div class="detail-owner-row" id="familyDetailOwnerRow">
         <div class="dor-avatar" id="familyDetailOwnerAvatar">?</div>
         <div>
           <div class="dor-label">Captain</div>
-          <div class="dor-name" id="familyDetailOwnerName">â</div>
+          <div class="dor-name" id="familyDetailOwnerName">—</div>
         </div>
       </div>
       <div class="detail-notice" id="familyDetailNotice" style="display:none;"></div>
       <div class="detail-action-row">
-        <button class="detail-action-btn" onclick="shareFamilyDetails()">ð Share Family</button>
-        <button class="detail-action-btn" onclick="inviteFriendsToFamily()">â Invite Friends</button>
-        <button class="detail-action-btn" onclick="openFamilyTasks()">ð Tasks</button>
-        <button class="detail-action-btn" onclick="openFamilyStore()">ðª Store</button>
+        <button class="detail-action-btn" onclick="shareFamilyDetails()">🔗 Share Family</button>
+        <button class="detail-action-btn" onclick="inviteFriendsToFamily()">➕ Invite Friends</button>
+        <button class="detail-action-btn" onclick="openFamilyTasks()">📋 Tasks</button>
+        <button class="detail-action-btn" onclick="openFamilyStore()">🏪 Store</button>
       </div>
-      <input type="text" id="familyMemberSearch" class="detail-search" placeholder="ð Search members..." oninput="renderFamilyDetailMembers()">
+      <input type="text" id="familyMemberSearch" class="detail-search" placeholder="🔍 Search members..." oninput="renderFamilyDetailMembers()">
       <div class="detail-section-label">Members</div>
       <div id="familyDetailMemberList"></div>
     </div>
@@ -639,14 +639,14 @@
         <div class="sas-name" id="famManageName">Member</div>
         <div class="sas-sub" id="famManageRole">Member</div>
       </div>
-      <button class="sas-close" onclick="closeFamilyMemberManageMenu()">â</button>
+      <button class="sas-close" onclick="closeFamilyMemberManageMenu()">✕</button>
     </div>
     <div class="owner-menu-list" style="padding:0 0 4px;">
-      <div class="owner-menu-item" onclick="setFamilyMemberRoleFromMenu('leader')">â­ Make Leader</div>
-      <div class="owner-menu-item" onclick="setFamilyMemberRoleFromMenu('star')">ð Make Star</div>
-      <div class="owner-menu-item" onclick="setFamilyMemberRoleFromMenu('member')">ð¤ Set as Member</div>
-      <div class="owner-menu-item" onclick="transferFamilyCaptainFromMenu()">ð Transfer Captain</div>
-      <div class="owner-menu-item danger" onclick="kickFamilyMemberFromMenu()">ðª Remove from Family</div>
+      <div class="owner-menu-item" onclick="setFamilyMemberRoleFromMenu('leader')">⭐ Make Leader</div>
+      <div class="owner-menu-item" onclick="setFamilyMemberRoleFromMenu('star')">🌟 Make Star</div>
+      <div class="owner-menu-item" onclick="setFamilyMemberRoleFromMenu('member')">👤 Set as Member</div>
+      <div class="owner-menu-item" onclick="transferFamilyCaptainFromMenu()">👑 Transfer Captain</div>
+      <div class="owner-menu-item danger" onclick="kickFamilyMemberFromMenu()">🚪 Remove from Family</div>
     </div>
   </div>
 
@@ -656,28 +656,28 @@
       <div class="sas-avatar" id="seatActionsAvatar">?</div>
       <div class="sas-info">
         <div class="sas-name" id="seatActionsName">User</div>
-        <div class="sas-sub" id="seatActionsSub">ð ID Lv. 1</div>
+        <div class="sas-sub" id="seatActionsSub">🆔 ID Lv. 1</div>
       </div>
-      <button class="sas-close" onclick="closeSeatActionsMenu()">â</button>
+      <button class="sas-close" onclick="closeSeatActionsMenu()">✕</button>
     </div>
     <div class="sas-grid">
-      <div class="sas-action" onclick="seatActionsViewProfile()"><div class="sas-icon">ð¤</div><div class="sas-label">Profile</div></div>
-      <div class="sas-action" id="seatActionsGiftBtn" onclick="seatActionsGift()"><div class="sas-icon">ð</div><div class="sas-label">Gift</div></div>
-      <div class="sas-action" id="seatActionsChatBtn" onclick="seatActionsChat()"><div class="sas-icon">ð¬</div><div class="sas-label">Chat</div></div>
-      <div class="sas-action" id="seatActionsMicItem" onclick="seatActionsToggleMic()"><div class="sas-icon">ð¤</div><div class="sas-label" id="seatActionsMicLabel">Mute</div></div>
-      <div class="sas-action" id="seatActionsStandItem" style="display:none;" onclick="seatActionsStandUp()"><div class="sas-icon">ð§</div><div class="sas-label">Stand Up</div></div>
-      <div class="sas-action" id="seatActionsReportBtn" onclick="seatActionsReport()"><div class="sas-icon">ð©</div><div class="sas-label">Report</div></div>
-      <div class="sas-action danger" id="seatActionsKickItem" style="display:none;" onclick="seatActionsKick()"><div class="sas-icon">ðª</div><div class="sas-label">Kick Out</div></div>
-      <div class="sas-action danger" id="seatActionsBanItem" style="display:none;" onclick="toast('Ban system is coming soon!')"><div class="sas-icon">â</div><div class="sas-label">Ban</div><div class="sas-soon">Soon</div></div>
-      <div class="sas-action" id="seatActionsModItem" style="display:none;" onclick="toast('Moderator roles are coming soon!')"><div class="sas-icon">ð¡ï¸</div><div class="sas-label">Moderator</div><div class="sas-soon">Soon</div></div>
+      <div class="sas-action" onclick="seatActionsViewProfile()"><div class="sas-icon">👤</div><div class="sas-label">Profile</div></div>
+      <div class="sas-action" id="seatActionsGiftBtn" onclick="seatActionsGift()"><div class="sas-icon">🎁</div><div class="sas-label">Gift</div></div>
+      <div class="sas-action" id="seatActionsChatBtn" onclick="seatActionsChat()"><div class="sas-icon">💬</div><div class="sas-label">Chat</div></div>
+      <div class="sas-action" id="seatActionsMicItem" onclick="seatActionsToggleMic()"><div class="sas-icon">🎤</div><div class="sas-label" id="seatActionsMicLabel">Mute</div></div>
+      <div class="sas-action" id="seatActionsStandItem" style="display:none;" onclick="seatActionsStandUp()"><div class="sas-icon">🧍</div><div class="sas-label">Stand Up</div></div>
+      <div class="sas-action" id="seatActionsReportBtn" onclick="seatActionsReport()"><div class="sas-icon">🚩</div><div class="sas-label">Report</div></div>
+      <div class="sas-action danger" id="seatActionsKickItem" style="display:none;" onclick="seatActionsKick()"><div class="sas-icon">🚪</div><div class="sas-label">Kick Out</div></div>
+      <div class="sas-action danger" id="seatActionsBanItem" style="display:none;" onclick="toast('Ban system is coming soon!')"><div class="sas-icon">⛔</div><div class="sas-label">Ban</div><div class="sas-soon">Soon</div></div>
+      <div class="sas-action" id="seatActionsModItem" style="display:none;" onclick="toast('Moderator roles are coming soon!')"><div class="sas-icon">🛡️</div><div class="sas-label">Moderator</div><div class="sas-soon">Soon</div></div>
     </div>
   </div>
 
   <!-- ===== FAMILY TASKS ===== -->
   <div class="rank-overlay" id="familyTasksOverlay">
     <div class="rank-header">
-      <button onclick="closeFamilyTasks()">â</button>
-      <h2>ð Family Tasks</h2>
+      <button onclick="closeFamilyTasks()">←</button>
+      <h2>📋 Family Tasks</h2>
     </div>
     <div style="padding: 0 16px 12px; color:rgba(255,255,255,0.5); font-size:12px;">Complete these each day to earn Family XP and Assets for your Family.</div>
     <div id="familyTasksList" style="padding: 0 16px 30px;">
@@ -688,12 +688,12 @@
   <!-- ===== FAMILY STORE ===== -->
   <div class="rank-overlay" id="familyStoreOverlay">
     <div class="rank-header">
-      <button onclick="closeFamilyStore()">â</button>
-      <h2>ðª Family Store</h2>
+      <button onclick="closeFamilyStore()">←</button>
+      <h2>🏪 Family Store</h2>
     </div>
     <div style="padding: 0 16px 12px; display:flex; align-items:center; justify-content:space-between;">
       <span style="color:rgba(255,255,255,0.5); font-size:12px;">Spend Family Assets on a Nameplate</span>
-      <span style="color:#ffd76a; font-weight:700; font-size:13px;">ð° <span id="familyStoreBalance">0</span></span>
+      <span style="color:#ffd76a; font-weight:700; font-size:13px;">💰 <span id="familyStoreBalance">0</span></span>
     </div>
     <div id="familyStoreList" style="padding: 0 16px 30px;">
       <div class="loading">Loading store...</div>
@@ -703,18 +703,18 @@
   <!-- ===== AVATAR FRAME STORE ===== -->
   <div class="rank-overlay" id="frameStoreOverlay">
     <div class="rank-header">
-      <button onclick="closeFrameStore()">â</button>
-      <h2>ðª Avatar Frame Store</h2>
+      <button onclick="closeFrameStore()">←</button>
+      <h2>🏪 Avatar Frame Store</h2>
     </div>
-    <div style="padding: 0 16px 8px; color:rgba(255,255,255,0.5); font-size:12px;">Decorative frames â spend Love Coins or Gems</div>
+    <div style="padding: 0 16px 8px; color:rgba(255,255,255,0.5); font-size:12px;">Decorative frames — spend Love Coins or Gems</div>
     <div class="frame-store-grid" id="frameStoreGrid"></div>
   </div>
 
   <!-- ===== ADMIN PANEL ===== -->
   <div class="detail-overlay" id="adminPanelOverlay">
     <div style="padding:16px; display:flex; align-items:center; gap:12px; border-bottom:1px solid rgba(255,255,255,0.1); flex-shrink:0;">
-      <button class="detail-back-btn" onclick="closeAdminPanel()">â</button>
-      <div style="font-family:'Fredoka','Inter',sans-serif; font-weight:700; font-size:17px;">ð¡ï¸ Admin Panel</div>
+      <button class="detail-back-btn" onclick="closeAdminPanel()">←</button>
+      <div style="font-family:'Fredoka','Inter',sans-serif; font-weight:700; font-size:17px;">🛡️ Admin Panel</div>
     </div>
     <div class="admin-tabs">
       <div class="admin-tab active" data-tab="dashboard" onclick="switchAdminTab('dashboard')">Dashboard</div>
@@ -729,16 +729,16 @@
     </div>
 
     <div class="admin-tab-content" id="adminUsersTab" style="display:none;">
-      <input type="text" id="adminUserSearch" class="detail-search" placeholder="ð Search by name..." oninput="renderAdminUserList()">
+      <input type="text" id="adminUserSearch" class="detail-search" placeholder="🔍 Search by name..." oninput="renderAdminUserList()">
       <div id="adminUserList"></div>
     </div>
 
     <div class="admin-tab-content" id="adminRelationshipsTab" style="display:none;">
       <div class="admin-stat-card" style="margin-bottom:16px;">
-        <div class="asc-value" id="adminPoolBalance">ð 0</div>
+        <div class="asc-value" id="adminPoolBalance">💕 0</div>
         <div class="asc-label">System Reward Pool (Love Coins)</div>
       </div>
-      <div class="admin-adjust-label" style="margin-bottom:10px;">ð Soulmate Request Settings</div>
+      <div class="admin-adjust-label" style="margin-bottom:10px;">💞 Soulmate Request Settings</div>
       <div class="admin-adjust-box" style="margin:0 0 12px;">
         <div class="admin-adjust-label">Request Cost (Love Coins)</div>
         <div class="admin-adjust-row"><input type="number" id="adminSoulmateCost" placeholder="900"></div>
@@ -754,18 +754,18 @@
   <!-- ===== ADMIN USER DETAIL ===== -->
   <div class="ttt-overlay" id="adminUserDetailOverlay">
     <div class="ttt-header">
-      <button onclick="closeAdminUserDetail()">â</button>
+      <button onclick="closeAdminUserDetail()">←</button>
       <h2 id="adminUserDetailName">User</h2>
     </div>
     <div style="width:100%; padding:0 4px 20px; overflow-y:auto;">
-      <div class="admin-detail-row"><span>ID Level</span><span id="adminUdIdLevel">â</span></div>
-      <div class="admin-detail-row"><span>VIP Tier</span><span id="adminUdVip">â</span></div>
-      <div class="admin-detail-row"><span>Farm Level</span><span id="adminUdFarmLevel">â</span></div>
-      <div class="admin-detail-row"><span>Room Level</span><span id="adminUdRoomLevel">â</span></div>
+      <div class="admin-detail-row"><span>ID Level</span><span id="adminUdIdLevel">—</span></div>
+      <div class="admin-detail-row"><span>VIP Tier</span><span id="adminUdVip">—</span></div>
+      <div class="admin-detail-row"><span>Farm Level</span><span id="adminUdFarmLevel">—</span></div>
+      <div class="admin-detail-row"><span>Room Level</span><span id="adminUdRoomLevel">—</span></div>
       <div class="admin-detail-row"><span>Status</span><span id="adminUdStatus">Active</span></div>
 
       <div class="admin-adjust-box">
-        <div class="admin-adjust-label">ð° Coins</div>
+        <div class="admin-adjust-label">💰 Coins</div>
         <div class="admin-adjust-row">
           <span id="adminUdCoins">0</span>
           <input type="number" id="adminAdjustCoinsInput" placeholder="New value">
@@ -773,7 +773,7 @@
         </div>
       </div>
       <div class="admin-adjust-box">
-        <div class="admin-adjust-label">ð Gems</div>
+        <div class="admin-adjust-label">💎 Gems</div>
         <div class="admin-adjust-row">
           <span id="adminUdGems">0</span>
           <input type="number" id="adminAdjustGemsInput" placeholder="New value">
@@ -781,7 +781,7 @@
         </div>
       </div>
       <div class="admin-adjust-box">
-        <div class="admin-adjust-label">ð Love Coins</div>
+        <div class="admin-adjust-label">💕 Love Coins</div>
         <div class="admin-adjust-row">
           <span id="adminUdLove">0</span>
           <input type="number" id="adminAdjustLoveInput" placeholder="New value">
@@ -789,40 +789,40 @@
         </div>
       </div>
 
-      <button class="detail-action-btn" id="adminBanToggleBtn" style="width:calc(100% - 32px); margin:16px 16px 0; color:#ff8a8a; border-color:rgba(255,107,107,0.4);" onclick="adminToggleBan()">ð« Ban User</button>
+      <button class="detail-action-btn" id="adminBanToggleBtn" style="width:calc(100% - 32px); margin:16px 16px 0; color:#ff8a8a; border-color:rgba(255,107,107,0.4);" onclick="adminToggleBan()">🚫 Ban User</button>
     </div>
   </div>
 
   <!-- ===== FAMILY OWNER MENU ===== -->
   <div class="ttt-overlay" id="familyOwnerOverlay">
     <div class="ttt-header">
-      <button onclick="closeFamilyOwnerMenu()">â</button>
+      <button onclick="closeFamilyOwnerMenu()">←</button>
       <h2>Family Menu</h2>
     </div>
     <div class="owner-menu-list" id="familyOwnerOnlyItems" style="display:none;">
-      <div class="owner-menu-item" onclick="uploadFamilyPhoto()">ð¼ï¸ Set Family Photo</div>
-      <div class="owner-menu-item" onclick="uploadFamilyWallpaper()">ð¨ Set Family Wallpaper</div>
-      <div class="owner-menu-item" onclick="setFamilyNotice()">ð¢ Set Notice</div>
-      <div class="owner-menu-item" onclick="clearFamilyMessages()">ð§¹ Clear Messages</div>
-      <div class="owner-menu-item danger" onclick="deleteFamily()">ðï¸ Delete Family</div>
+      <div class="owner-menu-item" onclick="uploadFamilyPhoto()">🖼️ Set Family Photo</div>
+      <div class="owner-menu-item" onclick="uploadFamilyWallpaper()">🎨 Set Family Wallpaper</div>
+      <div class="owner-menu-item" onclick="setFamilyNotice()">📢 Set Notice</div>
+      <div class="owner-menu-item" onclick="clearFamilyMessages()">🧹 Clear Messages</div>
+      <div class="owner-menu-item danger" onclick="deleteFamily()">🗑️ Delete Family</div>
     </div>
     <div class="owner-menu-list" id="familyMemberItems">
-      <div class="owner-menu-item danger" onclick="closeFamilyOwnerMenu(); leaveFamily();">ðª Leave Family</div>
+      <div class="owner-menu-item danger" onclick="closeFamilyOwnerMenu(); leaveFamily();">🚪 Leave Family</div>
     </div>
   </div>
 
   <div class="bottom-nav">
-    <div class="nav-item" id="navMessages" onclick="switchTab('messages')"><span class="nav-icon">ð¬</span>Messages</div>
-    <div class="nav-item" id="navMoments" onclick="switchTab('moments')"><span class="nav-icon">ðª</span>Moments</div>
-    <div class="nav-item active" id="navHifami" onclick="switchTab('hifami')"><span class="nav-icon">ð¾</span>Home</div>
-    <div class="nav-item" id="navRoom" onclick="switchTab('room')"><span class="nav-icon">ð </span>Room</div>
-    <div class="nav-item" id="navFamily" onclick="switchTab('family')"><span class="nav-icon">ð¨âð©âð§</span>Family</div>
+    <div class="nav-item" id="navMessages" onclick="switchTab('messages')"><span class="nav-icon">💬</span>Messages</div>
+    <div class="nav-item" id="navMoments" onclick="switchTab('moments')"><span class="nav-icon">🪐</span>Moments</div>
+    <div class="nav-item active" id="navHifami" onclick="switchTab('hifami')"><span class="nav-icon">🌾</span>Home</div>
+    <div class="nav-item" id="navRoom" onclick="switchTab('room')"><span class="nav-icon">🏠</span>Room</div>
+    <div class="nav-item" id="navFamily" onclick="switchTab('family')"><span class="nav-icon">👨‍👩‍👧</span>Family</div>
   </div>
 
   <!-- ===== PROFILE OVERLAY ===== -->
   <div class="profile-overlay" id="profileOverlay">
     <div class="profile-overlay-header">
-      <button onclick="handleProfileBack()">â</button>
+      <button onclick="handleProfileBack()">←</button>
     </div>
 
     <div id="profileMainView">
@@ -830,48 +830,48 @@
         <div class="profile-avatar-ring"><div class="profile-avatar" id="profileAvatarBig">?</div></div>
         <div class="profile-name" id="profileNameBig">User</div>
         <div class="profile-badges">
-          <span class="badge-pill" id="profileIdLevelBadge">ð ID Lv. 1</span>
-          <span class="badge-pill vip-pill" id="profileVipLevelBadge">ð VIP 1</span>
-          <span class="badge-pill room-pill" id="profileRoomLevelBadge">ð Room Lv. 1</span>
+          <span class="badge-pill" id="profileIdLevelBadge">🆔 ID Lv. 1</span>
+          <span class="badge-pill vip-pill" id="profileVipLevelBadge">👑 VIP 1</span>
+          <span class="badge-pill room-pill" id="profileRoomLevelBadge">🎁 Room Lv. 1</span>
         </div>
-        <div class="profile-id-row">ID: <span id="profileIdNumber">â</span> <button onclick="copyProfileId()">ð</button></div>
+        <div class="profile-id-row">ID: <span id="profileIdNumber">—</span> <button onclick="copyProfileId()">📋</button></div>
       </div>
       <div class="profile-menu">
         <div class="profile-menu-item" onclick="openVipBenefits()">
-          <span class="pmi-icon">ð</span><span class="pmi-label">VIP Benefits</span>
-          <span class="pmi-arrow">âº</span>
+          <span class="pmi-icon">👑</span><span class="pmi-label">VIP Benefits</span>
+          <span class="pmi-arrow">›</span>
         </div>
         <div class="profile-menu-item" onclick="goToFamilyFromProfile()">
-          <span class="pmi-icon">ð </span><span class="pmi-label">Family</span>
-          <span class="pmi-value" id="profileFamilyValue">None</span><span class="pmi-arrow">âº</span>
+          <span class="pmi-icon">🏠</span><span class="pmi-label">Family</span>
+          <span class="pmi-value" id="profileFamilyValue">None</span><span class="pmi-arrow">›</span>
         </div>
         <div class="profile-menu-item" onclick="switchTab('hifami'); closeProfile();">
-          <span class="pmi-icon">ð°</span><span class="pmi-label">Wallet</span>
-          <span class="pmi-value" id="profileWalletValue">ðª0 ð0</span><span class="pmi-arrow">âº</span>
+          <span class="pmi-icon">💰</span><span class="pmi-label">Wallet</span>
+          <span class="pmi-value" id="profileWalletValue">🪙0 💎0</span><span class="pmi-arrow">›</span>
         </div>
         <div class="profile-menu-item" onclick="openLanguageView()">
-          <span class="pmi-icon">ð</span><span class="pmi-label">Language</span>
-          <span class="pmi-value" id="profileLangValue">English</span><span class="pmi-arrow">âº</span>
+          <span class="pmi-icon">🌐</span><span class="pmi-label">Language</span>
+          <span class="pmi-value" id="profileLangValue">English</span><span class="pmi-arrow">›</span>
         </div>
         <div class="profile-menu-item" onclick="openInviteView()">
-          <span class="pmi-icon">â</span><span class="pmi-label">Invite Friends</span>
-          <span class="pmi-arrow">âº</span>
+          <span class="pmi-icon">➕</span><span class="pmi-label">Invite Friends</span>
+          <span class="pmi-arrow">›</span>
         </div>
         <div class="profile-menu-item" onclick="openSettingsView()">
-          <span class="pmi-icon">âï¸</span><span class="pmi-label">Settings</span>
-          <span class="pmi-arrow">âº</span>
+          <span class="pmi-icon">⚙️</span><span class="pmi-label">Settings</span>
+          <span class="pmi-arrow">›</span>
         </div>
       </div>
     </div>
 
     <div id="inviteView" style="display:none; padding: 0 20px;">
-      <div class="invite-title">ð Invite Friends</div>
-      <div class="invite-sub">Share your code â you and your friend both get ð 50 gems!</div>
+      <div class="invite-title">🎁 Invite Friends</div>
+      <div class="invite-sub">Share your code — you and your friend both get 💎 50 gems!</div>
 
       <div class="invite-code-box">
         <div class="invite-code-label">Your Referral Code</div>
-        <div class="invite-code-value" id="myReferralCode">â</div>
-        <button class="invite-copy-btn" onclick="copyReferralCode()">ð Copy Code</button>
+        <div class="invite-code-value" id="myReferralCode">—</div>
+        <button class="invite-copy-btn" onclick="copyReferralCode()">📋 Copy Code</button>
       </div>
 
       <div class="invite-redeem-box">
@@ -882,14 +882,14 @@
       </div>
 
       <div class="milestone-box">
-        <div class="invite-code-label">Weekly Bonus â Invite Milestones</div>
+        <div class="invite-code-label">Weekly Bonus — Invite Milestones</div>
         <div class="milestone-progress-text" id="milestoneProgressText">0 friends invited</div>
         <div class="milestone-row" id="milestoneRow"></div>
       </div>
     </div>
 
     <div id="languageView" style="display:none; padding: 0 20px;">
-      <div class="invite-title">ð Language</div>
+      <div class="invite-title">🌐 Language</div>
       <div class="language-list" id="languageList"></div>
     </div>
 
@@ -903,7 +903,7 @@
         <div class="settings-item" onclick="openInfoPage('privacy')">Privacy Policy</div>
         <div class="settings-item" onclick="openInfoPage('guidelines')">Community Guidelines</div>
         <div class="settings-item" onclick="toast('Need help? Message us via Family or Global chat for now.')">Help &amp; Feedback</div>
-        <div class="settings-item" id="adminPanelMenuItem" style="display:none;" onclick="openAdminPanel()">ð¡ï¸ Admin Panel</div>
+        <div class="settings-item" id="adminPanelMenuItem" style="display:none;" onclick="openAdminPanel()">🛡️ Admin Panel</div>
         <div class="settings-item no-arrow">Version 1.0.0</div>
         <button class="sign-out-btn" onclick="handleLogout()">Sign Out</button>
       </div>
@@ -911,17 +911,17 @@
 
     <div id="accountSecurityView" style="display:none; padding: 0 20px;">
       <div class="profile-overlay-header" style="padding:0 0 14px;">
-        <button onclick="closeAccountSecurityView()">â</button>
+        <button onclick="closeAccountSecurityView()">←</button>
         <span style="font-weight:700; font-size:16px; margin-left:8px;">Account Security</span>
       </div>
-      <div style="color:rgba(255,255,255,0.6); font-size:13px; margin-bottom:16px;">Email: <span id="secEmailDisplay" style="color:#fff; font-weight:600;">â</span></div>
+      <div style="color:rgba(255,255,255,0.6); font-size:13px; margin-bottom:16px;">Email: <span id="secEmailDisplay" style="color:#fff; font-weight:600;">—</span></div>
       <button class="btn" onclick="sendChangePasswordEmail()" style="margin-bottom:12px;">Send Password Reset Email</button>
       <div style="color:rgba(255,255,255,0.45); font-size:11.5px;">We'll email you a secure link to set a new password.</div>
     </div>
 
     <div id="infoPageView" style="display:none; padding: 0 20px;">
       <div class="profile-overlay-header" style="padding:0 0 14px;">
-        <button onclick="closeInfoPage()">â</button>
+        <button onclick="closeInfoPage()">←</button>
         <span id="infoPageTitle" style="font-weight:700; font-size:16px; margin-left:8px;">Terms of Use</span>
       </div>
       <div id="infoPageBody" style="color:rgba(255,255,255,0.75); font-size:13px; line-height:1.7; white-space:pre-line;"></div>
@@ -931,7 +931,7 @@
       <div class="edit-avatar-wrap">
         <div class="edit-avatar-ring"><div class="edit-avatar-circle" id="editAvatarBig">?</div></div>
         <div style="margin-top:10px;">
-          <button onclick="uploadMyProfilePhoto()" style="background:rgba(255,255,255,0.08); border:none; color:#ffd76a; padding:8px 16px; border-radius:16px; font-size:12px; font-weight:600; cursor:pointer;">ð· Change Photo</button>
+          <button onclick="uploadMyProfilePhoto()" style="background:rgba(255,255,255,0.08); border:none; color:#ffd76a; padding:8px 16px; border-radius:16px; font-size:12px; font-weight:600; cursor:pointer;">📷 Change Photo</button>
         </div>
       </div>
 
@@ -972,8 +972,8 @@
 <!-- ===== RANK OVERLAY ===== -->
 <div class="rank-overlay" id="rankOverlay">
   <div class="rank-header">
-    <button onclick="closeRankView()">â</button>
-    <h2>ð Rank</h2>
+    <button onclick="closeRankView()">←</button>
+    <h2>🏆 Rank</h2>
   </div>
 
   <div class="rank-tabs" id="rankTabsRow">
@@ -1001,45 +1001,45 @@
 <!-- ===== VIP BENEFITS OVERLAY ===== -->
 <div class="rank-overlay" id="vipBenefitsOverlay">
   <div class="rank-header">
-    <button onclick="closeVipBenefits()">â</button>
-    <h2>ð VIP Benefits</h2>
+    <button onclick="closeVipBenefits()">←</button>
+    <h2>👑 VIP Benefits</h2>
   </div>
 
   <div class="vip-tier-card">
     <div class="vtc-badge" id="vtcBadge">VIP 1</div>
-    <div class="vtc-topup-text">Top up <span id="vtcAmount">â</span> to unlock <span id="vtcTierLabel">VIP 1</span></div>
+    <div class="vtc-topup-text">Top up <span id="vtcAmount">—</span> to unlock <span id="vtcTierLabel">VIP 1</span></div>
     <div class="xp-bar-bg" style="margin: 12px 0 6px;"><div class="xp-bar-fill" id="vtcProgressFill" style="width:0%;"></div></div>
     <div class="vtc-progress-text" id="vtcProgressText">0 / 100</div>
     <button class="btn" onclick="rechargeVip()">Recharge</button>
   </div>
 
   <div class="vip-frames-entry-card" onclick="openFrameStore()">
-    <div class="vfe-icon">ð¼ï¸</div>
+    <div class="vfe-icon">🖼️</div>
     <div class="vfe-text">
       <div class="vfe-title">VIP Frames</div>
       <div class="vfe-sub">Browse and equip premium avatar frames</div>
     </div>
-    <div class="vfe-arrow">âº</div>
+    <div class="vfe-arrow">›</div>
   </div>
 
-  <div class="section-title" style="padding: 0 16px;">ð Buy Gems</div>
+  <div class="section-title" style="padding: 0 16px;">💎 Buy Gems</div>
   <div id="gemsPackagesList" style="display:flex; flex-direction:column; gap:10px; padding: 0 16px 16px;"></div>
 
   <div class="section-title" style="padding: 0 16px;">VIP Exclusive Benefits</div>
   <div class="vip-benefits-grid">
-    <div class="vip-benefit-cell"><div class="vbc-icon">ð</div><div class="vbc-name">VIP Badge</div></div>
-    <div class="vip-benefit-cell"><div class="vbc-icon">ð¼ï¸</div><div class="vbc-name">Exclusive Frame</div></div>
-    <div class="vip-benefit-cell"><div class="vbc-icon">ð¬</div><div class="vbc-name">Exclusive Bubble</div></div>
-    <div class="vip-benefit-cell"><div class="vbc-icon">â­</div><div class="vbc-name">Front-row Avatar</div></div>
-    <div class="vip-benefit-cell"><div class="vbc-icon">â¡</div><div class="vbc-name">Stamina Boost</div></div>
-    <div class="vip-benefit-cell"><div class="vbc-icon">ð¾</div><div class="vbc-name">Bonus Farm Land</div></div>
+    <div class="vip-benefit-cell"><div class="vbc-icon">🏅</div><div class="vbc-name">VIP Badge</div></div>
+    <div class="vip-benefit-cell"><div class="vbc-icon">🖼️</div><div class="vbc-name">Exclusive Frame</div></div>
+    <div class="vip-benefit-cell"><div class="vbc-icon">💬</div><div class="vbc-name">Exclusive Bubble</div></div>
+    <div class="vip-benefit-cell"><div class="vbc-icon">⭐</div><div class="vbc-name">Front-row Avatar</div></div>
+    <div class="vip-benefit-cell"><div class="vbc-icon">⚡</div><div class="vbc-name">Stamina Boost</div></div>
+    <div class="vip-benefit-cell"><div class="vbc-icon">🌾</div><div class="vbc-name">Bonus Farm Land</div></div>
   </div>
 </div>
 
 <!-- ===== NOTIFICATIONS / ACTIVITY / FRIENDS OVERLAY ===== -->
 <div class="rank-overlay" id="listOverlay">
   <div class="rank-header">
-    <button onclick="closeListOverlay()">â</button>
+    <button onclick="closeListOverlay()">←</button>
     <h2 id="listOverlayTitle">Notifications</h2>
   </div>
 
@@ -1065,9 +1065,7 @@
 
 <script>
   window.onerror = function(msg, url, line, col, error) {
-    alert('ERROR: ' + msg + '
-Line: ' + line + '
-File: ' + url);
+    alert('ERROR: ' + msg + '\nLine: ' + line + '\nFile: ' + url);
   };
 </script>
 <script src="script.js"></script>
