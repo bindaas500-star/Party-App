@@ -1,0 +1,109 @@
+/* ============================================================
+   Party App — Native Feel Pack
+   Ise styles.css KE BAAD link karo:
+     <link rel="stylesheet" href="native-feel.css">
+   Tumhari existing styles ko override karta hai — kuch delete
+   ya edit karne ki zaroorat nahi.
+   ============================================================ */
+
+/* ---------- 1. Koi browser-ism nahi ---------- */
+html, body {
+  overscroll-behavior: none;          /* pull par page bounce nahi */
+  -webkit-touch-callout: none;        /* long-press menu nahi */
+}
+body {
+  user-select: none;
+  -webkit-user-select: none;
+}
+input, textarea, [contenteditable] {
+  user-select: text;
+  -webkit-user-select: text;
+}
+/* Scrollbars chhupao — native apps me nazar nahi aatin */
+::-webkit-scrollbar { width: 0; height: 0; }
+
+/* ---------- 2. Screen transitions (tab switch par slide+fade) ----------
+   Pehle: .panel display:none/flex se foran kat-ta tha (webpage feel).
+   Ab: har panel absolute hai, active wala slide+fade ke saath aata hai. */
+.panels-wrap { perspective: 1200px; }
+.panel {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateX(36px);
+  transition: opacity .24s ease, transform .24s ease, visibility 0s linear .24s;
+  pointer-events: none;
+  will-change: opacity, transform;
+}
+/* Tab order ke hisaab se direction (JS set karta hai) */
+.panels-wrap[data-dir="back"] .panel { transform: translateX(-36px); }
+.panel.active {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(0);
+  transition: opacity .24s ease, transform .24s ease, visibility 0s;
+  pointer-events: auto;
+  z-index: 1;
+}
+/* Kamzor phones par halki animation (battery bachao) */
+@media (prefers-reduced-motion: reduce) {
+  .panel { transform: none; transition: opacity .15s ease, visibility 0s; }
+}
+
+/* ---------- 3. Bottom nav — native tab feel ---------- */
+.bottom-nav {
+  /* thoda uncha, ungli ke liye aasan */
+  padding-top: 8px;
+}
+.nav-item {
+  position: relative;
+  overflow: hidden;                    /* ripple andar rahe */
+  -webkit-tap-highlight-color: transparent;
+}
+.nav-item:active { transform: scale(0.94); }
+.nav-item { transition: color .2s, background .2s, box-shadow .2s, transform .12s; }
+.nav-item .nav-icon { transition: transform .22s cubic-bezier(.34,1.56,.64,1); }
+
+/* Ripple — ungli jahan lage wahan lehar */
+.ripple {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 215, 106, 0.35);
+  transform: scale(0);
+  animation: rippleAnim .45s ease-out forwards;
+  pointer-events: none;
+}
+@keyframes rippleAnim {
+  to { transform: scale(2.6); opacity: 0; }
+}
+
+/* ---------- 4. Buttons — native press feedback ---------- */
+.btn {
+  position: relative;
+  overflow: hidden;
+  transition: transform .12s ease, filter .15s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.btn:active { transform: scale(0.96); filter: brightness(1.12); }
+
+/* ---------- 5. Overlays — neeche se slide (bottom-sheet feel) ---------- */
+.profile-overlay.show, .detail-overlay.show, .rank-overlay.show {
+  animation: sheetUp .28s cubic-bezier(.32,.72,.35,1);
+}
+@keyframes sheetUp {
+  from { transform: translateY(48px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+/* ---------- 6. Toast — snackbar jaisa ---------- */
+#toastContainer { pointer-events: none; }
+.toast {
+  animation: toastIn .25s cubic-bezier(.34,1.4,.64,1);
+}
+@keyframes toastIn {
+  from { transform: translateY(16px) scale(.96); opacity: 0; }
+  to   { transform: translateY(0) scale(1);      opacity: 1; }
+}
