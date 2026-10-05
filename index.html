@@ -538,6 +538,8 @@
       <div class="owner-menu-item" onclick="uploadRoomWallpaper()">🎨 Set Room Wallpaper</div>
       <div class="owner-menu-item" onclick="setRoomNotice()">📢 Set Notice</div>
       <div class="owner-menu-item" onclick="clearRoomMessages()">🧹 Clear Messages</div>
+       <div class="owner-menu-item" onclick="PKBattle.openChallenge()">⚔️ Start PK Battle</div>
+       <div class="owner-menu-item" onclick="TreasureBox.start({totalCoins:1000,perUser:50,durationSec:60})">🎁 Treasure Box</div>
       <div class="owner-menu-item danger" onclick="deleteRoom()">🗑️ Delete Room</div>
     </div>
     <div id="roomMemberNotice" style="display:none; text-align:center; color:rgba(255,255,255,0.4); font-size:13px; padding:20px;">Only the room owner can change these settings.</div>
@@ -1081,6 +1083,7 @@
 <script src="live-features/mini-games.js"></script>
 <script src="live-features/pk-battle.js"></script>
 <script src="live-features/nobility.js"></script>
+<script src="live-features/room-hooks.js"></script>
 
 <script>
 // Service Worker: offline support + installability (Play Store requirement)
