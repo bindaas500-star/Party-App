@@ -1,0 +1,68 @@
+/* Mini Games styles — mini-games.js ke saath load karo */
+
+.mg-panel {
+  position: fixed; left: 50%; bottom: 0; transform: translate(-50%, 105%);
+  width: min(430px, 100%); max-height: 78vh; overflow-y: auto;
+  background: linear-gradient(165deg, #2b1546, #150a26);
+  border: 1px solid rgba(255,215,106,.35); border-bottom: none;
+  border-radius: 22px 22px 0 0; z-index: 9000;
+  transition: transform .3s cubic-bezier(.32,.72,.35,1);
+  padding: 14px 16px calc(18px + env(safe-area-inset-bottom, 0px));
+}
+.mg-panel.show { transform: translate(-50%, 0); }
+.mg-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.mg-head b { color: #ffd76a; font-size: 17px; }
+.mg-head button { background: none; border: none; color: #fff; font-size: 18px; cursor: pointer; }
+.mg-tabs { display: flex; gap: 8px; margin-bottom: 12px; }
+.mg-tabs button {
+  flex: 1; padding: 9px; border-radius: 12px; border: 1px solid rgba(255,255,255,.14);
+  background: rgba(255,255,255,.06); color: #fff; font-weight: 700; cursor: pointer;
+}
+.mg-tabs button.active { background: rgba(255,215,106,.18); border-color: #ffd76a; color: #ffd76a; }
+.mg-bigbtn {
+  width: 100%; padding: 13px; margin-top: 12px; border: none; border-radius: 14px;
+  background: linear-gradient(135deg, #ffb52e, #ff8a3d); color: #231303;
+  font-size: 16px; font-weight: 900; cursor: pointer;
+}
+.mg-bigbtn:active { transform: scale(.97); }
+.mg-linkbtn {
+  width: 100%; margin-top: 8px; background: none; border: none;
+  color: rgba(255,255,255,.55); font-size: 13px; cursor: pointer; text-decoration: underline;
+}
+.mg-prow {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 9px 4px; border-bottom: 1px solid rgba(255,255,255,.07); color: #fff; font-size: 14px;
+}
+.mg-dice { font-size: 30px; }
+.mg-dice.rolling { animation: mg-roll .5s ease; }
+@keyframes mg-roll {
+  0% { transform: rotate(0) scale(1); } 50% { transform: rotate(180deg) scale(1.3); } 100% { transform: rotate(360deg) scale(1); }
+}
+.mg-empty { text-align: center; color: rgba(255,255,255,.5); padding: 22px 0; font-size: 14px; }
+.mg-winner {
+  margin-top: 10px; padding: 10px; border-radius: 12px; text-align: center;
+  background: rgba(255,215,106,.12); border: 1px solid rgba(255,215,106,.4);
+  color: #ffd76a; font-weight: 700; font-size: 14px;
+  animation: mg-win .5s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes mg-win { from { transform: scale(.7); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+/* Lucky wheel */
+.mg-wheel-outer { position: relative; width: 230px; height: 230px; margin: 6px auto 4px; }
+.mg-wheel {
+  width: 100%; height: 100%; border-radius: 50%; position: relative; overflow: hidden;
+  border: 6px solid #ffd76a; box-shadow: 0 0 30px rgba(255,180,60,.4);
+}
+.mg-seg {
+  position: absolute; left: 50%; top: 50%; width: 50%; height: 50%;
+  transform-origin: 0 0;
+  clip-path: polygon(0 0, 100% 0, 0 100%);
+}
+.mg-seg span {
+  position: absolute; left: 18px; top: 8px; transform: rotate(22deg);
+  color: #231303; font-weight: 900; font-size: 13px;
+}
+.mg-pin {
+  position: absolute; top: -14px; left: 50%; transform: translateX(-50%);
+  font-size: 26px; z-index: 2; filter: drop-shadow(0 2px 4px rgba(0,0,0,.5));
+}

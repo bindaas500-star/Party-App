@@ -1,0 +1,52 @@
+/* Treasure Box styles — treasure-box.js ke saath load karo */
+
+.tbox-wrap {
+  position: fixed; z-index: 9000;
+  right: 16px; top: 38%;
+  display: none; text-align: center;
+}
+.tbox-wrap.show { display: block; animation: tbox-in .4s cubic-bezier(.34,1.56,.64,1); }
+@keyframes tbox-in {
+  from { transform: scale(.4) rotate(-14deg); opacity: 0; }
+  to   { transform: scale(1) rotate(0);       opacity: 1; }
+}
+.tbox-box {
+  width: 92px; height: 92px; border-radius: 22px;
+  background: linear-gradient(135deg, #3a1c5e, #1c1030);
+  border: 2px solid rgba(255,215,106,.55);
+  box-shadow: 0 0 26px rgba(255,180,60,.45);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  cursor: pointer; position: relative;
+  animation: tbox-glow 1.4s ease-in-out infinite;
+}
+@keyframes tbox-glow {
+  0%, 100% { box-shadow: 0 0 14px rgba(255,180,60,.35); }
+  50%      { box-shadow: 0 0 30px rgba(255,180,60,.7); }
+}
+.tbox-box.opened { animation: none; opacity: .75; }
+.tbox-emoji { font-size: 38px; animation: tbox-bounce 1s ease-in-out infinite; }
+@keyframes tbox-bounce {
+  0%, 100% { transform: translateY(0); } 50% { transform: translateY(-7px); }
+}
+.tbox-timer { font-size: 13px; font-weight: 800; color: #ffd76a; margin-top: 2px; }
+.tbox-label {
+  position: absolute; top: 100%; left: 50%; transform: translateX(-50%);
+  white-space: nowrap; font-size: 11px; color: #fff; font-weight: 600;
+  background: rgba(0,0,0,.55); padding: 3px 10px; border-radius: 10px; margin-top: 6px;
+}
+.tbox-result {
+  position: fixed; left: 50%; top: 50%; transform: translate(-50%,-50%) scale(.8);
+  background: linear-gradient(160deg, #2c1747, #160b28);
+  border: 1px solid rgba(255,215,106,.4); border-radius: 18px;
+  padding: 20px 24px; min-width: 240px; z-index: 9001;
+  display: none; opacity: 0; transition: all .25s ease;
+}
+.tbox-result.show { display: block; opacity: 1; transform: translate(-50%,-50%) scale(1); }
+.tbox-rtitle { font-size: 18px; font-weight: 800; color: #ffd76a; margin-bottom: 10px; text-align: center; }
+.tbox-rrow { font-size: 14px; color: #fff; padding: 5px 0; border-bottom: 1px solid rgba(255,255,255,.07); }
+.tbox-rrow b { color: #ffd76a; }
+.tbox-close {
+  margin-top: 12px; width: 100%; padding: 10px; border: none; border-radius: 12px;
+  background: linear-gradient(135deg, #ffb52e, #ff8a3d); color: #231303;
+  font-weight: 800; font-size: 14px; cursor: pointer;
+}

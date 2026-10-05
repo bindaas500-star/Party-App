@@ -1,0 +1,55 @@
+/* Nobility styles — nobility.js ke saath load karo */
+
+/* Full-screen entry effect */
+.noble-entry {
+  position: fixed; inset: 0; z-index: 9500;
+  display: flex; align-items: center; justify-content: center;
+  background: radial-gradient(ellipse at center, rgba(20,8,40,.55), rgba(10,4,22,.88));
+  opacity: 0; transition: opacity .5s ease; pointer-events: none;
+}
+.noble-entry.show { opacity: 1; }
+.noble-inner { text-align: center; transform: scale(.7); transition: transform .55s cubic-bezier(.34,1.56,.64,1); }
+.noble-entry.show .noble-inner { transform: scale(1); }
+.noble-emoji { font-size: 92px; filter: drop-shadow(0 10px 34px rgba(255,200,80,.6)); animation: noble-float 1.8s ease-in-out infinite; }
+@keyframes noble-float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
+.noble-title { font-size: 34px; font-weight: 900; letter-spacing: 6px; margin-top: 8px; text-shadow: 0 0 26px currentColor; }
+.noble-user { font-size: 20px; font-weight: 800; color: #fff; margin-top: 6px; }
+.noble-sub { color: rgba(255,255,255,.65); font-size: 14px; margin-top: 4px; }
+
+/* Store panel */
+.noble-panel {
+  position: fixed; left: 50%; bottom: 0; transform: translate(-50%, 105%);
+  width: min(430px, 100%); max-height: 80vh; overflow-y: auto;
+  background: linear-gradient(165deg, #2b1546, #150a26);
+  border: 1px solid rgba(255,215,106,.35); border-bottom: none;
+  border-radius: 22px 22px 0 0; z-index: 9000;
+  transition: transform .3s cubic-bezier(.32,.72,.35,1);
+  padding: 14px 16px calc(18px + env(safe-area-inset-bottom, 0px));
+}
+.noble-panel.show { transform: translate(-50%, 0); }
+.noble-cur {
+  text-align: center; color: #fff; font-size: 14px; margin-bottom: 10px;
+  background: rgba(255,215,106,.1); border: 1px solid rgba(255,215,106,.35);
+  padding: 9px; border-radius: 12px;
+}
+.noble-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 4px; border-bottom: 1px solid rgba(255,255,255,.07);
+}
+.noble-ric { font-size: 34px; }
+.noble-rinfo { flex: 1; display: flex; flex-direction: column; }
+.noble-rinfo b { font-size: 15px; }
+.noble-rinfo small { color: rgba(255,255,255,.55); font-size: 11px; margin-top: 2px; }
+.noble-buy {
+  padding: 9px 14px; border: none; border-radius: 12px; cursor: pointer;
+  background: linear-gradient(135deg, #4fc3ff, #7a6bff); color: #fff; font-weight: 800; font-size: 13px;
+}
+.noble-buy:disabled { background: rgba(255,255,255,.12); color: #ffd76a; cursor: default; }
+.noble-buy:not(:disabled):active { transform: scale(.95); }
+
+/* Chat badge */
+.noble-badge {
+  display: inline-block; font-size: 13px; margin-left: 4px;
+  border: 1px solid; border-radius: 8px; padding: 0 4px;
+  vertical-align: middle;
+}

@@ -1,0 +1,73 @@
+/* ============================================================
+   Party App — Live Features: GiftFX styles
+   gift-fx.js ke saath load karo (styles.css ke baad).
+   ============================================================ */
+
+.giftfx-overlay {
+  position: fixed; inset: 0; z-index: 9999;
+  pointer-events: none;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; visibility: hidden;
+}
+.giftfx-overlay.show { opacity: 1; visibility: visible; pointer-events: auto; }
+.giftfx-overlay.hide { opacity: 0; transition: opacity .25s ease; }
+
+.giftfx-canvas { position: absolute; inset: 0; }
+
+.giftfx-banner {
+  position: relative; text-align: center;
+  transform: scale(.6); opacity: 0;
+}
+.giftfx-overlay.show .giftfx-banner { animation: giftfx-pop .5s cubic-bezier(.34,1.56,.64,1) forwards; }
+@keyframes giftfx-pop {
+  to { transform: scale(1); opacity: 1; }
+}
+
+.giftfx-sender {
+  font-size: 15px; font-weight: 700; color: #fff;
+  text-shadow: 0 2px 12px rgba(0,0,0,.6); margin-bottom: 6px;
+}
+.giftfx-emoji {
+  font-size: 110px; line-height: 1;
+  filter: drop-shadow(0 8px 30px rgba(255,180,60,.55));
+  animation: giftfx-float 1.6s ease-in-out infinite;
+}
+.giftfx-overlay.luxury .giftfx-emoji { font-size: 150px; }
+.giftfx-overlay.mini .giftfx-emoji { font-size: 72px; }
+@keyframes giftfx-float {
+  0%, 100% { transform: translateY(0) rotate(-4deg); }
+  50%      { transform: translateY(-16px) rotate(4deg); }
+}
+.giftfx-name {
+  margin-top: 8px; font-size: 20px; font-weight: 800; color: #ffd76a;
+  text-shadow: 0 2px 14px rgba(0,0,0,.7);
+}
+.giftfx-combo {
+  margin-top: 4px; font-size: 26px; font-weight: 900; color: #ff6ec4;
+  text-shadow: 0 0 18px rgba(255,110,196,.8);
+  animation: giftfx-combo .4s ease-in-out infinite alternate;
+}
+@keyframes giftfx-combo {
+  from { transform: scale(1); } to { transform: scale(1.12); }
+}
+
+/* Luxury tier: screen flash */
+.giftfx-overlay.luxury::before {
+  content: ''; position: absolute; inset: 0;
+  background: radial-gradient(ellipse at center, rgba(255,215,106,.28), transparent 70%);
+  animation: giftfx-flash 1s ease-in-out 2;
+}
+@keyframes giftfx-flash {
+  0%, 100% { opacity: 0; } 50% { opacity: 1; }
+}
+
+/* Screen shake (luxury gifts) */
+body.giftfx-shake #mainScreen, body.giftfx-shake .panels-wrap {
+  animation: giftfx-shake .45s ease-in-out 2;
+}
+@keyframes giftfx-shake {
+  0%, 100% { transform: translate(0,0); }
+  25% { transform: translate(-6px, 3px); }
+  50% { transform: translate(6px, -3px); }
+  75% { transform: translate(-4px, -2px); }
+}
