@@ -1,0 +1,71 @@
+/* ============================================================
+   Premium Frames — animated + illustrated frame styles
+   .pfx-art: overlay injected by premium-frames.js inside
+   .vip-frame-wrap (position relative). Scales with avatar.
+   ============================================================ */
+.pfx-art{position:absolute;inset:-16%;z-index:3;pointer-events:none}
+.pfx-art svg{width:100%;height:100%;display:block;overflow:visible}
+
+/* ---------- Pure-CSS premium rings (set 1) ---------- */
+.pfx-css{position:absolute;inset:6%;border-radius:50%}
+.pfx-css-gold{background:conic-gradient(from var(--pf-a,0deg),#8a5a00,#ffe9a8,#b8860b,#fff3c4,#8a5a00);
+  -webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);
+  -webkit-mask-composite:xor;mask-composite:exclude;padding:7%;
+  animation:pf-spin 5s linear infinite;filter:drop-shadow(0 0 6px rgba(255,200,60,.8))}
+.pfx-css-diamond{background:linear-gradient(135deg,#9fdcff,#2e9bff,#d8f3ff,#2e9bff,#9fdcff);
+  -webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);
+  -webkit-mask-composite:xor;mask-composite:exclude;padding:7%;
+  animation:pf-pulse 2.2s ease-in-out infinite;filter:drop-shadow(0 0 8px rgba(120,200,255,.8))}
+.pfx-css-neon{background:conic-gradient(#ff2fd6,#7b2fff,#2fd6ff,#ff2fd6);
+  -webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);
+  -webkit-mask-composite:xor;mask-composite:exclude;padding:6%;
+  filter:saturate(1.5) drop-shadow(0 0 8px rgba(200,60,255,.8))}
+.pfx-css-crown{background:linear-gradient(180deg,#ffe9a8,#b8860b 60%,#7a5200);
+  -webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);
+  -webkit-mask-composite:xor;mask-composite:exclude;padding:8%;
+  filter:drop-shadow(0 0 6px rgba(255,200,60,.8))}
+.pfx-crown-badge{position:absolute;top:-4%;left:50%;transform:translateX(-50%);width:26%;z-index:4;
+  filter:drop-shadow(0 2px 3px rgba(0,0,0,.5))}
+@property --pf-a{syntax:"<angle>";initial-value:0deg;inherits:false}
+@keyframes pf-spin{to{--pf-a:360deg}}
+@keyframes pf-pulse{0%,100%{opacity:.65}50%{opacity:1}}
+
+/* ---------- Animated mythic frames (set 2) ---------- */
+.pfx-fx{position:absolute;inset:0}
+.pfx-fx svg.pfx-main{position:absolute;inset:0;width:100%;height:100%}
+.pfx-dragon-rot{animation:pf-rot 16s linear infinite;transform-origin:50% 50%}
+@keyframes pf-rot{to{transform:rotate(360deg)}}
+.pfx-ember{position:absolute;bottom:6%;width:5%;aspect-ratio:1;border-radius:50%;
+  background:#ffb13d;opacity:0;animation:pf-rise 2.6s ease-in infinite;filter:blur(.5px)}
+@keyframes pf-rise{0%{transform:translateY(0) scale(1);opacity:0}25%{opacity:1}
+  100%{transform:translateY(-90%) translateX(12px) scale(.3);opacity:0}}
+.pfx-wing{position:absolute;top:14%;width:44%;transform-origin:top center;z-index:2}
+.pfx-wing.l{left:-4%;animation:pf-flapL 1.6s ease-in-out infinite}
+.pfx-wing.r{right:-4%;animation:pf-flapR 1.6s ease-in-out infinite}
+@keyframes pf-flapL{0%,100%{transform:rotate(-8deg)}50%{transform:rotate(14deg)}}
+@keyframes pf-flapR{0%,100%{transform:scaleX(-1) rotate(-8deg)}50%{transform:scaleX(-1) rotate(14deg)}}
+.pfx-fire-glow{position:absolute;inset:8%;border-radius:50%;
+  background:radial-gradient(circle,rgba(255,120,30,.35),transparent 70%);animation:pf-pulse 2s ease-in-out infinite}
+.pfx-galaxy-a{position:absolute;inset:2%;border-radius:50%;
+  background:conic-gradient(from 0deg,#2b0a4d,#7b2fff,#123,#ff2fd6,#2b0a4d);
+  filter:blur(5px) saturate(1.5);opacity:.9;animation:pf-rot 12s linear infinite}
+.pfx-galaxy-b{position:absolute;inset:12%;border-radius:50%;
+  background:conic-gradient(from 180deg,transparent,#2fd6ff,transparent,#ff9f2f,transparent);
+  filter:blur(3px);animation:pf-rot 8s linear infinite reverse}
+.pfx-star{position:absolute;width:3.5%;aspect-ratio:1;border-radius:50%;background:#fff;animation:pf-pulse 1.8s ease-in-out infinite}
+.pfx-frost-ring{position:absolute;inset:4%;border-radius:50%;padding:5%;
+  background:linear-gradient(135deg,#dff2ff,#8fc7ff,#eaf7ff,#5aa9e6);
+  -webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);
+  -webkit-mask-composite:xor;mask-composite:exclude;
+  filter:drop-shadow(0 0 6px rgba(140,200,255,.6))}
+.pfx-shard{position:absolute;width:13%;filter:drop-shadow(0 0 4px rgba(140,200,255,.9));animation:pf-pulse 3s ease-in-out infinite}
+.pfx-snow{position:absolute;top:-2%;width:3.5%;aspect-ratio:1;border-radius:50%;background:#eaf7ff;
+  opacity:0;animation:pf-fall 3.2s linear infinite}
+@keyframes pf-fall{0%{transform:translateY(0);opacity:0}20%{opacity:.95}100%{transform:translateY(1100%);opacity:0}}
+
+/* ---------- Store preview integration ---------- */
+.fsc-frame-preview{position:relative}
+.pfx-pv-overlay{position:absolute;inset:-14%;pointer-events:none;z-index:5}
+.pfx-pv-overlay svg{width:100%;height:100%;overflow:visible}
+.pfx-pv-overlay .pfx-css{position:absolute;inset:12%}
+.pfx-free-tag{font-size:11px;font-weight:700;color:#2e9b4d}
