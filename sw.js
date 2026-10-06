@@ -1,7 +1,7 @@
 /* Party App Service Worker — app-shell caching + offline fallback.
    Ise index.html se register kiya jata hai (neeche di hui snippet dekho). */
 
-const CACHE_NAME = 'party-app-v6';
+const CACHE_NAME = 'party-app-v7';
 
 const APP_SHELL = [
   './',
@@ -26,6 +26,11 @@ const APP_SHELL = [
   './live-features/frame-art.js',
   './live-features/premium-frames.js',
   './live-features/premium-frames.css',
+  './live-features/profile-vip-pack.js',
+  './live-features/profile-vip-pack.css',
+  './live-features/bff-pack.js',
+  './live-features/resilience-pack.js',
+  './live-features/resilience-pack.css',
   './manifest.json',
   './icons/icon-192.png',
   './icons/icon-512.png',
